@@ -16,6 +16,7 @@ const modeMap = {
   ADB: 'bat',
   SBV: 'plaintext',
   VCF: 'plaintext',
+  Markdown: 'markdown', // 👈 Adiciona esta linha
   Texto: 'plaintext'
 };
 
@@ -213,6 +214,19 @@ if (/^https?:\/\/[^\s]+$/i.test(code.trim())) {
     return 'VCF';
   }
 
+  // Markdown (.md)
+  if (
+    /^#{1,6}\s.+/m.test(code) ||                  // Títulos (#, ##, ### etc.)
+    /\*\*.+\*\*/.test(code) ||                    // Negrito
+    /_.+_/.test(code) ||                          // Itálico
+    /`{1,3}[^`]+`{1,3}/.test(code) ||             // Código inline
+    /^```[\s\S]*?^```/m.test(code) ||             // Bloco de código
+    /^>.+/m.test(code) ||                         // Citação
+    /^[-*+]\s.+/m.test(code)                      // Lista
+  ) {
+   return 'Markdown';
+  } 
+
   if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) {
     return 'Texto';
   }
@@ -247,7 +261,8 @@ document.getElementById('download-file').addEventListener('click', () => {
     Kotlin: 'kt',
     SBV: 'sbv',
     ADB: 'bat',
-    VCF: 'vcf'
+    VCF: 'vcf',
+    Markdown: 'md' // 👈 Aqui
   };
 
   const extension = extensionMap[language] || 'txt';
