@@ -17,6 +17,7 @@ const modeMap = {
   SBV: 'plaintext',
   VCF: 'plaintext',
   Markdown: 'markdown', // 👈 Adiciona esta linha
+  Git: 'plaintext', // 👈 adiciona isso aqui
   Texto: 'plaintext'
 };
 
@@ -132,9 +133,40 @@ if (/^https?:\/\/[^\s]+$/i.test(code.trim())) {
   return detectLink(code.trim());
 }
 
+  // Markdown com blocos de código (prioritário, mas não se parecer com código puro)
+if (
+  (
+    /^#{1,6}\s.+/m.test(code) ||            // títulos
+    /^>/.test(code) ||                      // citações
+    /^```[\s\S]+```/m.test(code) ||         // blocos de código
+    /\[.+\]\(.+\)/.test(code) ||            // links
+    /^[-*+]\s/m.test(code) ||               // listas
+    /\*\*.+\*\*/.test(code) ||              // negrito
+    /_.+_/.test(code)                       // itálico
+  )
+  &&
+  !/(function|const|let|var|=>|if\s*\(|for\s*\(|console\.log)/.test(code) // não é JS
+  &&
+  !/<[a-z!]/i.test(code) // não é HTML
+) {
+  return 'Markdown';
+}
+
+
+  // JavaScript (só quando não há tags HTML)
+  if (!/<[a-z!]/i.test(code) && /(function\s+\w+\s*\(|\bconsole\.log\b|let\s+|const\s+|var\s+)/.test(code)) {
+    return 'JavaScript';
+  }
 
   // Arduino
-  if (/void\s+setup\s*\(\)|void\s+loop\s*\(\)|pinMode|digitalWrite|analog(Read|Write)/.test(code)) {
+  if (
+    /\bvoid\s+setup\s*\(\)/.test(code) ||
+    /\bvoid\s+loop\s*\(\)/.test(code) ||
+    /\bpinMode\s*\(/.test(code) ||
+    /\bdigitalWrite\s*\(/.test(code) ||
+    /\banalog(Read|Write)\s*\(/.test(code)
+
+  ) {
     return 'Arduino';
   }
 
@@ -144,7 +176,11 @@ if (/^https?:\/\/[^\s]+$/i.test(code.trim())) {
   }
 
   // C++
-  if (/#include\s*<[^>]+>|std::|cout\s*<<|cin\s*>>/.test(code)) {
+  if (
+    /#include\s*<[^>]+>|std::|cout\s*<<|cin\s*>>/.test(code)
+    &&
+    !/(function|const|let|var|=>|if\s*\(|for\s*\(|console\.log)/.test(code) // não é JS
+  ) {
     return 'C++';
   }
 
@@ -168,12 +204,6 @@ if (/^https?:\/\/[^\s]+$/i.test(code.trim())) {
   !/(function|const|let|var|\=\>|console\.log)/.test(code)     // não parece JS
   ) {
     return 'CSS';
-  }
-
-
-  // JavaScript (só quando não há tags HTML)
-  if (!/<[a-z!]/i.test(code) && /(function\s+\w+\s*\(|\bconsole\.log\b|let\s+|const\s+|var\s+)/.test(code)) {
-    return 'JavaScript';
   }
 
   // Kotlin
@@ -214,18 +244,16 @@ if (/^https?:\/\/[^\s]+$/i.test(code.trim())) {
     return 'VCF';
   }
 
-  // Markdown (.md)
+  // Git Commit (.git)
   if (
-    /^#{1,6}\s.+/m.test(code) ||                  // Títulos (#, ##, ### etc.)
-    /\*\*.+\*\*/.test(code) ||                    // Negrito
-    /_.+_/.test(code) ||                          // Itálico
-    /`{1,3}[^`]+`{1,3}/.test(code) ||             // Código inline
-    /^```[\s\S]*?^```/m.test(code) ||             // Bloco de código
-    /^>.+/m.test(code) ||                         // Citação
-    /^[-*+]\s.+/m.test(code)                      // Lista
+    /^# Please enter the commit message for your changes\./m.test(code) ||
+    /^# On branch/m.test(code) ||
+    /^# Your branch is up to date with/m.test(code) ||
+    /^# Changes to be committed:/m.test(code) ||
+    /Your branch is up to date with 'origin\/main'/.test(code)
   ) {
-   return 'Markdown';
-  } 
+    return 'Texto (Git)';
+  }
 
   if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) {
     return 'Texto';
@@ -262,7 +290,9 @@ document.getElementById('download-file').addEventListener('click', () => {
     SBV: 'sbv',
     ADB: 'bat',
     VCF: 'vcf',
-    Markdown: 'md' // 👈 Aqui
+    Markdown: 'md', // 👈 Aqui
+    Git: 'git' // 👈 Aqui
+
   };
 
   const extension = extensionMap[language] || 'txt';
