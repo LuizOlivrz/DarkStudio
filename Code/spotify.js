@@ -292,7 +292,7 @@ albumArtEl.onload = () => {
 
     // Ajuste automático com base no brilho
     let adjustedColor;
-    if (brightness > 100) {
+    if (brightness > 80) {
       // capa muito clara → escurece um pouco
       adjustedColor = darkenRGB(dominantColor, 40);
     } else if (brightness < 80) {
