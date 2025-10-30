@@ -362,9 +362,7 @@ async function getUserProfilePicture() {
   if (imgUrl) {
     const profilePic = document.getElementById('spotify-profile-pic');
     profilePic.src = imgUrl;
-    document.getElementById('spotify-profile-pic-full').src = imgUrl;
     profilePic.setAttribute('title', displayName);
-    document.getElementById('spotify-profile-pic-full').setAttribute('title', displayName);
   }
 }
 
