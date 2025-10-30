@@ -2,7 +2,6 @@
 const clientId = '602dd626c8014779aab8a1b118c80012';
 const redirectUri = window.location.origin + window.location.pathname;
 const scopes = 'user-read-currently-playing user-read-playback-state';
-
 const autoBackground = true;
 
 // Função para gerar code verifier PKCE
@@ -410,12 +409,6 @@ function fullScreen() {
   info.style.opacity = isVisible ? '1' : '0';
   document.getElementById('track-info-full').style.opacity = isVisible ? '0' : '1';
   closeBtn.style.pointerEvents = isVisible ? 'none' : 'auto';
-
-  const profileFull = document.getElementById('spotify-profile-pic-full');
-
-// Controla visibilidade da foto de perfil full
-profileFull.style.opacity = isVisible ? '0' : '1';
-profileFull.style.pointerEvents = isVisible ? 'none' : 'auto';
 
 fullScreenCalc();
 }

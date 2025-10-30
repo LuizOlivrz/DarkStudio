@@ -39,6 +39,7 @@ body {
   left: 5px;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
+  z-index: 1;
 
 }
 
@@ -147,7 +148,7 @@ body {
   font-size: 16px;
   font-weight: bold;
   transition: background-color 0.3s ease;
-  z-index: 10;
+  z-index: 3;
 
 }
 
@@ -215,6 +216,7 @@ body {
 
 #full-screen:hover {
   transform: rotate3d(50px);
+
 }
 
 #code-language {
@@ -233,6 +235,7 @@ body {
     bottom 0.5s ease-in-out,
     border-radius 0.5s ease-in-out,
     opacity 0.5s ease-in-out;
+  z-index: 4;
 
 }
 
@@ -257,34 +260,23 @@ button {
 
 }
 
-#spotify-profile-pic-full {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: 5;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-
-}
-
 #track-info-full {
   position: absolute;
   bottom: 0px;
   left: 10px;
   border-radius: 50%;
-  z-index: 5;
+  z-index: 2;
+
 }
 
 #track-name-full {
   margin-bottom: 3px; /* distância abaixo do nome da música */
+
 }
 
 #artist-name-full {
   margin-top: 0px; /* distância acima do artista */
+
 }
 
 #spotify-now-playing .track-info-full {
@@ -306,7 +298,6 @@ button {
 #spotify-now-playing p#artist-name-full {
   margin: 5px 0 0 0;
   font-size: 14px;
-  color: #bbb;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -316,6 +307,7 @@ button {
 img {
   -webkit-user-drag: none; /* compatibilidade com Chrome e Safari */
   pointer-events: none;
+
 }
 
 #spotify-logo-full{
@@ -324,8 +316,10 @@ img {
   right: 10px;
   width: 40px;
   height: auto;
+
 }
 
 #spotify-logo-full path {
   fill: #1ED760; /* muda a cor do preenchimento */
+
 }
