@@ -292,7 +292,7 @@ albumArtEl.onload = () => {
 
     // Ajuste automático com base no brilho
     let adjustedColor;
-    if (brightness > 180) {
+    if (brightness > 100) {
       // capa muito clara → escurece um pouco
       adjustedColor = darkenRGB(dominantColor, 40);
     } else if (brightness < 80) {
@@ -304,14 +304,14 @@ albumArtEl.onload = () => {
     }
 
     const textColor = brightness < 100
-      ? lightenRGB(dominantColor, 50)
+      ? lightenRGB(dominantColor, 45)
       : darkenRGB(dominantColor, 40);
 
     const path = document.querySelector("#spotify-logo-full path");
     const btns = document.querySelectorAll("button");
 
-    trackNameEl.style.color = textColor;
-    artistNameEl.style.color = textColor;
+    trackNameEl.style.color = adjustedColor;
+    artistNameEl.style.color = adjustedColor;
     trackNameFullEl.style.color = textColor;
     artistNameFullEl.style.color = textColor;
 
