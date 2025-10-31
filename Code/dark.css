@@ -324,3 +324,13 @@ img {
   fill: #1ED760; /* muda a cor do preenchimento */
 
 }
+
+#instagram-logo {
+  width: 30px;
+  height: auto;
+  cursor: pointer;
+  transition: fill 0.3s ease;
+  position: fixed;
+  bottom: 65px;
+  left: 30px;
+}
