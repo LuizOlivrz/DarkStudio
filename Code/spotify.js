@@ -2,7 +2,7 @@
 const clientId = '602dd626c8014779aab8a1b118c80012';
 const redirectUri = window.location.origin + window.location.pathname;
 const scopes = 'user-read-currently-playing user-read-playback-state';
-const autoBackground = true;
+let autoBackground = true;
 
 // Função para gerar code verifier PKCE
 function generateCodeVerifier(length = 128) {
@@ -204,18 +204,9 @@ if (response.status === 204 || response.status > 400) {
   }
 
   // Reseta cores e estilos
-  document.getElementById('options').style.backgroundColor = "#090909";
-  document.getElementById('options').style.color = "#090909";
-  document.getElementById('Editor').style.backgroundColor = "#3c3c3c";
-  document.getElementById('close').style.backgroundColor = "#090909";
-  document.getElementById('close').style.color = "#1ED760";
-  document.getElementById('code-language').style.backgroundColor = "#090909";
-  document.getElementById('code-language').style.color = "#FFFFFF";
-  document.getElementById('full-screen').style.backgroundColor = "#090909";
-  document.getElementById('full-screen').style.color = "#FFFFFF";
-  path.style.fill = "#1ED760";
   albumArtEl2.style.width = '700px';
-
+  trackNameEl.style.color = '#fff';
+  artistNameEl.style.color = '#bbb';
   resetTextColors();
   return;
 
@@ -257,18 +248,9 @@ if (response.status === 204 || response.status > 400) {
   }
 
   // Reseta cores e estilos
-  document.getElementById('options').style.backgroundColor = "#090909";
-  document.getElementById('options').style.color = "#090909";
-  document.getElementById('Editor').style.backgroundColor = "#3c3c3c";
-  document.getElementById('close').style.backgroundColor = "#090909";
-  document.getElementById('close').style.color = "#FFFFFF";
-  document.getElementById('code-language').style.backgroundColor = "#090909";
-  document.getElementById('code-language').style.color = "#FFFFFF";
-  document.getElementById('full-screen').style.backgroundColor = "#090909";
-  document.getElementById('full-screen').style.color = "#FFFFFF";
-  path.style.fill = "#1ED760";
   albumArtEl2.style.width = '700px';
-
+  trackNameEl.style.color = '#fff';
+  artistNameEl.style.color = '#bbb';
   resetTextColors();
   return;
 
@@ -337,6 +319,9 @@ albumArtEl.onload = () => {
       document.getElementById('close').style.color = textColor;
       document.getElementById('code-language').style.backgroundColor = back;
       document.getElementById('code-language').style.color = textColor;
+      document.getElementById('config').style.backgroundColor = back;
+    } else {
+      resetTextColors();
     }
 
   } catch (error) {
@@ -372,8 +357,22 @@ async function getUserProfilePicture() {
 }
 
 function resetTextColors() {
-  document.getElementById('track-name').style.color = '#fff';
-  document.getElementById('artist-name').style.color = '#bbb';
+  document.getElementById('options').style.backgroundColor = "#090909";
+  document.getElementById('options').style.color = "#090909";
+  document.getElementById('Editor').style.backgroundColor = "#3c3c3c";
+  document.getElementById('close').style.backgroundColor = "#090909";
+  document.getElementById('close').style.color = "#FFFFFF";
+  document.getElementById('code-language').style.backgroundColor = "#090909";
+  document.getElementById('code-language').style.color = "#FF6700";
+  document.getElementById('config').style.backgroundColor = "#090909";
+  document.getElementById('instagram-logo').style.fill = "#FF6700";
+  document.getElementById('youtube-logo').style.fill = "#FF6700";
+  const btns = document.querySelectorAll("button");
+  btns.forEach(btn => {
+    btn.style.color = "#FF6700";
+    btn.style.borderColor = "#FF6700";
+  });
+
   getNowPlaying();
 }
 
@@ -468,3 +467,12 @@ function darkenRGB([r, g, b], percent = 20) {
   const newB = Math.max(0, Math.floor(b - b * (percent / 100)));
   return `rgb(${newR}, ${newG}, ${newB})`;
 }
+
+// Variável para armazenar o estado do checkbox
+let fundoAutomatico = document.getElementById('auto-background-checkbox').checked;
+
+// Função para atualizar o valor da variável com o estado atual do checkbox
+document.getElementById('auto-background-checkbox').addEventListener('change', function() {
+  autoBackground = this.checked;
+  console.log(autoBackground);  // Aqui você pode ver o valor de autoBackground
+});
