@@ -146,6 +146,8 @@ async function handleRedirect() {
   }
 }
 
+const path = document.querySelector("#spotify-logo-full path");
+
 // Busca a música que está tocando no momento
 async function getNowPlaying() {
   const token = sessionStorage.getItem('access_token');
@@ -206,22 +208,18 @@ if (response.status === 204 || response.status > 400) {
   document.getElementById('options').style.color = "#090909";
   document.getElementById('Editor').style.backgroundColor = "#3c3c3c";
   document.getElementById('close').style.backgroundColor = "#090909";
-  document.getElementById('close').style.color = "#FFFFFF";
+  document.getElementById('close').style.color = "#1ED760";
   document.getElementById('code-language').style.backgroundColor = "#090909";
   document.getElementById('code-language').style.color = "#FFFFFF";
   document.getElementById('full-screen').style.backgroundColor = "#090909";
   document.getElementById('full-screen').style.color = "#FFFFFF";
+  path.style.fill = "#1ED760";
   albumArtEl2.style.width = '700px';
 
   resetTextColors();
   return;
 
-}  else if (response.status === 200) {
-
-    trackNameEl.textContent = 'Anúncio no Spotify';
-
 }
-
 
   const data = await response.json();
 
@@ -268,6 +266,7 @@ if (response.status === 204 || response.status > 400) {
   document.getElementById('code-language').style.color = "#FFFFFF";
   document.getElementById('full-screen').style.backgroundColor = "#090909";
   document.getElementById('full-screen').style.color = "#FFFFFF";
+  path.style.fill = "#1ED760";
   albumArtEl2.style.width = '700px';
 
   resetTextColors();
@@ -313,7 +312,6 @@ albumArtEl.onload = () => {
       ? lightenRGB(dominantColor, 35)
       : darkenRGB(dominantColor, 50);
 
-    const path = document.querySelector("#spotify-logo-full path");
     const btns = document.querySelectorAll("button");
 
     trackNameEl.style.color = adjustedColor;
@@ -332,6 +330,7 @@ albumArtEl.onload = () => {
     if (autoBackground) {
       document.getElementById('options').style.backgroundColor = back;
       document.getElementById('instagram-logo').style.fill = textColor;
+      document.getElementById('youtube-logo').style.fill = textColor;
       document.getElementById('options').style.color = textColor;
       document.getElementById('Editor').style.backgroundColor = back;
       document.getElementById('close').style.backgroundColor = back;

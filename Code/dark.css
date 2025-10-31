@@ -325,7 +325,7 @@ img {
 
 }
 
-#instagram-logo {
+#social-links{
   width: 30px;
   height: auto;
   cursor: pointer;
@@ -333,4 +333,14 @@ img {
   position: fixed;
   bottom: 65px;
   left: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+#social-links svg{
+  width: 30px;
+  height: auto;
+  fill: #FF6700;
+  transition: fill 0.3s ease;
 }
