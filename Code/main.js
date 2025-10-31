@@ -385,3 +385,14 @@ function loadCode() {
     alert('Nenhum código salvo encontrado.');
   }
 }
+
+function config() {
+  const configDiv = document.getElementById('config');
+  if (configDiv.style.opacity === "1") {
+    configDiv.style.opacity = "0";
+    configDiv.style.pointerEvents = "none";
+  } else {
+    configDiv.style.opacity = "1";
+    configDiv.style.pointerEvents = "auto";
+  }
+}
