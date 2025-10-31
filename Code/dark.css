@@ -23,6 +23,7 @@ body {
   padding-bottom: 5px;
   gap: 30px;
   cursor: pointer;
+  transition: opacity 0.3s ease-in-out;
 
 }
 
@@ -243,7 +244,7 @@ body {
 
 #code-language:hover {
   bottom: -10px;
-  width: 93.3%;
+  width: 93.3% !important; 
   border-radius: 10px;
   animation: none;
 
@@ -365,3 +366,38 @@ img {
   transition: background-color 0.5s ease-in-out, opacity 0.5s ease-in-out;
 
 }
+
+  /* Esconde o checkbox padrão */
+  input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ff0000;
+    border-radius: 4px;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  /* Quando estiver ativo (checked) */
+  input[type="checkbox"]:checked {
+    border: 2px solid #4caf50;
+    background-color: #4caf50; /* muda a cor de fundo */
+  }
+
+  label {
+    font-family: sans-serif;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  select {
+    background-color: #090909;
+    color: #FF6700;
+    border: 2px solid #FF6700;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
