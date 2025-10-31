@@ -2,6 +2,19 @@
 const clientId = '602dd626c8014779aab8a1b118c80012';
 const redirectUri = window.location.origin + window.location.pathname;
 const scopes = 'user-read-currently-playing user-read-playback-state';
+
+const trackNameFullEl = document.getElementById('track-name-full');
+const artistNameFullEl = document.getElementById('artist-name-full');
+const trackNameEl = document.getElementById('track-name');
+const artistNameEl = document.getElementById('artist-name');
+const albumArtEl = document.getElementById('album-art');
+const albumArtEl2 = document.getElementById('album-art-full');
+const full = document.getElementById('full-screen');
+const trackInfoEl = document.getElementById('track-info');
+
+const path = document.querySelector("#spotify-logo-full path");
+const btns = document.querySelectorAll("button");
+let fullscreenLock = false;
 let autoBackground = true;
 let spotify = true;
 
@@ -147,8 +160,6 @@ async function handleRedirect() {
   }
 }
 
-const path = document.querySelector("#spotify-logo-full path");
-
 // Busca a música que está tocando no momento
 async function getNowPlaying() {
   const token = sessionStorage.getItem('access_token');
@@ -162,19 +173,11 @@ async function getNowPlaying() {
     return;
   }
 
-  const trackNameFullEl = document.getElementById('track-name-full');
-  const artistNameFullEl = document.getElementById('artist-name-full');
-  const trackNameEl = document.getElementById('track-name');
-  const artistNameEl = document.getElementById('artist-name');
-  const albumArtEl = document.getElementById('album-art');
-  const albumArtEl2 = document.getElementById('album-art-full');
-  const full = document.getElementById('full-screen');
-  document.getElementById('track-info').style.opacity = '1';
+  trackInfoEl.style.opacity = '1';
 
 // Se não houver música tocando ou erro na API
 if (response.status === 204 || response.status > 400) {
 
-  console.log(response.status);
   trackNameEl.textContent = 'Nenhuma música tocando';
   artistNameEl.textContent = '';
   trackNameFullEl.textContent = '';
@@ -218,7 +221,6 @@ if (response.status === 204 || response.status > 400) {
   // Se a API retornar null no item
   if (!data.item) {
     
-  console.log(response.status);
   trackNameEl.textContent = 'Nenhuma música tocando';
   artistNameEl.textContent = '';
   trackNameFullEl.textContent = '';
@@ -294,8 +296,6 @@ albumArtEl.onload = () => {
     const textColor = brightness < 100
       ? lightenRGB(dominantColor, 55)
       : darkenRGB(dominantColor, 50);
-
-    const btns = document.querySelectorAll("button");
 
     trackNameEl.style.color = adjustedColor;
     artistNameEl.style.color = adjustedColor;
@@ -373,7 +373,6 @@ function resetTextColors() {
   document.getElementById('theme-select').style.color = "#FF6700";
   document.getElementById('theme-select').style.borderColor = "#FF6700";
   document.getElementById('theme-select').style.backgroundColor = "#090909";
-  const btns = document.querySelectorAll("button");
   btns.forEach(btn => {
     btn.style.color = "#FF6700";
     btn.style.borderColor = "#FF6700";
@@ -381,8 +380,6 @@ function resetTextColors() {
 
   getNowPlaying();
 }
-
-let fullscreenLock = false;
 
 function fullScreenVerif() {
   if (fullscreenLock) return; // se estiver bloqueado, não faz nada
@@ -477,28 +474,47 @@ function darkenRGB([r, g, b], percent = 20) {
 // Função para atualizar o valor da variável com o estado atual do checkbox
 document.getElementById('auto-background-checkbox').addEventListener('change', function() {
   autoBackground = this.checked;
+  saveCheckboxState();
 });
 
 document.getElementById('spotify-checkbox').addEventListener('change', function() {
   spotify = this.checked;
   Spotify();
+  saveCheckboxState();
 });
 
 // Salvando o estado do checkbox com localStorage:
-document.getElementById('auto-background-checkbox').addEventListener('change', function() {
-  localStorage.setItem('autoBackground', this.checked);
-});
+function saveCheckboxState() {
+  const autoCheckbox = document.getElementById('auto-background-checkbox');
+  const spotifyCheckbox = document.getElementById('spotify-checkbox');
+
+  const autoValue = !!(autoCheckbox && autoCheckbox.checked);
+  const spotifyValue = !!(spotifyCheckbox && spotifyCheckbox.checked);
+
+  localStorage.setItem('autoBackground', String(autoValue));
+  localStorage.setItem('spotify', String(spotifyValue));
+}
 
 // Carregar estado salvo ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
   const savedState = localStorage.getItem('autoBackground');
+  const savedStateSpotify = localStorage.getItem('spotify');
   if (savedState !== null) {
     autoBackground = savedState === 'true';
-    document.getElementById('auto-background-checkbox').checked = autoBackground;
+    const autoCheckbox = document.getElementById('auto-background-checkbox');
+    if (autoCheckbox) autoCheckbox.checked = autoBackground;
+  }
+  if (savedStateSpotify !== null) {
+    spotify = savedStateSpotify === 'true';
+    const spotifyCheckbox = document.getElementById('spotify-checkbox');
+    if (spotifyCheckbox) spotifyCheckbox.checked = spotify;
+    console.log("Spotify checkbox state loaded:", spotify);
+    Spotify();
   }
 });
 
 function Spotify() {
+  console.log("Spotify function called. Current state:", spotify);
   if (spotify) {
     document.getElementById('spotify-now-playing').style.opacity = '1';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'auto';
