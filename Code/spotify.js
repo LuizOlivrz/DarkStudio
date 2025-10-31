@@ -166,7 +166,7 @@ async function getNowPlaying() {
   const albumArtEl = document.getElementById('album-art');
   const albumArtEl2 = document.getElementById('album-art-full');
   const full = document.getElementById('full-screen');
-    document.getElementById('track-info').style.opacity = '1';
+  document.getElementById('track-info').style.opacity = '1';
 
 // Se não houver música tocando ou erro na API
 if (response.status === 204 || response.status > 400) {
@@ -215,6 +215,10 @@ if (response.status === 204 || response.status > 400) {
 
   resetTextColors();
   return;
+
+}  else if (response.status === 200) {
+
+    trackNameEl.textContent = 'Anúncio no Spotify';
 
 }
 
@@ -327,6 +331,7 @@ albumArtEl.onload = () => {
 
     if (autoBackground) {
       document.getElementById('options').style.backgroundColor = back;
+      document.getElementById('instagram-logo').style.fill = textColor;
       document.getElementById('options').style.color = textColor;
       document.getElementById('Editor').style.backgroundColor = back;
       document.getElementById('close').style.backgroundColor = back;

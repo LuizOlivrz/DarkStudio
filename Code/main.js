@@ -195,7 +195,7 @@ if (
   }
 
   // HTML (checado antes de JS e CSS)
-  if (/<(html|head|body|div|span|p|a|script|style|!DOCTYPE)[\s>]/i.test(code)) {
+  if (/<(html|iframe|head|body|div|span|p|a|script|style|!DOCTYPE)[\s>]/i.test(code)) {
     return 'HTML';
   }
 
