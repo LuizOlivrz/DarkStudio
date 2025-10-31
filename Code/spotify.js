@@ -166,6 +166,7 @@ async function getNowPlaying() {
   const albumArtEl = document.getElementById('album-art');
   const albumArtEl2 = document.getElementById('album-art-full');
   const full = document.getElementById('full-screen');
+    document.getElementById('track-info').style.opacity = '1';
 
 // Se não houver música tocando ou erro na API
 if (response.status === 204 || response.status > 400) {
@@ -271,6 +272,7 @@ if (response.status === 204 || response.status > 400) {
   }
 
   // Se chegou aqui, tem música tocando
+  albumArtEl.style.opacity = '1';
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
   albumArtEl2.style.width = '600px';
@@ -292,20 +294,20 @@ albumArtEl.onload = () => {
 
     // Ajuste automático com base no brilho
     let adjustedColor;
-    if (brightness > 80) {
+    if (brightness > 210) {
       // capa muito clara → escurece um pouco
-      adjustedColor = darkenRGB(dominantColor, 40);
-    } else if (brightness < 80) {
+      adjustedColor = darkenRGB(dominantColor, 20);
+    } else if (brightness < 30) {
       // capa muito escura → clareia um pouco
-      adjustedColor = lightenRGB(dominantColor, 45);
+      adjustedColor = lightenRGB(dominantColor, 20);
     } else {
       // brilho médio → mantém igual
       adjustedColor = `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`;
     }
 
     const textColor = brightness < 100
-      ? lightenRGB(dominantColor, 45)
-      : darkenRGB(dominantColor, 40);
+      ? lightenRGB(dominantColor, 35)
+      : darkenRGB(dominantColor, 50);
 
     const path = document.querySelector("#spotify-logo-full path");
     const btns = document.querySelectorAll("button");
