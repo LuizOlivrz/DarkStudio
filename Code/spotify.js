@@ -3,6 +3,7 @@ const clientId = '602dd626c8014779aab8a1b118c80012';
 const redirectUri = window.location.origin + window.location.pathname;
 const scopes = 'user-read-currently-playing user-read-playback-state';
 let autoBackground = true;
+let spotify = true;
 
 // Função para gerar code verifier PKCE
 function generateCodeVerifier(length = 128) {
@@ -291,7 +292,7 @@ albumArtEl.onload = () => {
     }
 
     const textColor = brightness < 100
-      ? lightenRGB(dominantColor, 35)
+      ? lightenRGB(dominantColor, 55)
       : darkenRGB(dominantColor, 50);
 
     const btns = document.querySelectorAll("button");
@@ -311,7 +312,6 @@ albumArtEl.onload = () => {
 
     if (autoBackground) {
       document.getElementById('options').style.backgroundColor = back;
-      document.getElementById('instagram-logo').style.fill = textColor;
       document.getElementById('youtube-logo').style.fill = textColor;
       document.getElementById('options').style.color = textColor;
       document.getElementById('Editor').style.backgroundColor = back;
@@ -320,6 +320,10 @@ albumArtEl.onload = () => {
       document.getElementById('code-language').style.backgroundColor = back;
       document.getElementById('code-language').style.color = textColor;
       document.getElementById('config').style.backgroundColor = back;
+      document.getElementById('config').style.color = textColor;
+      document.getElementById('theme-select').style.color = textColor;
+      document.getElementById('theme-select').style.borderColor = textColor;
+      document.getElementById('theme-select').style.backgroundColor = back;
     } else {
       resetTextColors();
     }
@@ -329,7 +333,6 @@ albumArtEl.onload = () => {
     resetTextColors();
   }
 };
-
 }
 }
 
@@ -365,8 +368,11 @@ function resetTextColors() {
   document.getElementById('code-language').style.backgroundColor = "#090909";
   document.getElementById('code-language').style.color = "#FF6700";
   document.getElementById('config').style.backgroundColor = "#090909";
-  document.getElementById('instagram-logo').style.fill = "#FF6700";
   document.getElementById('youtube-logo').style.fill = "#FF6700";
+  document.getElementById('config').style.color = "#FF6700";
+  document.getElementById('theme-select').style.color = "#FF6700";
+  document.getElementById('theme-select').style.borderColor = "#FF6700";
+  document.getElementById('theme-select').style.backgroundColor = "#090909";
   const btns = document.querySelectorAll("button");
   btns.forEach(btn => {
     btn.style.color = "#FF6700";
@@ -468,11 +474,39 @@ function darkenRGB([r, g, b], percent = 20) {
   return `rgb(${newR}, ${newG}, ${newB})`;
 }
 
-// Variável para armazenar o estado do checkbox
-let fundoAutomatico = document.getElementById('auto-background-checkbox').checked;
-
 // Função para atualizar o valor da variável com o estado atual do checkbox
 document.getElementById('auto-background-checkbox').addEventListener('change', function() {
   autoBackground = this.checked;
-  console.log(autoBackground);  // Aqui você pode ver o valor de autoBackground
 });
+
+document.getElementById('spotify-checkbox').addEventListener('change', function() {
+  spotify = this.checked;
+  Spotify();
+});
+
+// Salvando o estado do checkbox com localStorage:
+document.getElementById('auto-background-checkbox').addEventListener('change', function() {
+  localStorage.setItem('autoBackground', this.checked);
+});
+
+// Carregar estado salvo ao iniciar
+document.addEventListener('DOMContentLoaded', () => {
+  const savedState = localStorage.getItem('autoBackground');
+  if (savedState !== null) {
+    autoBackground = savedState === 'true';
+    document.getElementById('auto-background-checkbox').checked = autoBackground;
+  }
+});
+
+function Spotify() {
+  if (spotify) {
+    document.getElementById('spotify-now-playing').style.opacity = '1';
+    document.getElementById('spotify-now-playing').style.pointerEvents = 'auto';
+    document.getElementById('code-language').style.width = '50%';
+  } else {
+    document.getElementById('spotify-now-playing').style.opacity = '0';
+    document.getElementById('spotify-now-playing').style.pointerEvents = 'none';
+    document.getElementById('code-language').style.width = '93.3%';
+
+  }
+}
