@@ -7,83 +7,7 @@ let font = 14;
 
     require(["vs/editor/editor.main"], function () {
       // 1) Definir tema antes do editor
-monaco.editor.defineTheme("darkStudio", {
-  base: "vs-dark",
-  inherit: true,
-  rules: [
-    // === GERAL ===
-    { token: "", foreground: "8F8700", background: "090909" },
-    { token: "comment", foreground: "00FFB1", fontStyle: "italic" },
-    { token: "number", foreground: "8F8700" },
-    { token: "string", foreground: "FFB700" },
-    { token: "keyword", foreground: "FF6500", fontStyle: "bold" },
-    { token: "operator", foreground: "FF6700" },
-    { token: "delimiter", foreground: "AAAAAA" },
-    { token: "variable", foreground: "00BD82" },
-    { token: "constant", foreground: "00BDFF" },
-    { token: "type", foreground: "FF6700" },
-    
-    // === CSS ===
-    { token: "attribute.name.css", foreground: "FFF200" },
-    { token: "attribute.value.css", foreground: "00BD82" },
-    { token: "selector.css", foreground: "FF6600", fontStyle: "bold" },
-    { token: "property.css", foreground: "FFF200" },
-    { token: "delimiter.css", foreground: "00DB95" }, // ;
-    { token: "number.css", foreground: "00ffff" },
-    { token: "string.css", foreground: "00FFB7" },
-    { token: "tag.css", foreground: "FF6500"},
-
-    // === HTML ===
-    { token: "tag.html", foreground: "FF6700", fontStyle: "bold" },
-    { token: "attribute.name.html", foreground: "CF5400" },
-    { token: "attribute.value.html", foreground: "00BD82" },
-    { token: "delimiter.html", foreground: "FFF200" },
-    { token: "metatag.html", foreground: "FF0000" },
-
-    // === JS / JSON ===
-    { token: "keyword.js", foreground: "FF6500" },
-    { token: "number.js", foreground: "00BD82", fontStyle: "italic" },
-    { token: "string.js", foreground: "00BD82", fontStyle: "italic" },
-    { token: "identifier.js", foreground: "FFF200" },
-    { token: "delimiter.js", foreground: "FF6500" },
-    { token: "comment.js", foreground: "8F8700" },
-    { token: "keyword.css", foreground: "00FF55"},
-    { token: "string.key.json", foreground: "FF6500" },
-    { token: "string.value.json", foreground: "FFD700", fontStyle: "italic" },
-    { token: "number.json", foreground: "FFD700", fontStyle: "italic" },
-    { token: "keyword.json", foreground: "CF5400" },
-  ],
-
-  colors: {
-    // Fundo e texto base
-    "editor.background": "#090909",
-    "editor.foreground": "#E6E6E6",
-
-    // Cursor e seleção
-    "editorCursor.foreground": "#FFFFFF",
-    "editor.selectionBackground": "#1B1B1B",
-    "editor.inactiveSelectionBackground": "#222222",
-
-    // Linhas e realce
-    "editor.lineHighlightBackground": "#111111",
-    "editorLineNumber.foreground": "#444",
-    "editorLineNumber.activeForeground": "#FF6700",
-
-    // Minimapa
-    "minimap.findMatchHighlight": "#FF6700",
-    "minimap.selectionHighlight": "#00FF7F",
-
-    // Barra lateral e scroll
-    "scrollbarSlider.background": "#FF670033",
-    "scrollbarSlider.hoverBackground": "#FF670055",
-    "scrollbarSlider.activeBackground": "#FF670077",
-
-    // Realce de erro e aviso
-    "editorError.foreground": "#FF3333",
-    "editorWarning.foreground": "#FFB700",
-    "editorInfo.foreground": "#00FFB7",
-  },
-});
+      carregarTema("halloween");
 
 
       // 2) Criar editor com o tema customizado
@@ -179,4 +103,20 @@ monaco.editor.defineTheme("darkStudio", {
       console.error("Erro ao copiar iframe:", err);
       alert("Não foi possível copiar o iframe.");
     });
+}
+
+async function carregarTema(nomeTema) {
+  try {
+    // Carrega o JSON dinamicamente
+    const response = await fetch(`${nomeTema}.json`);
+    const tema = await response.json();
+
+    // Define o tema no Monaco
+    monaco.editor.defineTheme(nomeTema, tema);
+    monaco.editor.setTheme(nomeTema);
+
+    console.log(`Tema "${nomeTema}" aplicado com sucesso!`);
+  } catch (erro) {
+    console.error("Erro ao carregar o tema:", erro);
+  }
 }
