@@ -1,4 +1,6 @@
-if (!window.blockSite) {
+import blockWeb from './main.js';
+
+if (!blockWeb) {
 
 let font = 14;
 let autoTheme = true;
@@ -105,7 +107,6 @@ async function carregarTema(nomeTema) {
     monaco.editor.defineTheme(nomeTema, tema);
     monaco.editor.setTheme(nomeTema);
 
-    console.log(`Tema "${nomeTema}" aplicado com sucesso!`);
   } catch (erro) {
     console.error("Erro ao carregar o tema:", erro);
   }

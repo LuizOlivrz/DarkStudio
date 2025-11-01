@@ -1,4 +1,8 @@
-if (!window.blockSite) {
+import blockWeb from './main.js';
+
+if (!blockWeb) {
+
+console.log("Spotify.js carregado");
 
 // Spotify ID e escopos
 const clientId = '602dd626c8014779aab8a1b118c80012';
@@ -514,13 +518,11 @@ document.addEventListener('DOMContentLoaded', () => {
     spotify = savedStateSpotify === 'true';
     const spotifyCheckbox = document.getElementById('spotify-checkbox');
     if (spotifyCheckbox) spotifyCheckbox.checked = spotify;
-    console.log("Spotify checkbox state loaded:", spotify);
     Spotify();
   }
 });
 
 function Spotify() {
-  console.log("Spotify function called. Current state:", spotify);
   if (spotify) {
     document.getElementById('spotify-now-playing').style.opacity = '1';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'auto';
@@ -535,4 +537,6 @@ function Spotify() {
 
   }
 }
+
+window.fullScreenVerif = fullScreenVerif;
 }

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="Code/Dark.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
 
-  <link
+  <link id="favicon"
     rel="icon"
     type="image/jpeg"
     href="https://i.postimg.cc/1txBHHJn/Design-sem-nome-4.png"
@@ -104,10 +104,9 @@
   /> <!-- Input invisível para upload de arquivo ( click do botão carregar )-->
 
   <!-- Scripts !IMPORTANTE!-->
+  <script src="Code/Main.js" type="module"></script> <!-- JS principal do DarkStudio -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script> <!-- Monaco Editor ( Integração ) -->
-  <script src="Code/Monaco.js"></script> <!-- Monaco Editor ( Configurações // Cores ) -->
-  <script src="Code/Spotify.js"></script> <!-- JS da Spotify API, para coletar a música do usuário ( PKCE ) -->
-  <script src="Code/Main.js"></script> <!-- JS principal do DarkStudio -->
-
+  <script src="Code/Monaco.js" type="module"></script> <!-- Monaco Editor ( Configurações // Cores ) -->
+  <script src="Code/Spotify.js" type="module"></script> <!-- JS da Spotify API, para coletar a música do usuário ( PKCE ) -->
 </body>
 </html>
