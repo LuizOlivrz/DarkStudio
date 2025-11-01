@@ -160,8 +160,10 @@ async function handleRedirect() {
   }
 }
 
+
 // Busca a música que está tocando no momento
-async function getNowPlaying() {
+async  function getNowPlaying() {
+  if (spotify) {
   const token = sessionStorage.getItem('access_token');
   if (!token) return;
 
@@ -335,6 +337,7 @@ albumArtEl.onload = () => {
 };
 }
 }
+}
 
 // Busca a foto do perfil do usuário
 async function getUserProfilePicture() {
@@ -483,10 +486,11 @@ document.getElementById('spotify-checkbox').addEventListener('change', function(
   saveCheckboxState();
 });
 
+const autoCheckbox = document.getElementById('auto-background-checkbox');
+const spotifyCheckbox = document.getElementById('spotify-checkbox');
+
 // Salvando o estado do checkbox com localStorage:
 function saveCheckboxState() {
-  const autoCheckbox = document.getElementById('auto-background-checkbox');
-  const spotifyCheckbox = document.getElementById('spotify-checkbox');
 
   const autoValue = !!(autoCheckbox && autoCheckbox.checked);
   const spotifyValue = !!(spotifyCheckbox && spotifyCheckbox.checked);
@@ -519,10 +523,13 @@ function Spotify() {
     document.getElementById('spotify-now-playing').style.opacity = '1';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'auto';
     document.getElementById('code-language').style.width = '50%';
+    document.getElementById('auto-back-complete').style.opacity = '1';
+    
   } else {
     document.getElementById('spotify-now-playing').style.opacity = '0';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'none';
     document.getElementById('code-language').style.width = '93.3%';
+    document.getElementById('auto-back-complete').style.opacity = '0';
 
   }
 }
