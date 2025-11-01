@@ -1,3 +1,5 @@
+if (!window.blockSite) {
+
 let font = 14;
 let autoTheme = true;
 
@@ -107,4 +109,5 @@ async function carregarTema(nomeTema) {
   } catch (erro) {
     console.error("Erro ao carregar o tema:", erro);
   }
+}
 }
