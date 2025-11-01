@@ -1,6 +1,6 @@
-window.blockSite = true; // Mude para false para desbloquear o site
-
-if (blockSite) {
+let blockWeb = false;
+export default blockWeb;
+if (blockWeb) {
   document.body.innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background-color:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;box-sizing:border-box;">
       <h1>Site Bloqueado :(</h1>
@@ -9,12 +9,15 @@ if (blockSite) {
     </div>
   `;
   document.title = "DarkStudio :(";
-  const favicon = document.createElement('link');
-  favicon.rel = 'icon';
-  favicon.type = 'image/png'; // Correct MIME type for favicon
+  const favicon = document.getElementById('favicon');
   favicon.href = 'https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png'; // Set the URL here
-  console.log("O site está bloqueado por CDP.");
 } else {
+
+const languageDisplay = document.getElementById('code-language').querySelector('h4');
+const executeButton = document.getElementById('execute');
+const iframeButton = document.getElementById('new-iframe-button');
+const downloadButton = document.getElementById('download-file');
+const clearButton = document.querySelector('#options button[title="apagar o código"]');
 
 // Mapeamento de linguagens para o Monaco Editor
 const modeMap = {
@@ -57,21 +60,12 @@ setInterval(() => {
 }, 1000);
 
 // Atualiza a exibição da linguagem e botão executar ao digitar
-const languageDisplay = document.getElementById('code-language').querySelector('h4');
-const executeButton = document.getElementById('execute');
-const iframeButton = document.getElementById('new-iframe-button');
-
 function initEditorEvents() {
   if (!window.editor) {
     // ainda não carregou, tenta de novo daqui 500ms
     setTimeout(initEditorEvents, 500);
     return;
   }
-
-  const executeButton = document.getElementById('execute');
-  const iframeButton = document.getElementById('new-iframe-button');
-  const downloadButton = document.getElementById('download-file');
-  const clearButton = document.querySelector('#options button[title="apagar o código"]');
 
   // 1) Carrega código salvo do localStorage
   const savedCode = localStorage.getItem('codigoSalvo');
@@ -386,24 +380,6 @@ function execute() {
   }
 }
 
-
-// Funções para salvar e carregar código do localStorage
-function saveCode() {
-  const code = window.editor.getValue();
-  localStorage.setItem('codigoSalvo', code);
-  alert('Código salvo!');
-}
-
-function loadCode() {
-  const savedCode = localStorage.getItem('codigoSalvo');
-  if (savedCode !== null) {
-    window.editor.setValue(savedCode);
-    alert('Código carregado!');
-  } else {
-    alert('Nenhum código salvo encontrado.');
-  }
-}
-
 function config() {
   const configDiv = document.getElementById('config');
   if (configDiv.style.opacity === "1") {
@@ -414,4 +390,8 @@ function config() {
     configDiv.style.pointerEvents = "auto";
   }
 }
+
+window.config = config;
+window.execute = execute;
+
 }

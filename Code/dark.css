@@ -156,7 +156,7 @@ body {
 
 #spotify-profile-pic {
   position: fixed;
-  pointer-events: auto;
+  pointer-events: auto !important;
   bottom: 7px;
   right: 20px;
   width: 48px;
@@ -166,6 +166,7 @@ body {
   object-fit: cover;
   transition: all 0.3s ease;
   animation: float 3s ease-in-out infinite;
+  z-index: 5 !important;
 
 }
 
