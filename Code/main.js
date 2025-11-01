@@ -1,13 +1,19 @@
-let blockSite = true; // Mude para false para desbloquear o site
+window.blockSite = true; // Mude para false para desbloquear o site
 
 if (blockSite) {
   document.body.innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background-color:#121212;color:#fff;font-family:sans-serif;text-align:center;padding:20px;box-sizing:border-box;">
-      <h1>Site Bloqueado</h1>
-      <p>Desculpe, este site está bloqueado momentaneamente, aguarde a proxima atualização.</p>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background-color:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;box-sizing:border-box;">
+      <h1>Site Bloqueado :(</h1>
+      <p>DarkStudio está temporariamente indisponível, desculpe!</p>
+      <h5>Por: CDP 💚</h5>
     </div>
   `;
-  document.title = "DarkStudio - Bloqueado";
+  document.title = "DarkStudio :(";
+  const favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  favicon.type = 'image/png'; // Correct MIME type for favicon
+  favicon.href = 'https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png'; // Set the URL here
+  console.log("O site está bloqueado por CDP.");
 } else {
 
 // Mapeamento de linguagens para o Monaco Editor

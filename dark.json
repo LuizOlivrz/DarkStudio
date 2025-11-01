@@ -12,6 +12,7 @@
     { "token": "variable", "foreground": "00BD82" },
     { "token": "constant", "foreground": "00BDFF" },
     { "token": "type", "foreground": "FF6700" },
+
     { "token": "attribute.name.css", "foreground": "FFF200" },
     { "token": "attribute.value.css", "foreground": "00BD82" },
     { "token": "selector.css", "foreground": "FF6600", "fontStyle": "bold" },
@@ -19,19 +20,24 @@
     { "token": "delimiter.css", "foreground": "00DB95" },
     { "token": "number.css", "foreground": "00ffff" },
     { "token": "string.css", "foreground": "00FFB7" },
+    { "token": "function.css", "foreground": "FFB700" },
+    { "token": "keyword.css", "foreground": "00FF55" },
+
+
     { "token": "tag.css", "foreground": "FF6500" },
     { "token": "tag.html", "foreground": "FF6700", "fontStyle": "bold" },
     { "token": "attribute.name.html", "foreground": "CF5400" },
     { "token": "attribute.value.html", "foreground": "00BD82" },
     { "token": "delimiter.html", "foreground": "FFF200" },
     { "token": "metatag.html", "foreground": "FF0000" },
+
     { "token": "keyword.js", "foreground": "FF6500" },
     { "token": "number.js", "foreground": "00BD82", "fontStyle": "italic" },
     { "token": "string.js", "foreground": "00BD82", "fontStyle": "italic" },
     { "token": "identifier.js", "foreground": "FFF200" },
     { "token": "delimiter.js", "foreground": "FF6500" },
     { "token": "comment.js", "foreground": "8F8700" },
-    { "token": "keyword.css", "foreground": "00FF55" },
+
     { "token": "string.key.json", "foreground": "FF6500" },
     { "token": "string.value.json", "foreground": "FFD700", "fontStyle": "italic" },
     { "token": "number.json", "foreground": "FFD700", "fontStyle": "italic" },

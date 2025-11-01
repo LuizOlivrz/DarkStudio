@@ -1,3 +1,5 @@
+if (!window.blockSite) {
+
 // Spotify ID e escopos
 const clientId = '602dd626c8014779aab8a1b118c80012';
 const redirectUri = window.location.origin + window.location.pathname;
@@ -532,4 +534,5 @@ function Spotify() {
     document.getElementById('auto-back-complete').style.opacity = '0';
 
   }
+}
 }
