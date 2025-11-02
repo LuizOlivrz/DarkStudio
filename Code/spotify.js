@@ -326,7 +326,7 @@ albumArtEl.onload = () => {
       document.getElementById('close').style.color = textColor;
       document.getElementById('code-language').style.backgroundColor = back;
       document.getElementById('code-language').style.color = textColor;
-      //document.getElementById('config').style.backgroundColor = back;
+      document.getElementById('config').style.backgroundColor = back;
       document.getElementById('config').style.color = textColor;
       document.getElementById('theme-select').style.color = textColor;
       document.getElementById('theme-select').style.borderColor = textColor;
@@ -546,7 +546,7 @@ function Spotify() {
   } else {
     document.getElementById('spotify-now-playing').style.opacity = '0';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'none';
-    document.getElementById('code-language').style.width = '93.3%';
+    document.getElementById('code-language').style.width = 'calc(100% - 85px)';
     document.getElementById('auto-back-complete').style.opacity = '0';
 
   }
