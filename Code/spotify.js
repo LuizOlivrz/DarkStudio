@@ -1,8 +1,7 @@
 import blockWeb from './main.js';
+export let devMode = false;
 
 if (!blockWeb) {
-
-console.log("Spotify.js carregado");
 
 // Spotify ID e escopos
 const clientId = '602dd626c8014779aab8a1b118c80012';
@@ -327,7 +326,7 @@ albumArtEl.onload = () => {
       document.getElementById('close').style.color = textColor;
       document.getElementById('code-language').style.backgroundColor = back;
       document.getElementById('code-language').style.color = textColor;
-      document.getElementById('config').style.backgroundColor = back;
+      //document.getElementById('config').style.backgroundColor = back;
       document.getElementById('config').style.color = textColor;
       document.getElementById('theme-select').style.color = textColor;
       document.getElementById('theme-select').style.borderColor = textColor;
@@ -492,23 +491,33 @@ document.getElementById('spotify-checkbox').addEventListener('change', function(
   saveCheckboxState();
 });
 
+document.getElementById('dev-mode-checkbox').addEventListener('change', function() {
+  devMode = this.checked;
+  console.log("Dev Mode:", devMode);
+  saveCheckboxState();
+});
+
 const autoCheckbox = document.getElementById('auto-background-checkbox');
 const spotifyCheckbox = document.getElementById('spotify-checkbox');
+const devModeCheckbox = document.getElementById('dev-mode-checkbox');
 
 // Salvando o estado do checkbox com localStorage:
 function saveCheckboxState() {
 
   const autoValue = !!(autoCheckbox && autoCheckbox.checked);
   const spotifyValue = !!(spotifyCheckbox && spotifyCheckbox.checked);
+  const devModeValue = !!(devModeCheckbox && devModeCheckbox.checked);
 
   localStorage.setItem('autoBackground', String(autoValue));
   localStorage.setItem('spotify', String(spotifyValue));
+  localStorage.setItem('devMode', String(devModeValue));
 }
 
 // Carregar estado salvo ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
   const savedState = localStorage.getItem('autoBackground');
   const savedStateSpotify = localStorage.getItem('spotify');
+  const savedStateDevMode = localStorage.getItem('devMode');
   if (savedState !== null) {
     autoBackground = savedState === 'true';
     const autoCheckbox = document.getElementById('auto-background-checkbox');
@@ -519,6 +528,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const spotifyCheckbox = document.getElementById('spotify-checkbox');
     if (spotifyCheckbox) spotifyCheckbox.checked = spotify;
     Spotify();
+  }
+  if (savedStateDevMode !== null) {
+    devMode = savedStateDevMode === 'true';
+    const devModeCheckbox = document.getElementById('dev-mode-checkbox');
+    if (devModeCheckbox) devModeCheckbox.checked = devMode;
   }
 });
 
