@@ -30,7 +30,7 @@ body {
 #spotify-now-playing #close {
   background: #090909;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  width: 93.3%;
+  width: calc(100% - 85px);
   height: 5.8%;
   position: fixed;
   border: 2px solid #3c3c3c;
