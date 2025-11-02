@@ -427,7 +427,7 @@ function checkScreenWidth() {
       });
       overlay.innerHTML = `
         <h1 style="margin:0 0 8px">Largura muito pequena :(</h1>
-        <p style="margin:0">Por favor, aumente a largura, para utilizar este site.</p>
+        <p style="margin:0">Por favor, aumente a largura ou remova o zoom, para utilizar este site.</p>
       `;
       document.body.appendChild(overlay);
     }
