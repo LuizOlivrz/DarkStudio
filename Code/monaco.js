@@ -1,4 +1,5 @@
 import blockWeb from './main.js';
+import { devMode } from './spotify.js';
 
 if (!blockWeb) {
 
@@ -56,7 +57,7 @@ require(["vs/editor/editor.main"], function () {
   function saveCode() {
     const code = window.editor.getValue();
     localStorage.setItem("codigoSalvo", code);
-    console.log("Código salvo automaticamente");
+    if (devMode) console.log("Código salvo automaticamente");
   }
 
   const saveDebounced = debounce(saveCode, 1000);
@@ -87,7 +88,9 @@ require(["vs/editor/editor.main"], function () {
     reader.onload = function (e) {
       const content = e.target.result;
       window.editor.setValue(content);
-      console.log("Código carregado do arquivo!");
+      console.log("Arquivo carregado com sucesso!");
+      console.log(devMode);
+      if (devMode) console.log("Código carregado do arquivo!");
     };
 
     reader.onerror = function () {
