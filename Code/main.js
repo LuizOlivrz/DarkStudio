@@ -394,4 +394,53 @@ function config() {
 window.config = config;
 window.execute = execute;
 
+// Verifica a largura da tela ao carregar e quando redimensionar
+function checkScreenWidth() {
+  const existing = document.getElementById('min-width-overlay');
+
+  if (window.innerWidth < 715) {
+    if (!existing) {
+      // preserve previous overflow to restore later
+      document.body.dataset.prevOverflow = document.body.style.overflow || '';
+      document.body.style.overflow = 'hidden';
+
+      const overlay = document.createElement('div');
+      overlay.id = 'min-width-overlay';
+      Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'red',
+        color: '#fff',
+        fontFamily: 'sans-serif',
+        textAlign: 'center',
+        padding: '20px',
+        boxSizing: 'border-box',
+        zIndex: '999999',
+        pointerEvents: 'auto'
+      });
+      overlay.innerHTML = `
+        <h1 style="margin:0 0 8px">Largura muito pequena :(</h1>
+        <p style="margin:0">Por favor, aumente a largura, para utilizar este site.</p>
+      `;
+      document.body.appendChild(overlay);
+    }
+  } else {
+    if (existing) {
+      existing.remove();
+      document.body.style.overflow = document.body.dataset.prevOverflow || '';
+      delete document.body.dataset.prevOverflow;
+    }
+  }
+}
+
+window.addEventListener('load', checkScreenWidth);
+window.addEventListener('resize', checkScreenWidth);
+
 }
