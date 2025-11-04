@@ -17,7 +17,7 @@ const languageDisplay = document.getElementById('code-language').querySelector('
 const executeButton = document.getElementById('execute');
 const iframeButton = document.getElementById('new-iframe-button');
 const downloadButton = document.getElementById('download-file');
-const clearButton = document.querySelector('#options button[title="apagar o código"]');
+const clearButton = document.getElementById('clear');
 
 // Mapeamento de linguagens para o Monaco Editor
 const modeMap = {
@@ -61,6 +61,7 @@ setInterval(() => {
 
 // Atualiza a exibição da linguagem e botão executar ao digitar
 function initEditorEvents() {
+
   if (!window.editor) {
     // ainda não carregou, tenta de novo daqui 500ms
     setTimeout(initEditorEvents, 500);
@@ -77,17 +78,14 @@ function initEditorEvents() {
   (function detectAfterLoad() {
     const code = window.editor.getValue().trim();
     const language = detectLanguage(code);
-
-    languageDisplay.textContent = language;
-
-    // Botões executar e iframe
-    executeButton.style.display = (language === "HTML" || language === "JavaScript") ? 'block' : 'none';
-    iframeButton.style.display = (language === "HTML") ? 'block' : 'none';
-
-    // Oculta download e clear se editor estiver vazio
     const isEmpty = code === '';
-    downloadButton.style.display = isEmpty ? 'none' : 'inline-block';
-    clearButton.style.display = isEmpty ? 'none' : 'inline-block';
+
+    if (languageDisplay) languageDisplay.textContent = language;
+    if (executeButton) executeButton.style.display = (language === "HTML" || language === "JavaScript") ? 'block' : 'none';
+    if (iframeButton) iframeButton.style.display = (language === "HTML") ? 'block' : 'none';
+    if (downloadButton) downloadButton.style.display = isEmpty ? 'none' : 'inline-block';
+    if (clearButton) clearButton.style.display = isEmpty ? 'none' : 'inline-block';
+
   })();
 
   // 3) Atualiza linguagem e botões ao digitar
@@ -398,7 +396,7 @@ window.execute = execute;
 function checkScreenWidth() {
   const existing = document.getElementById('min-width-overlay');
 
-  if (window.innerWidth < 715) {
+  if (window.innerWidth < 715 || window.innerHeight < 800) {
     if (!existing) {
       // preserve previous overflow to restore later
       document.body.dataset.prevOverflow = document.body.style.overflow || '';
@@ -426,8 +424,8 @@ function checkScreenWidth() {
         pointerEvents: 'auto'
       });
       overlay.innerHTML = `
-        <h1 style="margin:0 0 8px">Largura muito pequena :(</h1>
-        <p style="margin:0">Por favor, aumente a largura ou remova o zoom, para utilizar este site.</p>
+        <h1 style="margin:0 0 8px">Largura, ou altura :(</h1>
+        <p style="margin:0">Por favor, redimensione, ou remova o zoom, para utilizar.</p>
       `;
       document.body.appendChild(overlay);
     }

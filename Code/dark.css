@@ -8,6 +8,7 @@ body {
   -webkit-user-select: none; /* Safari/Chrome */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* IE/Edge */
+
 }
 
 #spotify-now-playing {
@@ -87,7 +88,7 @@ body {
   top: 5px;
   left: 87px;
   width: calc(100% - 96px);
-  height: 92.6%;
+  height: calc(100vh - 71px);
   background-color: #3c3c3c;
   padding: 2px;
   border-radius: 8px;
@@ -127,12 +128,12 @@ body {
   flex-direction: column;
   border: 2px solid #3c3c3c;
   gap: 10px;
-  height: 91.9%;
+  height: calc(100vh - 77px);
   border-radius: 8px;
   background: #090909;
   color: #fff;
   padding: 3px;
-  transition: all 0.5s ease-in-out;
+  transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
   max-width: 70px;
 
 }
@@ -152,6 +153,8 @@ body {
   font-weight: bold;
   transition: background-color 0.3s ease;
   z-index: 3;
+  opacity: 0;
+  animation: up 0.5s ease-in-out 0.3s forwards;
 
 }
 
@@ -166,10 +169,24 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
   object-fit: cover;
   transition: all 0.3s ease;
-  animation: float 3s ease-in-out infinite;
+  animation: float 3s ease-in-out infinite, up 0.5s ease-in-out forwards;
   background: none;
   z-index: 5 !important;
 
+}
+
+@keyframes up {
+  0% {
+    transform: translateY(45px);
+    opacity: 0;
+
+  }
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
+
+
+  }
 }
 
 #spotify-profile-pic:hover {
@@ -199,9 +216,10 @@ body {
   position: fixed;
   top: 5px;
   left: 5px;
-  width: 0.1px;
-  height: 93.1%;
-  background-color: rgb(0, 0, 0);
+  width: auto;
+  max-width: calc(100% - 10px);
+  height: calc(100vh - 67px);
+  background-color: black;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -217,11 +235,6 @@ body {
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
   box-shadow: 0 5px 40px rgba(0, 0, 0, 0.6);
-
-}
-
-#full-screen:hover {
-  transform: rotate3d(50px);
 
 }
 
@@ -254,7 +267,7 @@ body {
 }
 
 button {
-  background-color: #000000;
+  background-color: black;
   color: #FF6700;
   text-align: center;
   width: auto;
@@ -342,6 +355,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 5px;
+
 }
 
 #social-links svg{
@@ -349,6 +363,7 @@ img {
   height: auto;
   fill: #FF6700;
   transition: fill 0.3s ease;
+
 }
 
 #config {
@@ -360,7 +375,7 @@ img {
   right: 5px;
   width: calc(100% - 91px);
   box-sizing: border-box;
-  height: 93%;
+  height: calc(100vh - 67px);
   background-color: #090909; /*#090909*/
   padding: 2px;
   border-radius: 8px;
@@ -377,23 +392,26 @@ img {
     appearance: none;
     width: 20px;
     height: 20px;
-    border: 2px solid #ff0000;
+    border: 2px solid red;
     border-radius: 4px;
     vertical-align: middle;
     cursor: pointer;
     transition: all 0.3s ease;
+
   }
 
   /* Quando estiver ativo (checked) */
   input[type="checkbox"]:checked {
-    border: 2px solid #4caf50;
-    background-color: #4caf50; /* muda a cor de fundo */
+    border: 2px solid green;
+    background-color: green; /* muda a cor de fundo */
+
   }
 
   label {
     font-family: sans-serif;
     cursor: pointer;
     user-select: none;
+
   }
 
   select {
@@ -405,8 +423,10 @@ img {
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
+
   }
 
   #auto-back-complete {
     transition: opacity 0.3s ease-in-out;
-  }
+
+  }  
