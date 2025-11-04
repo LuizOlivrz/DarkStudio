@@ -435,15 +435,23 @@ function fullScreenCalc() {
     const closeBtn = document.getElementById('close');
 
 if (notVisible) {
+  document.getElementById('code-language').style.display = 'block';
   setTimeout(() => {
     document.getElementById('code-language').style.opacity = 1;
   }, 1000);
       closeBtn.style.opacity = 0;
+      closeBtn.style.pointerEvents = 'none';
+  setTimeout(() => {
+  document.getElementById('code-language').style.pointerEvents = 'auto';
+  }, 1500);
 
 } else {
   document.getElementById('code-language').style.opacity = 0;
+  document.getElementById('code-language').style.pointerEvents = 'none';
   setTimeout(() => {
     closeBtn.style.opacity = 1;
+    closeBtn.style.pointerEvents = 'auto';
+    document.getElementById('code-language').style.display = 'none';
   }, 500);
 }
 }
@@ -488,6 +496,11 @@ document.getElementById('auto-background-checkbox').addEventListener('change', f
 document.getElementById('spotify-checkbox').addEventListener('change', function() {
   spotify = this.checked;
   Spotify();
+  saveCheckboxState();
+});
+
+document.getElementById('dev-mode-checkbox').addEventListener('change', function() {
+  devMode = this.checked;
   saveCheckboxState();
 });
 

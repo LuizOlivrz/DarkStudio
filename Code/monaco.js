@@ -4,6 +4,7 @@ import { devMode } from './spotify.js';
 if (!blockWeb) {
 
 let font = 14;
+let temaInicial = "dark";
 let autoTheme = true;
 
 // 🎃 Função para detectar tema baseado em data
@@ -31,7 +32,7 @@ require.config({
 
 require(["vs/editor/editor.main"], function () {
   // 1) Definir tema antes do editor
-  const temaInicial = autoTheme ? detectarTemaPorData() : "halloween";
+  temaInicial = autoTheme ? detectarTemaPorData() : "dark";
   carregarTema(temaInicial);
 
   // 2) Criar editor com o tema customizado
