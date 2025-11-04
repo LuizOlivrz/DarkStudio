@@ -21,7 +21,7 @@
 <body>
 
   <div id="spotify-now-playing">
-    <img onclick="fullScreenVerif()" id="album-art" src="" alt="Capa do álbum" />
+    <img onclick="fullScreenVerif();" id="album-art" src="" alt="Capa do álbum" />
     <div onclick="fullScreenVerif()" translate="no" id="track-info" class="track-info">
       <h5 id="track-name">Carregando...</h5>
       <p id="artist-name">—</p>
@@ -29,6 +29,8 @@
     <button id="login">Conectar ao Spotify</button>
     <button onclick="fullScreenVerif()" tabindex="-1" style="display: none;" id="close">Fechar tela cheia</button>
   </div>
+
+  <span id="network-status"></span> <!-- Exibe o status da conexão de rede -->
 
   <div onclick="config()" id="spotify-profile-container">
     <img id="spotify-profile-pic" src="https://cdn2.iconfinder.com/data/icons/data-management-38/24/file-settings-512.png" alt="Foto de perfil do Spotify"/>

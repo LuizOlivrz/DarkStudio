@@ -1,5 +1,5 @@
-import blockWeb from './main.js';
-import { devMode } from './spotify.js';
+import { devMode, blockWeb } from "./config.js";
+
 
 if (!blockWeb) {
 

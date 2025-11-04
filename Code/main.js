@@ -1,5 +1,5 @@
-let blockWeb = false;
-export default blockWeb;
+import { getDevMode, setDevMode, blockWeb } from "./config.js";
+
 if (blockWeb) {
   document.body.innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background-color:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;box-sizing:border-box;">
@@ -384,6 +384,7 @@ function config() {
     configDiv.style.opacity = "0";
     configDiv.style.pointerEvents = "none";
   } else {
+    if (document.getElementById('full-screen').style.width === '99.3%') fullScreenVerif();;
     configDiv.style.opacity = "1";
     configDiv.style.pointerEvents = "auto";
   }
@@ -441,4 +442,32 @@ function checkScreenWidth() {
 window.addEventListener('load', checkScreenWidth);
 window.addEventListener('resize', checkScreenWidth);
 
+// Função para lidar com status offline/online
+function handleNetworkChange() {
+
+  const aviso = document.getElementById("network-status");
+  const login = document.getElementById("login");
+
+  if (!navigator.onLine) {
+    if (getDevMode()) console.warn("🔴 Você está offline!");
+    // Aqui tu pode, por exemplo, exibir um aviso na tela:
+
+    if (aviso && login) {
+      aviso.textContent = "Sem conexão com a internet 😢";
+      aviso.style.display = "block";
+      login.style.opacity = "0";
+    }
+  } else {
+    if (getDevMode()) console.log("🟢 Conexão restabelecida!");
+    if (aviso) aviso.style.display = "none";
+    if (login) login.style.opacity = "1";
+  }
+}
+
+// Detecta quando o status muda
+window.addEventListener('online', handleNetworkChange);
+window.addEventListener('offline', handleNetworkChange);
+
+// Também verifica imediatamente ao carregar
+handleNetworkChange();
 }
