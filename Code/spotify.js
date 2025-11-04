@@ -1,5 +1,4 @@
-import blockWeb from './main.js';
-export let devMode = false;
+import { getDevMode, setDevMode, blockWeb } from "./config.js";
 
 if (!blockWeb) {
 
@@ -16,9 +15,11 @@ const albumArtEl = document.getElementById('album-art');
 const albumArtEl2 = document.getElementById('album-art-full');
 const full = document.getElementById('full-screen');
 const trackInfoEl = document.getElementById('track-info');
+const profilePicEl = document.getElementById('spotify-profile-pic');
+const viewCode = document.getElementById('code-language');
 
 const path = document.querySelector("#spotify-logo-full path");
-const btns = document.querySelectorAll("button");
+const btns = document.querySelector('#options').querySelectorAll('button');
 let fullscreenLock = false;
 let autoBackground = true;
 let spotify = true;
@@ -168,105 +169,38 @@ async function handleRedirect() {
 
 // Busca a música que está tocando no momento
 async  function getNowPlaying() {
+  if (navigator.onLine) {
   if (spotify) {
   const token = sessionStorage.getItem('access_token');
   if (!token) return;
 
-  let response;
-  try {
-    response = await fetchWithToken('https://api.spotify.com/v1/me/player/currently-playing');
-  } catch (err) {
-    console.error('Erro ao buscar música:', err);
-    return;
-  }
-
-  trackInfoEl.style.opacity = '1';
-
-// Se não houver música tocando ou erro na API
-if (response.status === 204 || response.status > 400) {
-
-  trackNameEl.textContent = 'Nenhuma música tocando';
-  artistNameEl.textContent = '';
-  trackNameFullEl.textContent = '';
-  artistNameFullEl.textContent = '';
-  albumArtEl.src = '';
-  albumArtEl.style.display = 'none';
-
-  // Verifica se o albumArtEl2 NÃO tem uma imagem de perfil
-  if (!albumArtEl2.dataset.isProfile) {
-    const token = sessionStorage.getItem('access_token');
-    if (!token) return;
-
-    const userResponse = await fetchWithToken('https://api.spotify.com/v1/me');
-    if (!userResponse.ok) {
-      console.error('Erro ao buscar perfil do Spotify para tela cheia');
-      return;
-    }
-
-    const data = await userResponse.json();
-    const imgUrl = data.images?.[0]?.url || null;
-    const displayName = data.display_name || 'Usuário Spotify';
-
-    if (imgUrl) {
-      albumArtEl2.src = imgUrl;
-      albumArtEl2.setAttribute('title', displayName);
-      albumArtEl2.dataset.isProfile = "true"; // <- marca que é foto de perfil
-    }
-  }
-
-  // Reseta cores e estilos
-  albumArtEl2.style.width = '700px';
-  trackNameEl.style.color = '#fff';
-  artistNameEl.style.color = '#bbb';
-  resetTextColors();
+let response;
+try {
+  response = await fetchWithToken('https://api.spotify.com/v1/me/player/currently-playing');
+} catch (err) {
+  console.error('Erro ao buscar música:', err);
   return;
-
 }
 
-  const data = await response.json();
+// Evita o erro "Unexpected end of JSON input"
+if (!response.ok || response.status === 204) {
+  return showNoMusic();
+}
 
-  // Se a API retornar null no item
-  if (!data.item) {
-    
-  trackNameEl.textContent = 'Nenhuma música tocando';
-  artistNameEl.textContent = '';
-  trackNameFullEl.textContent = '';
-  artistNameFullEl.textContent = '';
-  albumArtEl.src = '';
-  albumArtEl.style.display = 'none';
+let data;
+try {
+  data = await response.json();
+} catch (e) {
+  console.error("Erro ao interpretar JSON:", e);
+  return showNoMusic();
+}
 
-  // Verifica se o albumArtEl2 NÃO tem uma imagem de perfil
-  if (!albumArtEl2.dataset.isProfile) {
-    const token = sessionStorage.getItem('access_token');
-    if (!token) return;
+if (!data.item) return showNoMusic();
 
-    const userResponse = await fetchWithToken('https://api.spotify.com/v1/me');
-    if (!userResponse.ok) {
-      console.error('Erro ao buscar perfil do Spotify para tela cheia');
-      return;
-    }
-
-    const data = await userResponse.json();
-    const imgUrl = data.images?.[0]?.url || null;
-    const displayName = data.display_name || 'Usuário Spotify';
-
-    if (imgUrl) {
-      albumArtEl2.src = imgUrl;
-      albumArtEl2.setAttribute('title', displayName);
-      albumArtEl2.dataset.isProfile = "true"; // <- marca que é foto de perfil
-    }
-  }
-
-  // Reseta cores e estilos
-  albumArtEl2.style.width = '700px';
-  trackNameEl.style.color = '#fff';
-  artistNameEl.style.color = '#bbb';
-  resetTextColors();
-  return;
-
-  }
 
   // Se chegou aqui, tem música tocando
+  console.clear();
+  trackInfoEl.style.opacity = '1';
   albumArtEl.style.opacity = '1';
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
@@ -319,29 +253,38 @@ albumArtEl.onload = () => {
 
     if (autoBackground) {
       document.getElementById('options').style.backgroundColor = back;
+      document.getElementById('options').style.borderColor = textColor;
       document.getElementById('youtube-logo').style.fill = textColor;
       document.getElementById('options').style.color = textColor;
       document.getElementById('Editor').style.backgroundColor = back;
       document.getElementById('close').style.backgroundColor = back;
       document.getElementById('close').style.color = textColor;
-      document.getElementById('code-language').style.backgroundColor = back;
-      document.getElementById('code-language').style.color = textColor;
+      viewCode.style.backgroundColor = back;
+      viewCode.style.borderColor = textColor;
+      viewCode.style.color = textColor;
       document.getElementById('config').style.backgroundColor = back;
       document.getElementById('config').style.color = textColor;
       document.getElementById('theme-select').style.color = textColor;
       document.getElementById('theme-select').style.borderColor = textColor;
       document.getElementById('theme-select').style.backgroundColor = back;
     } else {
+      full.style.backgroundColor = "#090909";
       resetTextColors();
     }
 
   } catch (error) {
     console.log("Erro ao pegar cor dominante:", error);
+    full.style.backgroundColor = "#090909";
     resetTextColors();
   }
 };
 }
 }
+  } else {
+      document.getElementById('spotify-now-playing').style.opacity = '0';
+      document.getElementById('spotify-now-playing').style.pointerEvents = 'none';
+      resetTextColors();
+  }
 }
 
 // Busca a foto do perfil do usuário
@@ -361,26 +304,33 @@ async function getUserProfilePicture() {
   const displayName = data.display_name || 'Usuário Spotify';
 
   if (imgUrl) {
-    const profilePic = document.getElementById('spotify-profile-pic');
-    profilePic.src = imgUrl;
-    profilePic.setAttribute('title', displayName);
+    profilePicEl.src = imgUrl;
+    profilePicEl.setAttribute('title', displayName);
   }
 }
 
 function resetTextColors() {
+
+
   document.getElementById('options').style.backgroundColor = "#090909";
   document.getElementById('options').style.color = "#090909";
+  document.getElementById('options').style.borderColor = "#3c3c3c";
+  viewCode.style.borderColor = "#3c3c3c";
+  document.getElementById('youtube-logo').style.fill = "#FF6700";
   document.getElementById('Editor').style.backgroundColor = "#3c3c3c";
   document.getElementById('close').style.backgroundColor = "#090909";
   document.getElementById('close').style.color = "#FFFFFF";
-  document.getElementById('code-language').style.backgroundColor = "#090909";
-  document.getElementById('code-language').style.color = "#FF6700";
+  document.getElementById('close').style.borderColor = "#3c3c3c";
+  viewCode.style.backgroundColor = "#090909";
+  viewCode.style.color = "#FF6700";
   document.getElementById('config').style.backgroundColor = "#090909";
   document.getElementById('youtube-logo').style.fill = "#FF6700";
   document.getElementById('config').style.color = "#FF6700";
   document.getElementById('theme-select').style.color = "#FF6700";
   document.getElementById('theme-select').style.borderColor = "#FF6700";
   document.getElementById('theme-select').style.backgroundColor = "#090909";
+  path.style.fill = "#1ED760";
+
   btns.forEach(btn => {
     btn.style.color = "#FF6700";
     btn.style.borderColor = "#FF6700";
@@ -407,22 +357,20 @@ function getBrightness([r, g, b]) {
 
 // Função para alternar tela cheia
 function fullScreen() {
-  const div = document.getElementById('full-screen');
   const img = document.getElementById('album-art-full');
   if (!img.src) return; // Não faz nada se não houver imagem
   const img2 = document.getElementById('album-art');
   const closeBtn = document.getElementById('close');
-  const info = document.getElementById('track-info');
-  const isVisible = div.style.width === '99.3%';
+  const isVisible = full.style.width === '99.3%';
 
   closeBtn.style.display = 'block';
 
-  div.style.width = isVisible ? '0.1px' : '99.3%';
-  div.style.opacity = isVisible ? '0' : '1';
+  full.style.width = isVisible ? '0.1px' : '99.3%';
+  full.style.opacity = isVisible ? '0' : '1';
   img.style.opacity = isVisible ? '0' : '1';
   img2.style.opacity = isVisible ? '1' : '0';
-  div.style.pointerEvents = isVisible ? 'none' : 'auto';
-  info.style.opacity = isVisible ? '1' : '0';
+  full.style.pointerEvents = isVisible ? 'none' : 'auto';
+  trackInfoEl.style.opacity = isVisible ? '1' : '0';
   document.getElementById('track-info-full').style.opacity = isVisible ? '0' : '1';
   closeBtn.style.pointerEvents = isVisible ? 'none' : 'auto';
 
@@ -430,28 +378,27 @@ fullScreenCalc();
 }
 
 function fullScreenCalc() {
-    const div = document.getElementById('full-screen');
-    const notVisible = div.style.width === '0.1px';
+    const notVisible = full.style.width === '0.1px';
     const closeBtn = document.getElementById('close');
 
 if (notVisible) {
-  document.getElementById('code-language').style.display = 'block';
+  viewCode.style.display = 'block';
   setTimeout(() => {
-    document.getElementById('code-language').style.opacity = 1;
+    viewCode.style.opacity = 1;
   }, 1000);
       closeBtn.style.opacity = 0;
       closeBtn.style.pointerEvents = 'none';
   setTimeout(() => {
-  document.getElementById('code-language').style.pointerEvents = 'auto';
+  viewCode.style.pointerEvents = 'auto';
   }, 1500);
 
 } else {
-  document.getElementById('code-language').style.opacity = 0;
-  document.getElementById('code-language').style.pointerEvents = 'none';
+  viewCode.style.opacity = 0;
+  viewCode.style.pointerEvents = 'none';
   setTimeout(() => {
     closeBtn.style.opacity = 1;
     closeBtn.style.pointerEvents = 'auto';
-    document.getElementById('code-language').style.display = 'none';
+    viewCode.style.display = 'none';
   }, 500);
 }
 }
@@ -500,14 +447,9 @@ document.getElementById('spotify-checkbox').addEventListener('change', function(
 });
 
 document.getElementById('dev-mode-checkbox').addEventListener('change', function() {
-  devMode = this.checked;
-  saveCheckboxState();
-});
-
-document.getElementById('dev-mode-checkbox').addEventListener('change', function() {
-  devMode = this.checked;
-  console.log("Dev Mode:", devMode);
-  saveCheckboxState();
+  const newValue = this.checked;
+  setDevMode(newValue);
+  console.log("Dev Mode atualizado:", getDevMode());
 });
 
 const autoCheckbox = document.getElementById('auto-background-checkbox');
@@ -543,9 +485,9 @@ document.addEventListener('DOMContentLoaded', () => {
     Spotify();
   }
   if (savedStateDevMode !== null) {
-    devMode = savedStateDevMode === 'true';
+    setDevMode(savedStateDevMode === 'true');
     const devModeCheckbox = document.getElementById('dev-mode-checkbox');
-    if (devModeCheckbox) devModeCheckbox.checked = devMode;
+    if (devModeCheckbox) devModeCheckbox.checked = getDevMode();
   }
 });
 
@@ -553,17 +495,52 @@ function Spotify() {
   if (spotify) {
     document.getElementById('spotify-now-playing').style.opacity = '1';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'auto';
-    document.getElementById('code-language').style.width = '50%';
+    viewCode.style.width = '50%';
     document.getElementById('auto-back-complete').style.opacity = '1';
     
   } else {
     document.getElementById('spotify-now-playing').style.opacity = '0';
     document.getElementById('spotify-now-playing').style.pointerEvents = 'none';
-    document.getElementById('code-language').style.width = 'calc(100% - 85px)';
+    viewCode.style.width = 'calc(100% - 85px)';
     document.getElementById('auto-back-complete').style.opacity = '0';
 
   }
 }
+
+async function showNoMusic() {
+  trackNameEl.textContent = 'Nenhuma música tocando';
+  artistNameEl.textContent = '';
+  trackNameFullEl.textContent = '';
+  artistNameFullEl.textContent = '';
+  albumArtEl.src = '';
+  albumArtEl.style.display = 'none';
+
+  if (!albumArtEl2.dataset.isProfile) {
+    const token = sessionStorage.getItem('access_token');
+    if (!token) return;
+    const userResponse = await fetchWithToken('https://api.spotify.com/v1/me');
+    if (!userResponse.ok) {
+      console.error('Erro ao buscar perfil do Spotify para tela cheia');
+      return;
+    }
+    const data = await userResponse.json();
+    const imgUrl = data.images?.[0]?.url || null;
+    const displayName = data.display_name || 'Usuário Spotify';
+
+    if (imgUrl) {
+      albumArtEl2.src = imgUrl;
+      albumArtEl2.setAttribute('title', displayName);
+      albumArtEl2.dataset.isProfile = "true";
+    }
+  }
+
+  albumArtEl2.style.width = '700px';
+  trackNameEl.style.color = '#fff';
+  artistNameEl.style.color = '#bbb';
+  full.style.backgroundColor = "#090909";
+  resetTextColors();
+}
+
 
 window.fullScreenVerif = fullScreenVerif;
 }
