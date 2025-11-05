@@ -1,4 +1,4 @@
-import { devMode, blockWeb } from "./config.js";
+import { getDevMode, blockWeb } from "./config.js";
 
 
 if (!blockWeb) {
@@ -58,7 +58,7 @@ require(["vs/editor/editor.main"], function () {
   function saveCode() {
     const code = window.editor.getValue();
     localStorage.setItem("codigoSalvo", code);
-    if (devMode) console.log("Código salvo automaticamente");
+    if (getDevMode()) console.log("Código salvo automaticamente");
   }
 
   const saveDebounced = debounce(saveCode, 1000);
