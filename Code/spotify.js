@@ -549,44 +549,57 @@ async function showNoMusic() {
 
 window.fullScreenVerif = fullScreenVerif;
 
-    let timer; // Armazena o temporizador
-    const tempoInatividade = 5000; // 5 segundos
+let timer; // Armazena o temporizador
+const tempoInatividade = 5000; // 5 segundos
 
-    function acaoInativo() {
-      document.body.classList.add("inativo");
-      if (getDevMode()) console.log("🕒 Mouse parado por 5 segundos — ação iniciada!");
-      full.style.height = "calc(100% - 9px)"
-      document.getElementById('close').style.opacity = "0";
-      document.getElementById('spotify-profile-pic').style.opacity = "0";
-      // Aqui tu pode colocar qualquer ação, tipo:
-      // tocar um som, mostrar alerta, pausar vídeo, etc.
-    }
+function acaoInativo() {
+  // Só executa se a aba estiver ativa!
+  if (document.visibilityState !== "visible") return;
 
-    function acaoVoltar() {
-      document.body.classList.remove("inativo");
-      full.style.height = "calc(100vh - 67px)"
-      if (fullscreen === "true") {
-        document.getElementById('close').style.opacity = "1";
-        //console.log('on')
+  document.body.classList.add("inativo");
+  if (getDevMode()) console.log("🕒 Mouse parado por 5 segundos — ação iniciada!");
+  full.style.height = "calc(100% - 9px)";
+  document.getElementById('close').style.opacity = "0";
+  document.getElementById('spotify-profile-pic').style.opacity = "0";
+}
 
-      } else {
-        document.getElementById('close').style.opacity = "0";
-        //console.log('off')
-      }
-      document.getElementById('spotify-profile-pic').style.opacity = "1";
-      // Aqui tu coloca o que deve acontecer ao mover o mouse novamente
-    }
+function acaoVoltar() {
+  document.body.classList.remove("inativo");
+  full.style.height = "calc(100vh - 67px)";
+  
+  if (fullscreen === "true") {
+    document.getElementById('close').style.opacity = "1";
+  } else {
+    document.getElementById('close').style.opacity = "0";
+  }
 
-    function resetarTimer() {
-      clearTimeout(timer);
-      acaoVoltar();
-      if (fullscreen) timer = setTimeout(acaoInativo, tempoInatividade);
-    }
+  document.getElementById('spotify-profile-pic').style.opacity = "1";
+}
 
-    // Detecta qualquer movimento do mouse
-    window.addEventListener("mousemove", resetarTimer);
-    window.addEventListener("keydown", resetarTimer);
+function resetarTimer() {
+  clearTimeout(timer);
+  acaoVoltar();
 
-    // Inicia o temporizador assim que a página carrega
+  // Só reinicia o timer se a aba estiver visível
+  if (fullscreen && document.visibilityState === "visible") {
+    timer = setTimeout(acaoInativo, tempoInatividade);
+  }
+}
+
+// Detecta atividade do usuário
+window.addEventListener("mousemove", resetarTimer);
+window.addEventListener("keydown", resetarTimer);
+
+// Detecta mudança de visibilidade da aba (ex: trocou de guia)
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    clearTimeout(timer);
+  } else {
     resetarTimer();
+  }
+});
+
+// Inicia o temporizador
+resetarTimer();
+
 }
