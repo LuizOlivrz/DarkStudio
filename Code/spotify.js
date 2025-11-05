@@ -1,4 +1,4 @@
-import { getDevMode, setDevMode, blockWeb } from "./config.js";
+import { setDevMode, blockWeb, getDevMode } from "./config.js";
 
 if (!blockWeb) {
 
@@ -21,6 +21,7 @@ const viewCode = document.getElementById('code-language');
 const path = document.querySelector("#spotify-logo-full path");
 const btns = document.querySelector('#options').querySelectorAll('button');
 let fullscreenLock = false;
+let fullscreen = false;
 let autoBackground = true;
 let spotify = true;
 
@@ -199,7 +200,7 @@ if (!data.item) return showNoMusic();
 
 
   // Se chegou aqui, tem música tocando
-  console.clear();
+  getDevMode() || console.clear();
   trackInfoEl.style.opacity = '1';
   albumArtEl.style.opacity = '1';
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
@@ -360,7 +361,7 @@ function fullScreen() {
   if (!img.src) return; // Não faz nada se não houver imagem
   const img2 = document.getElementById('album-art');
   const closeBtn = document.getElementById('close');
-  const isVisible = full.style.width === '99.3%';
+  const isVisible = full.style.width >= '50%';
 
   closeBtn.style.display = 'block';
 
@@ -377,7 +378,7 @@ fullScreenCalc();
 }
 
 function fullScreenCalc() {
-    const notVisible = full.style.width === '0.1px';
+    const notVisible = full.style.width <= '10px';
     const closeBtn = document.getElementById('close');
 
 if (notVisible) {
@@ -391,6 +392,8 @@ if (notVisible) {
   viewCode.style.pointerEvents = 'auto';
   }, 1500);
 
+  fullscreen = 'false';
+
 } else {
   viewCode.style.opacity = 0;
   viewCode.style.pointerEvents = 'none';
@@ -399,7 +402,10 @@ if (notVisible) {
     closeBtn.style.pointerEvents = 'auto';
     viewCode.style.display = 'none';
   }, 500);
+    fullscreen = 'true';
+
 }
+if (getDevMode()) console.log("Tela cheia:",fullscreen)
 }
 
 // Inicialização
@@ -542,4 +548,45 @@ async function showNoMusic() {
 
 
 window.fullScreenVerif = fullScreenVerif;
+
+    let timer; // Armazena o temporizador
+    const tempoInatividade = 5000; // 5 segundos
+
+    function acaoInativo() {
+      document.body.classList.add("inativo");
+      if (getDevMode()) console.log("🕒 Mouse parado por 5 segundos — ação iniciada!");
+      full.style.height = "calc(100% - 9px)"
+      document.getElementById('close').style.opacity = "0";
+      document.getElementById('spotify-profile-pic').style.opacity = "0";
+      // Aqui tu pode colocar qualquer ação, tipo:
+      // tocar um som, mostrar alerta, pausar vídeo, etc.
+    }
+
+    function acaoVoltar() {
+      document.body.classList.remove("inativo");
+      full.style.height = "calc(100vh - 67px)"
+      if (fullscreen === "true") {
+        document.getElementById('close').style.opacity = "1";
+        //console.log('on')
+
+      } else {
+        document.getElementById('close').style.opacity = "0";
+        //console.log('off')
+      }
+      document.getElementById('spotify-profile-pic').style.opacity = "1";
+      // Aqui tu coloca o que deve acontecer ao mover o mouse novamente
+    }
+
+    function resetarTimer() {
+      clearTimeout(timer);
+      acaoVoltar();
+      if (fullscreen) timer = setTimeout(acaoInativo, tempoInatividade);
+    }
+
+    // Detecta qualquer movimento do mouse
+    window.addEventListener("mousemove", resetarTimer);
+    window.addEventListener("keydown", resetarTimer);
+
+    // Inicia o temporizador assim que a página carrega
+    resetarTimer();
 }

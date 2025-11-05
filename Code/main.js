@@ -1,4 +1,4 @@
-import { getDevMode, setDevMode, blockWeb } from "./config.js";
+import { blockWeb, getDevMode } from "./config.js";
 
 if (blockWeb) {
   document.body.innerHTML = `
@@ -113,7 +113,7 @@ initEditorEvents();
 // Função para detectar linguagem pelo código
 function detectLanguage(code) {
   if (code.trim() === '') {
-    return 'Comece a escrever seus códigos e veja a linguagem aqui!';
+    return 'Start writing your code and see the language here!';
   }
 
 // Detecta links comuns e a plataforma
@@ -266,10 +266,10 @@ if (
   }
 
   if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) {
-    return 'Texto';
+    return 'Text';
   }
 
-  return 'Comece a escrever seus códigos e veja a linguagem aqui!';
+  return 'Start writing your code and see the language here!';
 }
 
 
