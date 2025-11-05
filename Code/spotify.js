@@ -201,8 +201,10 @@ if (!data.item) return showNoMusic();
 
   // Se chegou aqui, tem música tocando
   getDevMode() || console.clear();
-  trackInfoEl.style.opacity = '1';
-  albumArtEl.style.opacity = '1';
+  if (!fullscreen) {
+    trackInfoEl.style.opacity = '1';
+    albumArtEl.style.opacity = '1';
+  }
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
   albumArtEl2.style.width = '600px';
