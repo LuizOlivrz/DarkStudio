@@ -268,7 +268,6 @@ albumArtEl.onload = () => {
       document.getElementById('theme-select').style.borderColor = textColor;
       document.getElementById('theme-select').style.backgroundColor = back;
     } else {
-      full.style.backgroundColor = "#090909";
       resetTextColors();
     }
 
