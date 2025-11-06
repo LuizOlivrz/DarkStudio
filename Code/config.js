@@ -58,3 +58,30 @@ if (getDevMode()) console.log("Dev Mode:", getDevMode());
  * Indica se o app web deve ser bloqueado (usuários mobile)
  */
 export const blockWeb = block;
+
+/**
+ * Carrega qualquer arquivo JS dinamicamente
+ * @param {string} name - nome do arquivo JS (sem .js) dentro da pasta Code
+ */
+function js(name) {
+  const script = document.createElement('script');
+  script.src = `Code/${name}.js`; // ajusta o caminho da sua pasta
+  script.type = 'module';         // importante pra aceitar import/export
+  document.body.appendChild(script);
+
+  if (getDevMode()) console.log(`🎵 Script '${name}.js' carregado com sucesso!`);
+}
+
+// Garante que o body já existe antes de adicionar scripts
+function loadJS(name) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => js(name));
+  } else {
+    js(name);
+  }
+}
+
+// Exemplo de uso
+loadJS('spotify');
+loadJS('main');
+loadJS('monaco')
