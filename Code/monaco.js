@@ -1,118 +1,159 @@
+// ─────────────────────────────────────────────
+// ✨ Importações / Imports
+// ─────────────────────────────────────────────
 import { getDevMode, blockWeb } from "./config.js";
 
+// Bloqueia execução se estiver em mobile (definido em config.js)
+if (blockWeb) {
+  console.warn("⚠️ Modo bloqueado em dispositivos móveis / Mobile mode blocked");
+} else {
 
-if (!blockWeb) {
+  // ─────────────────────────────────────────────
+  // ⚙️ Configurações Iniciais / Initial Settings
+  // ─────────────────────────────────────────────
+  let fontSize = 14;          // Fonte padrão do editor / Default font size
+  let initialTheme = "dark";  // Tema inicial / Default theme
+  const autoTheme = true;     // Detectar tema automaticamente / Auto-detect theme
 
-let font = 14;
-let temaInicial = "dark";
-let autoTheme = true;
+  // ─────────────────────────────────────────────
+  // 🎃 Detecção de Tema por Data / Auto Theme by Date
+  // ─────────────────────────────────────────────
+  /**
+   * Detects theme based on current date.
+   * Detecta o tema com base na data atual.
+   * @returns {string} Nome do tema / Theme name
+   */
+  function detectThemeByDate() {
+    const today = new Date();
+    const month = today.getMonth() + 1; // Janeiro = 0
+    const day = today.getDate();
 
-// 🎃 Função para detectar tema baseado em data
-function detectarTemaPorData() {
-  const hoje = new Date();
-  const mes = hoje.getMonth() + 1; // Janeiro = 0
-  const dia = hoje.getDate();
-
-  // 🧡 Halloween: de 20 a 31 de outubro
-  if (mes === 10 && dia >= 20 && dia <= 31) return "halloween";
-
-  // 🌲 Natal: de 10 a 31 de dezembro
-  if (mes === 12 && dia >= 10 && dia <= 31) return "christmas";
-
-  // 🌸 Páscoa (exemplo genérico, muda por ano, mas só exemplo)
-  if (mes === 3 && dia >= 15 && dia <= 31) return "easter";
-
-  // 🌑 Padrão (modo escuro)
-  return "dark";
-}
-
-require.config({
-  paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs" },
-});
-
-require(["vs/editor/editor.main"], function () {
-  // 1) Definir tema antes do editor
-  temaInicial = autoTheme ? detectarTemaPorData() : "dark";
-  carregarTema(temaInicial);
-
-  // 2) Criar editor com o tema customizado
-  window.editor = monaco.editor.create(document.getElementById("Editor-Input"), {
-    value: `Escreva seu código aqui`,
-    language: "plaintext",
-    theme: temaInicial,
-    automaticLayout: true,
-    fontSize: font,
-    minimap: { enabled: false },
-  });
-
-  // Função debounce para limitar chamadas repetidas
-  function debounce(func, wait) {
-    let timeout;
-    return function (...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    };
+    if (month === 10 && day >= 20 && day <= 31) return "halloween"; // 🎃 Halloween
+    if (month === 12 && day >= 10 && day <= 31) return "christmas"; // 🎄 Natal
+    if (month === 3 && day >= 15 && day <= 31) return "easter";     // 🐣 Páscoa
+    return "dark"; // 🌑 Tema padrão
   }
 
-  // Função que salva no localStorage
-  function saveCode() {
-    const code = window.editor.getValue();
-    localStorage.setItem("codigoSalvo", code);
-    if (getDevMode()) console.log("Código salvo automaticamente");
+  // ─────────────────────────────────────────────
+  // 🧠 Inicialização do Monaco Editor / Monaco Editor Setup
+  // ─────────────────────────────────────────────
+  require.config({
+    paths: {
+      vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs",
+    },
+  });
+
+  require(["vs/editor/editor.main"], () => {
+    // 1️⃣ Definir tema inicial
+    initialTheme = autoTheme ? detectThemeByDate() : "dark";
+    loadTheme(initialTheme);
+
+    // 2️⃣ Criar editor
+    window.editor = monaco.editor.create(
+      document.getElementById("Editor-Input"),
+      {
+        value: "Escreva seu código aqui",
+        language: "plaintext",
+        theme: initialTheme,
+        automaticLayout: true,
+        fontSize,
+        minimap: { enabled: false },
+      }
+    );
+
+    // ─────────────────────────────────────────────
+    // 💾 Auto Save / Salvamento Automático
+    // ─────────────────────────────────────────────
+
+    /**
+     * Creates a debounced version of a function.
+     * Cria uma versão “debounced” de uma função (evita execuções repetidas).
+     * @param {Function} func - Função original / Original function
+     * @param {number} wait - Tempo de espera / Delay in ms
+     */
+    function debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    /**
+     * Saves the current code in localStorage.
+     * Salva o código atual no localStorage.
+     */
+    function saveCode() {
+      const code = window.editor.getValue();
+      localStorage.setItem("codigoSalvo", code);
+      if (getDevMode()) console.log("💾 Código salvo automaticamente / Code auto-saved");
+    }
+
+    const saveDebounced = debounce(saveCode, 1000);
+
+    // Salva automaticamente após digitar
+    window.editor.onDidChangeModelContent(saveDebounced);
+
+    // Restaura código salvo, se existir
+    const savedCode = localStorage.getItem("codigoSalvo");
+    if (savedCode) window.editor.setValue(savedCode);
+
+    // ─────────────────────────────────────────────
+    // 📂 Carregamento de Arquivos / File Loading
+    // ─────────────────────────────────────────────
+    const loadButton = document.getElementById("load-button");
+    const fileInput = document.getElementById("file-input");
+
+    loadButton.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const content = e.target.result;
+        window.editor.setValue(content);
+        console.log("📂 Arquivo carregado com sucesso! / File loaded successfully!");
+
+        if (getDevMode()) console.log("💬 Código carregado do arquivo / Code loaded from file");
+      };
+
+      reader.onerror = () => alert("❌ Erro ao ler o arquivo / Error reading file.");
+
+      reader.readAsText(file);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // 🎨 Carregamento de Tema / Theme Loader
+  // ─────────────────────────────────────────────
+  /**
+   * Loads and applies a Monaco Editor theme from JSON.
+   * Carrega e aplica um tema do Monaco Editor a partir de um JSON.
+   * @param {string} themeName - Nome do tema / Theme name
+   */
+  async function loadTheme(themeName) {
+    try {
+      const response = await fetch(`${themeName}.json`);
+      const theme = await response.json();
+
+      monaco.editor.defineTheme(themeName, theme);
+      monaco.editor.setTheme(themeName);
+    } catch (error) {
+      console.error("❌ Erro ao carregar o tema / Error loading theme:", error);
+    }
   }
 
-  const saveDebounced = debounce(saveCode, 1000);
+  // ────────────────────────────────────────────────────────────────────────────────────────────
+  // ✅ Corrige tooltips do Monaco Editor / ✅ Fix missing tooltip labels in Monaco Editor
+  // ────────────────────────────────────────────────────────────────────────────────────────────
 
-  window.editor.onDidChangeModelContent(() => {
-    saveDebounced();
+  document.querySelectorAll('[role="tooltip"]').forEach(el => {
+    if (!el.hasAttribute('title') && !el.hasAttribute('aria-label')) {
+      el.setAttribute('title', 'Tooltip');
+    }
   });
-
-  const savedCode = localStorage.getItem("codigoSalvo");
-  if (savedCode) {
-    window.editor.setValue(savedCode);
-  }
-
-  document.getElementById("load-button").addEventListener("click", () => {
-    const saved = localStorage.getItem("codigoSalvo");
-    if (saved) window.editor.setValue(saved);
-  });
-
-  document.getElementById("load-button").addEventListener("click", () => {
-    document.getElementById("file-input").click();
-  });
-
-  document.getElementById("file-input").addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const content = e.target.result;
-      window.editor.setValue(content);
-      console.log("Arquivo carregado com sucesso!");
-      console.log(devMode);
-      if (devMode) console.log("Código carregado do arquivo!");
-    };
-
-    reader.onerror = function () {
-      alert("Erro ao ler o arquivo.");
-    };
-
-    reader.readAsText(file);
-  });
-});
-
-// Função para carregar tema dinamicamente
-async function carregarTema(nomeTema) {
-  try {
-    const response = await fetch(`${nomeTema}.json`);
-    const tema = await response.json();
-
-    monaco.editor.defineTheme(nomeTema, tema);
-    monaco.editor.setTheme(nomeTema);
-
-  } catch (erro) {
-    console.error("Erro ao carregar o tema:", erro);
-  }
-}
+  
 }
