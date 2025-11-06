@@ -211,6 +211,10 @@ if (!data.item) return showNoMusic();
 
   // Se chegou aqui, tem música tocando
   getDevMode() || console.clear();
+  // Dentro do getNowPlaying, depois de pegar trackName e artistName
+  showLyrics(data.item.name, data.item.artists.map(artist => artist.name).join(', '));
+  console.log("getnow")
+
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
   albumArtEl2.style.width = '600px';
@@ -618,5 +622,13 @@ document.addEventListener("visibilitychange", () => {
 
 // Inicia o temporizador
 resetarTimer();
+
+
+
+// Função para buscar letra (só chamar de dentro do getNowPlaying)
+
+
+
+
 
 }
