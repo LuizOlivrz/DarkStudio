@@ -86,7 +86,7 @@ if (blockWeb) {
     function saveCode() {
       const code = window.editor.getValue();
       localStorage.setItem("codigoSalvo", code);
-      if (getDevMode()) console.log("💾 Código salvo automaticamente / Code auto-saved");
+      if (getDevMode() === "true") console.log("💾 Código salvo automaticamente / Code auto-saved");
     }
 
     const saveDebounced = debounce(saveCode, 1000);

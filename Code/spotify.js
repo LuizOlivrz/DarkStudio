@@ -210,23 +210,7 @@ if (!data.item) return showNoMusic();
 
 
   // Se chegou aqui, tem música tocando
-  getDevMode() || console.clear();
-
-  // Dentro do getNowPlaying, depois de pegar trackName e artistName
-const song = data.item.name;
-const artist = data.item.artists[0].name;
-
-// Chama o Genius dinamicamente
-fetchLyricsGeniusDynamic(song, artist)
-    .then(songData => {
-        if (!songData) return console.log('Letra não encontrada');
-        console.log('Letra Genius:', songData);
-        // Aqui você pode mostrar no front, como quiser
-    })
-    .catch(err => console.error('Erro Genius:', err));
-
-
-  console.log("getnow")
+  if (getDevMode() === "false") console.clear();
 
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
@@ -467,6 +451,9 @@ function darkenRGB([r, g, b], percent = 20) {
   return `rgb(${newR}, ${newG}, ${newB})`;
 }
 
+const devModeCheckbox = document.getElementById('dev-mode-checkbox');
+
+
 // Função para atualizar o valor da variável com o estado atual do checkbox
 document.getElementById('auto-background-checkbox').addEventListener('change', function() {
   autoBackground = this.checked;
@@ -479,33 +466,32 @@ document.getElementById('spotify-checkbox').addEventListener('change', function(
   saveCheckboxState();
 });
 
-document.getElementById('dev-mode-checkbox').addEventListener('change', function() {
+// Ao mudar o checkbox
+devModeCheckbox.addEventListener('change', function() {
   const newValue = this.checked;
   setDevMode(newValue);
   console.log("Dev Mode atualizado:", getDevMode());
+
 });
 
 const autoCheckbox = document.getElementById('auto-background-checkbox');
 const spotifyCheckbox = document.getElementById('spotify-checkbox');
-const devModeCheckbox = document.getElementById('dev-mode-checkbox');
 
 // Salvando o estado do checkbox com localStorage:
 function saveCheckboxState() {
 
   const autoValue = !!(autoCheckbox && autoCheckbox.checked);
   const spotifyValue = !!(spotifyCheckbox && spotifyCheckbox.checked);
-  const devModeValue = !!(devModeCheckbox && devModeCheckbox.checked);
 
   localStorage.setItem('autoBackground', String(autoValue));
   localStorage.setItem('spotify', String(spotifyValue));
-  localStorage.setItem('devMode', String(devModeValue));
+
 }
 
 // Carregar estado salvo ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
   const savedState = localStorage.getItem('autoBackground');
   const savedStateSpotify = localStorage.getItem('spotify');
-  const savedStateDevMode = localStorage.getItem('devMode');
   if (savedState !== null) {
     autoBackground = savedState === 'true';
     const autoCheckbox = document.getElementById('auto-background-checkbox');
@@ -517,11 +503,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (spotifyCheckbox) spotifyCheckbox.checked = spotify;
     Spotify();
   }
-  if (savedStateDevMode !== null) {
-    setDevMode(savedStateDevMode === 'true');
-    const devModeCheckbox = document.getElementById('dev-mode-checkbox');
-    if (devModeCheckbox) devModeCheckbox.checked = getDevMode();
-  }
+
+  if (devModeCheckbox) devModeCheckbox.checked = getDevMode();
+  
 });
 
 function Spotify() {
@@ -635,37 +619,4 @@ document.addEventListener("visibilitychange", () => {
 
 // Inicia o temporizador
 resetarTimer();
-
-
-
-// Função para buscar letra (só chamar de dentro do getNowPlaying)
-
-
-async function fetchLyricsGeniusDynamic(song, artist) {
-    // Monta query pro Genius
-    const query = encodeURIComponent(`${song} ${artist}`);
-    const searchUrl = `https://api.genius.com/search?q=${query}`;
-    
-    // Chama seu proxy Netlify
-    const proxyUrl = `https://lu-proxy.netlify.app/.netlify/functions/proxy?url=${encodeURIComponent(searchUrl)}`;
-
-    const res = await fetch(proxyUrl);
-    const data = await res.json();
-
-    // Pega o ID da primeira música encontrada
-    if (!data.response || !data.response.hits || data.response.hits.length === 0) return null;
-
-    const songId = data.response.hits[0].result.id;
-
-    // Agora busca a letra usando o ID
-    const lyricsUrl = `https://api.genius.com/songs/${songId}`;
-    const lyricsProxyUrl = `https://lu-proxy.netlify.app/.netlify/functions/proxy?url=${encodeURIComponent(lyricsUrl)}`;
-
-    const lyricsRes = await fetch(lyricsProxyUrl);
-    const lyricsData = await lyricsRes.json();
-
-    return lyricsData.response.song;
-}
-
-
 }
