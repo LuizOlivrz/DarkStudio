@@ -211,8 +211,21 @@ if (!data.item) return showNoMusic();
 
   // Se chegou aqui, tem música tocando
   getDevMode() || console.clear();
+
   // Dentro do getNowPlaying, depois de pegar trackName e artistName
-  showLyrics(data.item.name, data.item.artists.map(artist => artist.name).join(', '));
+const song = data.item.name;
+const artist = data.item.artists[0].name;
+
+// Chama o Genius dinamicamente
+fetchLyricsGeniusDynamic(song, artist)
+    .then(songData => {
+        if (!songData) return console.log('Letra não encontrada');
+        console.log('Letra Genius:', songData);
+        // Aqui você pode mostrar no front, como quiser
+    })
+    .catch(err => console.error('Erro Genius:', err));
+
+
   console.log("getnow")
 
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
@@ -628,7 +641,31 @@ resetarTimer();
 // Função para buscar letra (só chamar de dentro do getNowPlaying)
 
 
+async function fetchLyricsGeniusDynamic(song, artist) {
+    // Monta query pro Genius
+    const query = encodeURIComponent(`${song} ${artist}`);
+    const searchUrl = `https://api.genius.com/search?q=${query}`;
+    
+    // Chama seu proxy Netlify
+    const proxyUrl = `https://lu-proxy.netlify.app/.netlify/functions/proxy?url=${encodeURIComponent(searchUrl)}`;
 
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+
+    // Pega o ID da primeira música encontrada
+    if (!data.response || !data.response.hits || data.response.hits.length === 0) return null;
+
+    const songId = data.response.hits[0].result.id;
+
+    // Agora busca a letra usando o ID
+    const lyricsUrl = `https://api.genius.com/songs/${songId}`;
+    const lyricsProxyUrl = `https://lu-proxy.netlify.app/.netlify/functions/proxy?url=${encodeURIComponent(lyricsUrl)}`;
+
+    const lyricsRes = await fetch(lyricsProxyUrl);
+    const lyricsData = await lyricsRes.json();
+
+    return lyricsData.response.song;
+}
 
 
 }
