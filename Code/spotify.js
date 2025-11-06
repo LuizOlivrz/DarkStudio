@@ -15,8 +15,12 @@ const albumArtEl = document.getElementById('album-art');
 const albumArtEl2 = document.getElementById('album-art-full');
 const full = document.getElementById('full-screen');
 const trackInfoEl = document.getElementById('track-info');
+const trackInfoFullEl = document.getElementById('track-info-full');
 const profilePicEl = document.getElementById('spotify-profile-pic');
 const viewCode = document.getElementById('code-language');
+const closeBtn = document.getElementById('close');
+const options = document.getElementById('options')
+const editor = document.getElementById('Editor')
 
 const path = document.querySelector("#spotify-logo-full path");
 const btns = document.querySelector('#options').querySelectorAll('button');
@@ -172,6 +176,12 @@ async function handleRedirect() {
 async  function getNowPlaying() {
   if (navigator.onLine) {
   if (spotify) {
+
+    if (!fullscreen) {
+      trackInfoEl.style.opacity = '1';
+      albumArtEl.style.opacity = '1';
+    }
+
   const token = sessionStorage.getItem('access_token');
   if (!token) return;
 
@@ -201,10 +211,6 @@ if (!data.item) return showNoMusic();
 
   // Se chegou aqui, tem música tocando
   getDevMode() || console.clear();
-  if (!fullscreen) {
-    trackInfoEl.style.opacity = '1';
-    albumArtEl.style.opacity = '1';
-  }
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
   albumArtEl2.style.width = '600px';
@@ -253,6 +259,7 @@ albumArtEl.onload = () => {
 
     path.style.fill = textColor;
     full.style.backgroundColor = back;
+    
 
     if (autoBackground) {
       document.getElementById('options').style.backgroundColor = back;
@@ -260,8 +267,9 @@ albumArtEl.onload = () => {
       document.getElementById('youtube-logo').style.fill = textColor;
       document.getElementById('options').style.color = textColor;
       document.getElementById('Editor').style.backgroundColor = back;
-      document.getElementById('close').style.backgroundColor = back;
-      document.getElementById('close').style.color = textColor;
+      closeBtn.style.backgroundColor = back;
+      closeBtn.style.color = textColor;
+      closeBtn.style.borderColor = textColor;
       viewCode.style.backgroundColor = back;
       viewCode.style.borderColor = textColor;
       viewCode.style.color = textColor;
@@ -321,7 +329,7 @@ function resetTextColors() {
   document.getElementById('youtube-logo').style.fill = "#FF6700";
   document.getElementById('Editor').style.backgroundColor = "#3c3c3c";
   document.getElementById('close').style.backgroundColor = "#090909";
-  document.getElementById('close').style.color = "#FFFFFF";
+  document.getElementById('close').style.color = "#FF6700";
   document.getElementById('close').style.borderColor = "#3c3c3c";
   viewCode.style.backgroundColor = "#090909";
   viewCode.style.color = "#FF6700";
@@ -366,15 +374,16 @@ function fullScreen() {
   const isVisible = full.style.width >= '50%';
 
   closeBtn.style.display = 'block';
-
   full.style.width = isVisible ? '0.1px' : '99.3%';
   full.style.opacity = isVisible ? '0' : '1';
   img.style.opacity = isVisible ? '0' : '1';
   img2.style.opacity = isVisible ? '1' : '0';
   full.style.pointerEvents = isVisible ? 'none' : 'auto';
   trackInfoEl.style.opacity = isVisible ? '1' : '0';
-  document.getElementById('track-info-full').style.opacity = isVisible ? '0' : '1';
+  options.style.opacity = isVisible ? '1' : '0';
+  trackInfoFullEl.style.opacity = isVisible ? '0' : '1';
   closeBtn.style.pointerEvents = isVisible ? 'none' : 'auto';
+  editor.style.opacity = isVisible ? '1' : '0';
 
 fullScreenCalc();
 }
@@ -557,18 +566,24 @@ const tempoInatividade = 5000; // 5 segundos
 function acaoInativo() {
   // Só executa se a aba estiver ativa!
   if (document.visibilityState !== "visible") return;
+  if (fullscreen === "false") return;
 
   document.body.classList.add("inativo");
   if (getDevMode()) console.log("🕒 Mouse parado por 5 segundos — ação iniciada!");
-  full.style.height = "calc(100% - 9px)";
+  document.documentElement.style.cursor = 'none';
+  full.style.height = "calc(100% - 11px)";
+  full.style.borderRadius = "10px"
   document.getElementById('close').style.opacity = "0";
   document.getElementById('spotify-profile-pic').style.opacity = "0";
 }
 
 function acaoVoltar() {
+
   document.body.classList.remove("inativo");
   full.style.height = "calc(100vh - 67px)";
-  
+  full.style.borderRadius = "6px"
+  document.documentElement.style.cursor = ''; // volta ao padrão do CSS
+
   if (fullscreen === "true") {
     document.getElementById('close').style.opacity = "1";
   } else {
