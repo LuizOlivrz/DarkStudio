@@ -290,6 +290,8 @@ albumArtEl.onload = () => {
   }
 };
 }
+} else {
+  resetTextColors();
 }
   } else {
       document.getElementById('spotify-now-playing').style.opacity = '0';

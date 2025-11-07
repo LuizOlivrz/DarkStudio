@@ -24,7 +24,7 @@ export function setDevMode(value) {
 // ─────────────────────────────────────────────
 
 let device = "Detectando"; // current device status / status atual do dispositivo
-let block = false;         // whether to block access / se deve bloquear o acesso
+let block = true;         // whether to block access / se deve bloquear o acesso
 
 detectDevice();
 
