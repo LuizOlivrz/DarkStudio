@@ -210,7 +210,7 @@ if (!data.item) return showNoMusic();
 
 
   // Se chegou aqui, tem música tocando
-  if (getDevMode() === "false") console.clear();
+  if (!getDevMode()) console.clear();
 
   albumArtEl2.setAttribute('title', `${data.item.name} - ${data.item.artists.map(artist => artist.name).join(', ')} (Spotify)`);
   trackNameFullEl.textContent = data.item.name;
@@ -455,7 +455,6 @@ function darkenRGB([r, g, b], percent = 20) {
 
 const devModeCheckbox = document.getElementById('dev-mode-checkbox');
 
-
 // Função para atualizar o valor da variável com o estado atual do checkbox
 document.getElementById('auto-background-checkbox').addEventListener('change', function() {
   autoBackground = this.checked;
@@ -475,6 +474,7 @@ devModeCheckbox.addEventListener('change', function() {
   console.log("Dev Mode atualizado:", getDevMode());
 
 });
+
 
 const autoCheckbox = document.getElementById('auto-background-checkbox');
 const spotifyCheckbox = document.getElementById('spotify-checkbox');
@@ -621,4 +621,5 @@ document.addEventListener("visibilitychange", () => {
 
 // Inicia o temporizador
 resetarTimer();
+
 }
