@@ -47,7 +47,7 @@ function detectDevice() {
 // 🧩 Dev Mode Logging / Log do Modo Dev
 // ─────────────────────────────────────────────
 
-if (getDevMode() === "true") console.log("Dev Mode:", getDevMode());
+if (getDevMode()) console.log("Dev Mode:", getDevMode());
 
 // ─────────────────────────────────────────────
 // 🚫 Exported Flag / Flag Exportada
@@ -69,7 +69,7 @@ function js(name) {
   script.type = 'module';         // importante pra aceitar import/export
   document.body.appendChild(script);
 
-  if (getDevMode() === "true") console.log(`🎵 Script '${name}.js' carregado com sucesso!`);
+  if (getDevMode()) console.log(`🎵 Script '${name}.js' carregado com sucesso!`);
 }
 
 // Garante que o body já existe antes de adicionar scripts
@@ -80,8 +80,6 @@ function loadJS(name) {
     js(name);
   }
 }
-
-console.log(getDevMode())
 
 // Exemplo de uso
 loadJS('spotify');
