@@ -4,16 +4,17 @@
 import { getDevMode, blockWeb } from "./config.js";
 
 // Bloqueia execução se estiver em mobile (definido em config.js)
-if (blockWeb) {
-  console.warn("⚠️ Modo bloqueado em dispositivos móveis / Mobile mode blocked");
-} else {
+if (!blockWeb) {
 
   // ─────────────────────────────────────────────
   // ⚙️ Configurações Iniciais / Initial Settings
   // ─────────────────────────────────────────────
+
+  const select = document.getElementById("theme-select");
   let fontSize = 14;          // Fonte padrão do editor / Default font size
   let initialTheme = "dark";  // Tema inicial / Default theme
-  const autoTheme = true;     // Detectar tema automaticamente / Auto-detect theme
+  let theme = "dark";         // Tema selecionado no dropdown / Selected theme from dropdown
+  let autoTheme = true;     // Detectar tema automaticamente / Auto-detect theme
 
   // ─────────────────────────────────────────────
   // 🎃 Detecção de Tema por Data / Auto Theme by Date
@@ -35,19 +36,42 @@ if (blockWeb) {
   }
 
   // ─────────────────────────────────────────────
+  // 🔄 Carrega o estado do autoTheme ANTES de montar o editor
+  // ─────────────────────────────────────────────
+  const savedState = localStorage.getItem('autoTheme');
+
+  if (savedState !== null) {
+    autoTheme = savedState === 'true';
+
+    const autoCheckbox = document.getElementById('auto-fest-checkbox');
+    if (autoCheckbox) autoCheckbox.checked = autoTheme;
+  }
+
+  select.addEventListener("change", function () {
+    theme = this.value;
+  });
+
+  // ─────────────────────────────────────────────
   // 🧠 Inicialização do Monaco Editor / Monaco Editor Setup
   // ─────────────────────────────────────────────
+
   require.config({
     paths: {
       vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs",
     },
   });
 
+  initialTheme = theme;
+
   require(["vs/editor/editor.main"], () => {
     // 1️⃣ Definir tema inicial
+    if (autoTheme) {
     initialTheme = autoTheme ? detectThemeByDate() : "dark";
     loadTheme(initialTheme);
-
+    } else {
+      initialTheme = "dark";
+      loadTheme(initialTheme);
+    }
     // 2️⃣ Criar editor
     window.editor = monaco.editor.create(
       document.getElementById("Editor-Input"),
@@ -156,4 +180,28 @@ if (blockWeb) {
     }
   });
   
+  const autoCheckbox = document.getElementById('auto-fest-checkbox');
+
+  if (autoCheckbox) {
+    autoCheckbox.addEventListener('change', function() {
+      autoTheme = this.checked;  // ← Atualiza a variável, não o elemento
+      if (getDevMode()) console.log("💾 Auto Theme changed to:", autoTheme);
+      // Recarrega o tema do editor sem recarregar a página
+      if (autoTheme) {
+        const newTheme = detectThemeByDate();
+        loadTheme(newTheme);
+      } else {
+        loadTheme(theme);
+      }
+      saveCheckboxState();
+    });
+  }
+
+  // Salvando o estado do checkbox com localStorage:
+  function saveCheckboxState() {
+    if (getDevMode()) console.log("💾 Salvando estado do Auto Theme / Saving Auto Theme state");
+    const autoValue = autoCheckbox ? autoCheckbox.checked : false;
+    localStorage.setItem('autoTheme', String(autoValue));
+  }
+
 }

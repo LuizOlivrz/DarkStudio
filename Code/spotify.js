@@ -455,6 +455,9 @@ function darkenRGB([r, g, b], percent = 20) {
 
 const devModeCheckbox = document.getElementById('dev-mode-checkbox');
 
+devModeCheckbox.checked = getDevMode();
+
+
 // Função para atualizar o valor da variável com o estado atual do checkbox
 document.getElementById('auto-background-checkbox').addEventListener('change', function() {
   autoBackground = this.checked;
