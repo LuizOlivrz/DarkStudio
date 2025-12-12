@@ -46,6 +46,8 @@ const executeButton   = document.getElementById('execute');
 const iframeButton    = document.getElementById('new-iframe-button');
 const downloadButton  = document.getElementById('download-file');
 const clearButton     = document.getElementById('clear');
+const editor          = document.getElementById('Editor');
+const configMenu          = document.getElementById('config');
 
 // ─────────────────────────────────────────────
 // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -358,6 +360,23 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key.toLowerCase() === "i") {
+    e.preventDefault();
+    if (document.getElementById('chat').style.opacity === '1') {
+      document.getElementById('chat').style.opacity = '0';
+      document.getElementById('chat').style.pointerEvents = 'none';
+      editor.style.width = 'calc(100% - 97px)';
+      configMenu.style.width = 'calc(100% - 97px)';
+    } else { 
+      document.getElementById('chat').style.display = 'block';
+      document.getElementById('chat').style.opacity = '1';
+      document.getElementById('chat').style.pointerEvents = 'auto';
+      editor.style.width = '60%';
+      configMenu.style.width = '60.5%';
+    }
+  }
+});
 
 // ─────────────────────────────────────────────
 // 🌐 Network Status / Status da Conexão
