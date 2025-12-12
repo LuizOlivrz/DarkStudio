@@ -84,4 +84,5 @@ function loadJS(name) {
 // Exemplo de uso
 loadJS('spotify');
 loadJS('main');
-loadJS('monaco')
+loadJS('monaco');
+loadJS('AI');

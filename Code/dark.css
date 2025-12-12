@@ -90,7 +90,7 @@ body {
 #Editor {
   position: fixed;
   top: 5px;
-  left: 88px; /*87*/
+  left: 9.8vh; /* Antes era 88px */
   width: calc(100% - 97px);
   height: calc(100vh - 71px);
   background-color: #090909;
@@ -100,7 +100,7 @@ body {
   display: flex;
   align-items: flex-start; /* topo */
   justify-content: flex-start; /* esquerda */
-  transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out;
+  transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out, width 0.2s ease-in-out, height 0.5s ease-in-out;
 
 }
 
@@ -145,12 +145,12 @@ body {
   border: 2px solid #3c3c3c;
   gap: 10px;
   height: calc(100vh - 77px);
-  border-radius: 8px;
+  border-radius: 6px;
   background: #090909;
   color: #fff;
   padding: 3px;
   transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out;
-  max-width: 70px;
+  width: 7.8vh;
 
 }
 
@@ -453,4 +453,133 @@ img {
 
   p {
     font-weight: bold;
+  }
+
+
+  /* ====== ESTILOS DO CHAT DE IA ====== */
+  /* --- CORES PRINCIPAIS --- */
+  :root {
+    --bg: #080808;
+    --green: #18ff72;
+    --purple: #a44bff;
+    --orange: #ff8a3d;
+    --text: #e6e6e6;
+  }
+
+  /* --- CONTAINER DO CHAT --- */
+  #chat {
+    width: 41vh;
+    height: calc(97vh - 68px);
+    background: var(--bg);
+    border: 2px solid var(--purple);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: monospace;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 5px;
+    top: 5px;
+    transition: box-shadow 0.3s ease, opacity 0.3s ease;
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    /* Glow bonito */
+    box-shadow: 0 0 18px var(--purple);
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* --- ANIMAÇÃO DE ENTRADA DO CHAT --- */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* --- MENSAGENS --- */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 6vh;
+    padding-right: 4px;
+  }
+
+  .user, .ai {
+    margin-bottom: 6px;
+    opacity: 0;
+    animation: msgIn 0.2s forwards ease-out;
+  }
+
+  /* --- ANIMAÇÃO DE MENSAGEM --- */
+  @keyframes msgIn {
+    from { transform: translateX(-6px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* --- ESTILOS DAS MENSAGENS --- */
+  .user { 
+    color: var(--green);
+    background-color: #9b3e00;
+    padding: 1vh;
+    border-radius: 6px;
+    border: 1px solid var(--green);
+    width: fit-content;
+    max-width: 80%;
+    margin-left: auto;
+
+ }
+  .ai {
+    color: var(--purple);
+    background-color: #202020;
+    padding: 1vh;
+    border-radius: 6px;
+    border: 1px solid var(--purple);
+    max-width: 80%;
+    margin-right: auto;
+  }
+
+  /* Input e botão */
+  #input-area {
+    display: flex;
+    width: auto;
+    gap: 6px;
+    animation: float 3s ease-in-out infinite;
+    position: fixed;
+    bottom: 9vh;
+  }
+
+  #input-area:focus-within {
+    animation: none;
+  }
+
+  #input {
+    resize: none;
+    width: 30vh;
+    flex: 1;
+    padding: 8px;
+    background: #111;
+    border: 1px solid var(--purple);
+    color: var(--green);
+    border-radius: 6px;
+    outline: none;
+
+    transition: 0.2s;
+  }
+  #input:focus {
+    box-shadow: 0 0 10px var(--purple);
+  }
+
+  #send {
+    padding: 8px 14px;
+    background: var(--purple);
+    border: none;
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  #send:hover {
+    background: var(--orange);
+    box-shadow: 0 0 10px var(--orange);
   }

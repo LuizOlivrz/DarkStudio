@@ -1,0 +1,179 @@
+<div id="chat">
+  <div id="messages"></div>
+
+  <div id="input-area">
+    <input id="input" placeholder="Digite sua mensagem..." />
+    <button id="send">Enviar</button>
+  </div>
+</div>
+
+<style>
+  /* --- CORES PRINCIPAIS --- */
+  :root {
+    --bg: #080808;
+    --green: #18ff72;
+    --purple: #a44bff;
+    --orange: #ff8a3d;
+    --text: #e6e6e6;
+  }
+
+  /* --- CONTAINER DO CHAT --- */
+  #chat {
+    width: 360px;
+    height: 540px;
+    background: var(--bg);
+    border: 2px solid var(--purple);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: monospace;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+
+    /* Glow bonito */
+    box-shadow: 0 0 18px var(--purple);
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* --- ANIMAÇÃO DE ENTRADA DO CHAT --- */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* --- MENSAGENS --- */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding-right: 4px;
+  }
+
+  .user, .ai {
+    margin-bottom: 6px;
+    opacity: 0;
+    animation: msgIn 0.2s forwards ease-out;
+  }
+
+  /* --- ANIMAÇÃO DE MENSAGEM --- */
+  @keyframes msgIn {
+    from { transform: translateX(-6px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* --- ESTILOS DAS MENSAGENS --- */
+  .user { 
+    color: var(--green);
+    background-color: #9b3e00;
+    padding: 1vh;
+    border-radius: 6px;
+    border: 1px solid var(--green);
+    width: fit-content;
+    max-width: 80%;
+    margin-left: auto;
+
+ }
+  .ai {
+    color: var(--purple);
+    background-color: #202020;
+    padding: 1vh;
+    border-radius: 6px;
+    border: 1px solid var(--purple);
+    max-width: 80%;
+    margin-right: auto;
+  }
+
+  /* Input e botão */
+  #input-area {
+    display: flex;
+    gap: 6px;
+  }
+
+  #input {
+    flex: 1;
+    padding: 8px;
+    background: #111;
+    border: 1px solid var(--purple);
+    color: var(--green);
+    border-radius: 6px;
+    outline: none;
+
+    transition: 0.2s;
+  }
+  #input:focus {
+    box-shadow: 0 0 10px var(--purple);
+  }
+
+  #send {
+    padding: 8px 14px;
+    background: var(--purple);
+    border: none;
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  #send:hover {
+    background: var(--orange);
+    box-shadow: 0 0 10px var(--orange);
+  }
+</style>
+
+<script>
+  const API_KEY = "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";
+  const MODEL = "llama-3.1-8b-instant";
+
+  const chatHistory = [
+    {
+      role: "system",
+      content:
+        "You are NightCoder, an AI focused on helping with programming or any other topic. No intros, no greetings, no DarkStudio mentions unless requested. Be direct like an intelligent terminal. Explain code changes at the end. Always speak in user language."
+    }
+  ];
+
+  document.getElementById("send").onclick = sendMessage;
+
+  // --- ENVIAR COM ENTER ---
+  document.getElementById("input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  async function sendMessage() {
+    const input = document.getElementById("input");
+    const messages = document.getElementById("messages");
+    const content = input.value.trim();
+    if (!content) return;
+
+    // Mostra texto do usuário
+    messages.innerHTML += `<div class='user'>${escapeHTML(content)}</div>`;
+    chatHistory.push({ role: "user", content });
+    input.value = "";
+
+    messages.scrollTop = messages.scrollHeight;
+
+    // Chama a API Groq
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({ model: MODEL, messages: chatHistory })
+    });
+
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+
+    // Mostra resposta da IA
+    messages.innerHTML += `<div class='ai'>${escapeHTML(reply)}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+
+    chatHistory.push({ role: "assistant", content: reply });
+  }
+
+  function escapeHTML(str) {
+    return str
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+</script>

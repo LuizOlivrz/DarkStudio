@@ -19,8 +19,9 @@ const trackInfoFullEl = document.getElementById('track-info-full');
 const profilePicEl = document.getElementById('spotify-profile-pic');
 const viewCode = document.getElementById('code-language');
 const closeBtn = document.getElementById('close');
-const options = document.getElementById('options')
-const editor = document.getElementById('Editor')
+const options = document.getElementById('options');
+const editor = document.getElementById('Editor');
+const chatIA = document.getElementById('chat');
 
 const path = document.querySelector("#spotify-logo-full path");
 const btns = document.querySelector('#options').querySelectorAll('button');
@@ -387,6 +388,8 @@ function fullScreen() {
   trackInfoFullEl.style.opacity = isVisible ? '0' : '1';
   closeBtn.style.pointerEvents = isVisible ? 'none' : 'auto';
   editor.style.opacity = isVisible ? '1' : '0';
+  chatIA.style.opacity = isVisible ? '1' : '0';
+  chatIA.style.pointerEvents = isVisible ? 'auto' : 'none';
 
 fullScreenCalc();
 }
