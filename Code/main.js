@@ -247,6 +247,8 @@ function execute() {
     newWindow.document.write(code);
     newWindow.document.close();
   } else if (language === "JavaScript") {
+    alert("O Terminal JS esta temporariamente indisponível.");
+    return;
     const safeCode = code.replace(/<\/script>/gi, '<\\/script>');
     const newTab = window.open();
     newTab.document.write(`
@@ -338,6 +340,24 @@ function checkScreenWidth() {
 
 window.addEventListener('load', checkScreenWidth);
 window.addEventListener('resize', checkScreenWidth);
+
+// ─────────────────────────────────────────────
+// ⚙️ Shortcuts / Atalhos
+// ─────────────────────────────────────────────
+
+document.addEventListener("keydown", function (event) {
+  if (event.ctrlKey && event.key === ",") {
+    event.preventDefault(); // impede o comportamento padrão do browser
+    config();    // chama sua função
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && (e.key === "`" || e.code === "Backquote")) {
+    execute();
+  }
+});
+
 
 // ─────────────────────────────────────────────
 // 🌐 Network Status / Status da Conexão
