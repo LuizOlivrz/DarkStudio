@@ -16,7 +16,7 @@ document.getElementById("input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     if (e.shiftKey) {
       // quebra de linha
-      return; 
+      return;
     } else {
       e.preventDefault();
       sendMessage();
@@ -78,7 +78,7 @@ function renderMessage(text) {
 
   // 3️⃣ negrito **texto**
   text = text.replace(/\*\*(.*?)\*\*/g, "<h2><strong style='color: #00ff22ff; font-weight: bold'>$1</strong></h2>");
-  
+
   // 3️⃣ strong **texto**
   text = text.replace(/\*(.*?)\*/g, "<strong style='color: #ff0055ff; font-weight: bold'>$1</strong>");
 
