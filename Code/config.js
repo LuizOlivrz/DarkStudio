@@ -10,6 +10,66 @@ export function getDevMode() {
   return localStorage.getItem('devMode') === 'true';
 }
 
+export const language = navigator.language || navigator.userLanguage;
+
+export const i18n = {
+  "pt-BR": {
+    codeEmpty: "O código está vazio!",
+    startWriting: "Comece a escrever seu código e veja a linguagem aqui!",
+    fileName: "Nome do arquivo:",
+    defaultFile: "MeuArquivo",
+    offline: "Você está offline!",
+    noInternet: "Sem conexão com a internet 😢",
+
+    JSBlocked: "O JavaScript está temporariamente desativado para manutenção!",
+    Errorhtmljs: "O conteúdo não é um HTML nem um JS!",
+
+    screenTooSmallTitle: "Largura ou altura insuficiente :(",
+    screenTooSmallText: "Redimensione a tela ou remova o zoom para usar.",
+
+    text: "Texto",
+    gitText: "Texto (Git)",
+    markdown: "Markdown",
+
+    siteBlockedTitle: "Site Bloqueado :(",
+    siteBlockedDesc: "Seu site favorito de edição de códigos está temporariamente indisponível!",
+    reason: "Motivo",
+    blockedMobile:
+      "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador."
+  },
+
+  "en-US": {
+    codeEmpty: "The code is empty!",
+    startWriting: "Start writing your code and see the language here!",
+    fileName: "File name:",
+    defaultFile: "MyFile",
+    offline: "You are offline!",
+    noInternet: "No internet connection 😢",
+
+    JSBlocked: "JavaScript is temporarily disabled for maintenance!",
+    Errorhtmljs: "The content is neither HTML nor JS!",
+
+    screenTooSmallTitle: "Width or height too small :(",
+    screenTooSmallText: "Please resize or remove zoom to use.",
+
+    text: "Text",
+    gitText: "Git Text",
+    markdown: "Markdown",
+
+    siteBlockedTitle: "Site Blocked :(",
+    siteBlockedDesc: "Your favorite code editing website is temporarily unavailable!",
+    reason: "Reason",
+    blockedMobile:
+      "This site is not compatible with mobile devices at the moment.\nPlease access it from a desktop computer."
+  }
+
+};
+
+export function t(key) {
+  if (getDevMode()) console.log(`🌐 Translating key: '${key}' for language: '${language}'`);
+  return i18n[language]?.[key] || i18n["en-US"][key] || key;
+}
+
 /**
  * Set the Dev Mode state in localStorage
  * Define o estado do Modo Dev no localStorage
@@ -164,31 +224,17 @@ if (!block) {
 
 } else {
   document.body.innerHTML = `
-    <div style="
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          height:100vh;
-          background-color:red;
-          color:#fff;
-          font-family:sans-serif;
-          text-align:center;
-          padding:20px;
-          box-sizing:border-box;">
-  
-      <h1>Site Blocked :(</h1>
-      <p>Your favorite code editing website is temporarily unavailable!</p>
-      <h5>By: CDP 💚</h5>
-
-      <div style="margin-top:20px; font-size:12px;">
-        <strong>Reason:</strong><br/>
-        This site is not compatible with mobile devices at the moment.<br/>
-        Please access it from a desktop computer to enjoy all available features.
-      </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
+    <h1>${t("siteBlockedTitle")}</h1>
+    <p>${t("siteBlockedDesc")}</p>
+    <h5>By: CDP 💚</h5>
+    <div style="margin-top:20px;font-size:12px;">
+      <strong>${t("reason")}:</strong><br/>
+      ${t("blockedMobile").replaceAll("\n", "<br/>")}
     </div>
+  </div>
+`;
 
-  `;
 
   document.title = "DarkStudio :(";
   const favicon = document.getElementById('favicon');
