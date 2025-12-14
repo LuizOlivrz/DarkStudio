@@ -66,8 +66,8 @@ if (!blockWeb) {
   require(["vs/editor/editor.main"], () => {
     // 1️⃣ Definir tema inicial
     if (autoTheme) {
-    initialTheme = autoTheme ? detectThemeByDate() : "dark";
-    loadTheme(initialTheme);
+      initialTheme = autoTheme ? detectThemeByDate() : "dark";
+      loadTheme(initialTheme);
     } else {
       initialTheme = "dark";
       loadTheme(initialTheme);
@@ -179,11 +179,11 @@ if (!blockWeb) {
       el.setAttribute('title', 'Tooltip');
     }
   });
-  
+
   const autoCheckbox = document.getElementById('auto-fest-checkbox');
 
   if (autoCheckbox) {
-    autoCheckbox.addEventListener('change', function() {
+    autoCheckbox.addEventListener('change', function () {
       autoTheme = this.checked;  // ← Atualiza a variável, não o elemento
       if (getDevMode()) console.log("💾 Auto Theme changed to:", autoTheme);
       // Recarrega o tema do editor sem recarregar a página
