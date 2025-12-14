@@ -26,7 +26,7 @@ export function setDevMode(value) {
 let device = "Detectando"; // current device status / status atual do dispositivo
 let block = false;         // whether to block access / se deve bloquear o acesso
 
-detectDevice();
+if (!block) detectDevice();
 
 /**
  * Detects whether the user is on a mobile device
@@ -47,7 +47,7 @@ function detectDevice() {
 // 🧩 Dev Mode Logging / Log do Modo Dev
 // ─────────────────────────────────────────────
 
-if (getDevMode()) console.log("Dev Mode:", getDevMode());
+if (getDevMode() && !block) console.log("Dev Mode:", getDevMode());
 
 // ─────────────────────────────────────────────
 // 🚫 Exported Flag / Flag Exportada
@@ -81,8 +81,118 @@ function loadJS(name) {
   }
 }
 
-// Exemplo de uso
-loadJS('spotify');
-loadJS('main');
-loadJS('monaco');
-loadJS('AI');
+/**
+ * Carrega um script externo (CDN) dinamicamente
+ * @param {string} url - URL do script
+ * @returns {Promise<void>}
+ */
+export function loadExternalScript(url) {
+  return new Promise((resolve, reject) => {
+    // evita carregar duas vezes
+    if (document.querySelector(`script[src="${url}"]`)) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = url;
+    script.defer = true;
+    script.onload = () => {
+      if (getDevMode()) console.log("📦 Script externo carregado:", url);
+      resolve();
+    };
+    script.onerror = () => reject(`Erro ao carregar ${url}`);
+
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * Carrega um arquivo CSS dinamicamente
+ * @param {string} href - caminho do CSS
+ */
+export function loadCSS(href) {
+  if (document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) return;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+
+  document.head.appendChild(link);
+
+  if (getDevMode()) console.log("🎨 CSS carregado:", href);
+  setTimeout(() => {
+    document.getElementById('Website-Container').style.opacity = '1'; // mostra o body após carregar o CSS
+  }, 750); // delay pra garantir que o CSS foi aplicado
+}
+
+/**
+ * Define o favicon dinamicamente
+ * @param {string} href - URL do favicon
+ */
+export function loadFavicon(href) {
+  let favicon = document.getElementById("favicon");
+
+  if (!favicon) {
+    favicon = document.createElement("link");
+    favicon.id = "favicon";
+    favicon.rel = "icon";
+    favicon.type = "image/jpeg";
+    document.head.appendChild(favicon);
+  }
+
+  favicon.href = href;
+
+  if (getDevMode()) console.log("⭐ Favicon aplicado:", href);
+}
+
+// ─────────────────────────────────────────────
+// 🚦 Main Loader / Carregador Principal
+// ─────────────────────────────────────────────
+
+if (!block) {
+
+  // Exemplo de uso
+  loadJS('spotify');
+  loadJS('monaco');
+  loadJS('main');
+  loadJS('AI');
+  await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js");
+  loadCSS("Code/Dark.css");
+  loadFavicon("https://i.postimg.cc/1txBHHJn/Design-sem-nome-4.png");
+
+
+} else {
+  document.body.innerHTML = `
+    <div style="
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          height:100vh;
+          background-color:red;
+          color:#fff;
+          font-family:sans-serif;
+          text-align:center;
+          padding:20px;
+          box-sizing:border-box;">
+  
+      <h1>Site Blocked :(</h1>
+      <p>Your favorite code editing website is temporarily unavailable!</p>
+      <h5>By: CDP 💚</h5>
+
+      <div style="margin-top:20px; font-size:12px;">
+        <strong>Reason:</strong><br/>
+        This site is not compatible with mobile devices at the moment.<br/>
+        Please access it from a desktop computer to enjoy all available features.
+      </div>
+    </div>
+
+  `;
+
+  document.title = "DarkStudio :(";
+  const favicon = document.getElementById('favicon');
+  if (favicon) {
+    favicon.href = "https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png";
+  }
+}

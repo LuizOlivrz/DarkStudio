@@ -635,4 +635,19 @@ if (!blockWeb) {
   // Inicia o temporizador
   resetarTimer();
 
+  function spotifyLogout() {
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('expires_at');
+    sessionStorage.removeItem('code_verifier');
+    
+    document.getElementById('login').style.display = 'block';
+    profilePicEl.src = 'https://cdn2.iconfinder.com/data/icons/data-management-38/24/file-settings-512.png';
+    showNoMusic();
+    
+    window.location.href = redirectUri;
+  }
+
+  window.spotifyLogout = spotifyLogout;
+
 }

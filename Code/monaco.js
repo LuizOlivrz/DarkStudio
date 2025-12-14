@@ -51,104 +51,125 @@ if (!blockWeb) {
     theme = this.value;
   });
 
+
+
+  async function loadMonacoLoader() {
+    if (window.require) return; // já carregado
+
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js";
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+  await loadMonacoLoader();
+
   // ─────────────────────────────────────────────
   // 🧠 Inicialização do Monaco Editor / Monaco Editor Setup
   // ─────────────────────────────────────────────
 
-  require.config({
-    paths: {
-      vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs",
-    },
-  });
+  async function initMonaco() {
 
-  initialTheme = theme;
-
-  require(["vs/editor/editor.main"], () => {
-    // 1️⃣ Definir tema inicial
-    if (autoTheme) {
-      initialTheme = autoTheme ? detectThemeByDate() : "dark";
-      loadTheme(initialTheme);
-    } else {
-      initialTheme = "dark";
-      loadTheme(initialTheme);
-    }
-    // 2️⃣ Criar editor
-    window.editor = monaco.editor.create(
-      document.getElementById("Editor-Input"),
-      {
-        value: "Escreva seu código aqui",
-        language: "plaintext",
-        theme: initialTheme,
-        automaticLayout: true,
-        fontSize,
-        minimap: { enabled: false },
-      }
-    );
-
-    // ─────────────────────────────────────────────
-    // 💾 Auto Save / Salvamento Automático
-    // ─────────────────────────────────────────────
-
-    /**
-     * Creates a debounced version of a function.
-     * Cria uma versão “debounced” de uma função (evita execuções repetidas).
-     * @param {Function} func - Função original / Original function
-     * @param {number} wait - Tempo de espera / Delay in ms
-     */
-    function debounce(func, wait) {
-      let timeout;
-      return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-      };
-    }
-
-    /**
-     * Saves the current code in localStorage.
-     * Salva o código atual no localStorage.
-     */
-    function saveCode() {
-      const code = window.editor.getValue();
-      localStorage.setItem("codigoSalvo", code);
-      if (getDevMode() === "true") console.log("💾 Código salvo automaticamente / Code auto-saved");
-    }
-
-    const saveDebounced = debounce(saveCode, 1000);
-
-    // Salva automaticamente após digitar
-    window.editor.onDidChangeModelContent(saveDebounced);
-
-    // Restaura código salvo, se existir
-    const savedCode = localStorage.getItem("codigoSalvo");
-    if (savedCode) window.editor.setValue(savedCode);
-
-    // ─────────────────────────────────────────────
-    // 📂 Carregamento de Arquivos / File Loading
-    // ─────────────────────────────────────────────
-    const loadButton = document.getElementById("load-button");
-    const fileInput = document.getElementById("file-input");
-
-    loadButton.addEventListener("click", () => fileInput.click());
-
-    fileInput.addEventListener("change", (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        const content = e.target.result;
-        window.editor.setValue(content);
-        console.log("📂 Arquivo carregado com sucesso! / File loaded successfully!");
-
-        if (getDevMode()) console.log("💬 Código carregado do arquivo / Code loaded from file");
-      };
-
-      reader.onerror = () => alert("❌ Erro ao ler o arquivo / Error reading file.");
-
-      reader.readAsText(file);
+    await loadMonacoLoader();
+    require.config({
+      paths: {
+        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs",
+      },
     });
-  });
+
+    initialTheme = theme;
+
+    require(["vs/editor/editor.main"], () => {
+      // 1️⃣ Definir tema inicial
+      if (autoTheme) {
+        initialTheme = autoTheme ? detectThemeByDate() : "dark";
+        loadTheme(initialTheme);
+      } else {
+        initialTheme = "dark";
+        loadTheme(initialTheme);
+      }
+      // 2️⃣ Criar editor
+      window.editor = monaco.editor.create(
+        document.getElementById("Editor-Input"),
+        {
+          value: "Escreva seu código aqui",
+          language: "plaintext",
+          theme: initialTheme,
+          automaticLayout: true,
+          fontSize,
+          minimap: { enabled: false },
+        }
+      );
+
+      // ─────────────────────────────────────────────
+      // 💾 Auto Save / Salvamento Automático
+      // ─────────────────────────────────────────────
+
+      /**
+       * Creates a debounced version of a function.
+       * Cria uma versão “debounced” de uma função (evita execuções repetidas).
+       * @param {Function} func - Função original / Original function
+       * @param {number} wait - Tempo de espera / Delay in ms
+       */
+      function debounce(func, wait) {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
+
+      /**
+       * Saves the current code in localStorage.
+       * Salva o código atual no localStorage.
+       */
+      function saveCode() {
+        const code = window.editor.getValue();
+        localStorage.setItem("codigoSalvo", code);
+        if (getDevMode() === "true") console.log("💾 Código salvo automaticamente / Code auto-saved");
+      }
+
+      const saveDebounced = debounce(saveCode, 1000);
+
+      // Salva automaticamente após digitar
+      window.editor.onDidChangeModelContent(saveDebounced);
+
+      // Restaura código salvo, se existir
+      const savedCode = localStorage.getItem("codigoSalvo");
+      if (savedCode) window.editor.setValue(savedCode);
+
+      // ─────────────────────────────────────────────
+      // 📂 Carregamento de Arquivos / File Loading
+      // ─────────────────────────────────────────────
+      const loadButton = document.getElementById("load-button");
+      const fileInput = document.getElementById("file-input");
+
+      loadButton.addEventListener("click", () => fileInput.click());
+
+      fileInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          const content = e.target.result;
+          window.editor.setValue(content);
+          console.log("📂 Arquivo carregado com sucesso! / File loaded successfully!");
+
+          if (getDevMode()) console.log("💬 Código carregado do arquivo / Code loaded from file");
+        };
+
+        reader.onerror = () => alert("❌ Erro ao ler o arquivo / Error reading file.");
+
+        reader.readAsText(file);
+      });
+    });
+  }
+
+  initMonaco();
 
   // ─────────────────────────────────────────────
   // 🎨 Carregamento de Tema / Theme Loader
@@ -160,7 +181,7 @@ if (!blockWeb) {
    */
   async function loadTheme(themeName) {
     try {
-      const response = await fetch(`${themeName}.json`);
+      const response = await fetch(`Themes/${themeName}.json`);
       const theme = await response.json();
 
       monaco.editor.defineTheme(themeName, theme);
