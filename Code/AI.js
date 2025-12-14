@@ -54,7 +54,7 @@ async function sendMessage() {
   const reply = data.choices[0].message.content;
 
   // Mostra resposta
-  messages.innerHTML += `<div class='ai'>${escapeHTML(reply)}</div>`;
+  messages.innerHTML += `<div class='ai'>${renderMessage(reply)}</div>`;
   messages.scrollTop = messages.scrollHeight;
 
   chatHistory.push({ role: "assistant", content: reply });
@@ -63,3 +63,41 @@ async function sendMessage() {
 function escapeHTML(str) {
   return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
+function renderMessage(text) {
+  // 1️⃣ escapa HTML
+  text = escapeHTML(text);
+
+  // 2️⃣ guarda blocos de código temporariamente
+  const codeBlocks = [];
+  text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+    const index = codeBlocks.length;
+    codeBlocks.push({ lang, code });
+    return `@@CODEBLOCK_${index}@@`;
+  });
+
+  // 3️⃣ negrito **texto**
+  text = text.replace(/\*\*(.*?)\*\*/g, "<h2><strong style='color: #00ff22ff; font-weight: bold'>$1</strong></h2>");
+  
+  // 3️⃣ strong **texto**
+  text = text.replace(/\*(.*?)\*/g, "<strong style='color: #ff0055ff; font-weight: bold'>$1</strong>");
+
+  // 4️⃣ itálico `texto`
+  text = text.replace(/`([^`]+)`/g, "<em>$1</em>");
+
+  // 5️⃣ devolve os blocos de código
+  codeBlocks.forEach((block, i) => {
+    text = text.replace(
+      `@@CODEBLOCK_${i}@@`,
+      `
+      <div class="code-block">
+        <div class="code-lang">${block.lang || "code"}:</div>
+        <pre><code>${block.code}</code></pre>
+      </div>
+      `
+    );
+  });
+
+  return text;
+}
+
