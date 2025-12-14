@@ -1,10 +1,10 @@
-import { blockWeb } from "./config.js";
+import { blockWeb, language } from "./config.js";
 
 if (!blockWeb) {
 
   const API_KEY = "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";
   const MODEL = "llama-3.1-8b-instant";
-  const idioma = navigator.language || navigator.userLanguage;
+  const idioma = language;
 
   const chatHistory = [
     {

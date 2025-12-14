@@ -3,8 +3,6 @@
 // ─────────────────────────────────────────────
 
 let chatOpen = false;
-let config = false;
-
 // ─────────────────────────────────────────────
 // 🧠 Chat Verification / Verificação do Chat
 // ─────────────────────────────────────────────
@@ -18,8 +16,7 @@ export function ChatVerification() {
 // 🚫 Bloqueia acesso em dispositivos móveis
 // ─────────────────────────────────────────────
 
-import { blockWeb, getDevMode } from "./config.js";
-
+import { blockWeb, getDevMode, t } from "./config.js";
 if (!blockWeb) {
 
   // ─────────────────────────────────────────────
@@ -125,7 +122,9 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
 
   function detectLanguage(code) {
-    if (code.trim() === '') return 'Start writing your code and see the language here!';
+    if (code.trim() === '') {
+      return t("startWriting");
+    }
 
     // 🔗 Detect common URLs / Detecta links e plataformas
     function detectLink(url) {
@@ -187,7 +186,7 @@ if (!blockWeb) {
     if (/^# Please enter the commit message|On branch/m.test(code)) return 'Texto (Git)';
     if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) return 'Text';
 
-    return 'Start writing your code and see the language here!';
+    return t("startWriting");
   }
 
   // ─────────────────────────────────────────────
@@ -199,7 +198,7 @@ if (!blockWeb) {
     const language = detectLanguage(code);
 
     if (!code.trim()) {
-      alert('O código está vazio!');
+      alert(t("codeEmpty"));
       return;
     }
 
@@ -211,7 +210,7 @@ if (!blockWeb) {
     };
 
     const extension = extensionMap[language] || 'txt';
-    const fileName = prompt('Nome do arquivo:', 'meuCodigo');
+    const fileName = prompt(t("fileName"), t("defaultFile"));
     if (!fileName) return;
 
     const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
@@ -234,7 +233,7 @@ if (!blockWeb) {
       newWindow.document.write(code);
       newWindow.document.close();
     } else if (language === "JavaScript") {
-      alert("O Terminal JS esta temporariamente indisponível.");
+      alert(t("JSBlocked"));
       return;
       const safeCode = code.replace(/<\/script>/gi, '<\\/script>');
       const newTab = window.open();
@@ -263,7 +262,7 @@ if (!blockWeb) {
       </html>
     `);
     } else {
-      alert("O conteúdo atual não é HTML nem JavaScript!");
+      alert(t("Errorhtmljs"));
     }
   }
 
@@ -315,8 +314,8 @@ if (!blockWeb) {
           zIndex: '999999'
         });
         overlay.innerHTML = `
-        <h1>Largura, ou altura :(</h1>
-        <p>Por favor, redimensione ou remova o zoom para utilizar.</p>
+        <h1>Width or height :(</h1>
+        <p>Please resize or remove zoom to use.</p>
       `;
         document.body.appendChild(overlay);
       }
@@ -403,14 +402,14 @@ if (!blockWeb) {
     const login = document.getElementById("login");
 
     if (!navigator.onLine) {
-      if (getDevMode()) console.warn("🔴 Você está offline!");
+      if (getDevMode()) console.warn(t("offline"));
       if (aviso && login) {
-        aviso.textContent = "Sem conexão com a internet 😢";
+        aviso.textContent = t("noInternet");
         aviso.style.display = "block";
         login.style.opacity = "0";
       }
     } else {
-      if (getDevMode()) console.log("🟢 Conexão restabelecida!");
+      if (getDevMode()) console.log("🟢 " + t("online"));
       if (aviso) aviso.style.display = "none";
       if (login) login.style.opacity = "1";
     }
