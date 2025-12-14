@@ -20,33 +20,7 @@ export function ChatVerification() {
 
 import { blockWeb, getDevMode } from "./config.js";
 
-if (blockWeb) {
-  document.body.innerHTML = `
-    <div style="
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
-      background-color:red;
-      color:#fff;
-      font-family:sans-serif;
-      text-align:center;
-      padding:20px;
-      box-sizing:border-box;">
-      <h1>Site Bloqueado :(</h1>
-      <p>DarkStudio está temporariamente indisponível, desculpe!</p>
-      <h5>Por: CDP 💚</h5>
-    </div>
-  `;
-
-  document.title = "DarkStudio :(";
-  const favicon = document.getElementById('favicon');
-  if (favicon) {
-    favicon.href = "https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png";
-  }
-
-} else {
+if (!blockWeb) {
 
   // ─────────────────────────────────────────────
   // 🧠 Element References / Referências de Elementos
