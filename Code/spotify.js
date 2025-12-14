@@ -1,4 +1,5 @@
 import { setDevMode, blockWeb, getDevMode } from "./config.js";
+import { ChatVerification } from "./main.js";
 
 if (!blockWeb) {
 
@@ -376,6 +377,7 @@ function fullScreen() {
   const img2 = document.getElementById('album-art');
   const closeBtn = document.getElementById('close');
   const isVisible = full.style.width >= '50%';
+  const configMenu = document.getElementById('config');
 
   closeBtn.style.display = 'block';
   full.style.width = isVisible ? '0.1px' : '99.3%';
@@ -388,8 +390,13 @@ function fullScreen() {
   trackInfoFullEl.style.opacity = isVisible ? '0' : '1';
   closeBtn.style.pointerEvents = isVisible ? 'none' : 'auto';
   editor.style.opacity = isVisible ? '1' : '0';
-  chatIA.style.opacity = isVisible ? '1' : '0';
-  chatIA.style.pointerEvents = isVisible ? 'auto' : 'none';
+  if (ChatVerification()) {
+    chatIA.style.opacity = isVisible ? '1' : '0';
+    chatIA.style.pointerEvents = isVisible ? 'auto' : 'none';
+  } else {
+    chatIA.style.opacity = '0';
+    chatIA.style.pointerEvents = 'none';
+  }
 
 fullScreenCalc();
 }

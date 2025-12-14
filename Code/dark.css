@@ -91,7 +91,7 @@ body {
   position: fixed;
   top: 5px;
   left: 9.8vh; /* Antes era 88px */
-  width: calc(100% - 97px);
+  width: 130vh;
   height: calc(100vh - 71px);
   background-color: #090909;
   padding: 2px;
@@ -100,7 +100,7 @@ body {
   display: flex;
   align-items: flex-start; /* topo */
   justify-content: flex-start; /* esquerda */
-  transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out, width 0.2s ease-in-out, height 0.5s ease-in-out;
+  transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out, width 0.2s ease-out, height 0.5s ease-in-out;
 
 }
 
@@ -391,9 +391,9 @@ img {
   opacity: 0;
   pointer-events: none;
   top: 5px;
-  left: 87px;
+  left: 9.8vh; /* Antes era 88px */
   right: 5px;
-  width: calc(100% - 91px);
+  width: 130.2vh;
   box-sizing: border-box;
   height: calc(100vh - 67px);
   background-color: #090909; /*#090909*/
@@ -403,7 +403,7 @@ img {
   align-items: flex-start; /* topo */
   justify-content: flex-start; /* esquerda */
   padding: 3px;
-  transition: background-color 0.5s ease-in-out, opacity 0.5s ease-in-out;
+  transition: background-color 0.5s ease-in-out, opacity 0.5s ease-in-out, width 0.2s ease-out;
 
 }
 
@@ -481,10 +481,11 @@ img {
     position: fixed;
     right: 5px;
     top: 5px;
-    transition: box-shadow 0.3s ease, opacity 0.3s ease;
+    transition: box-shadow 0.3s ease, opacity 0.3s ease, width 0.5s ease;
     display: block;
     overflow-x: hidden;
     overflow-y: auto;
+    user-select: text;
 
     /* Glow bonito */
     box-shadow: 0 0 18px var(--purple);
@@ -499,6 +500,7 @@ img {
 
   /* --- MENSAGENS --- */
   #messages {
+    width: 100%;
     flex: 1;
     overflow-y: auto;
     margin-bottom: 6vh;
@@ -541,20 +543,21 @@ img {
 
   /* Input e botão */
   #input-area {
+    width: 100vh;
     display: flex;
     width: auto;
+    background-color: red;
     gap: 6px;
     animation: float 3s ease-in-out infinite;
     position: fixed;
     bottom: 9vh;
-  }
+    transition: animation 0.3s ease-in-out;}
 
   #input-area:focus-within {
     animation: none;
   }
 
   #input {
-    resize: none;
     width: 30vh;
     flex: 1;
     padding: 8px;
@@ -583,3 +586,35 @@ img {
     background: var(--orange);
     box-shadow: 0 0 10px var(--orange);
   }
+
+
+  .code-block {
+  background: #0b0f1a;
+  border: 1px solid #ff9900;
+  border-radius: 12px;
+  margin: 12px 0;
+  box-shadow: 0 0 20px rgba(255, 166, 0, 0.35);
+  overflow: hidden;
+  font-family: monospace;
+  }
+
+.code-lang {
+  background: #00ffaa;
+  color: #000;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 12px;
+  color: #e6f1ff;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.code-block code {
+  font-size: 14px;
+}

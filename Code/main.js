@@ -2,12 +2,23 @@
 // 🌑 DarkStudio — Main Script / Script Principal
 // ─────────────────────────────────────────────
 
-import { blockWeb, getDevMode } from "./config.js";
+let chatOpen = false;
+let config = false;
+
+// ─────────────────────────────────────────────
+// 🧠 Chat Verification / Verificação do Chat
+// ─────────────────────────────────────────────
+
+export function ChatVerification() {
+  return chatOpen;
+}
 
 // ─────────────────────────────────────────────
 // 🚫 Block Access for Mobile Devices
 // 🚫 Bloqueia acesso em dispositivos móveis
 // ─────────────────────────────────────────────
+
+import { blockWeb, getDevMode } from "./config.js";
 
 if (blockWeb) {
   document.body.innerHTML = `
@@ -295,10 +306,12 @@ function config() {
   if (configDiv.style.opacity === "1") {
     configDiv.style.opacity = "0";
     configDiv.style.pointerEvents = "none";
+    config = false;
   } else {
     if (document.getElementById('full-screen').style.width === '99.3%') fullScreenVerif();
     configDiv.style.opacity = "1";
     configDiv.style.pointerEvents = "auto";
+    config = true;
   }
 }
 window.config = config;
@@ -362,18 +375,47 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === "i") {
+    if (document.getElementById('full-screen').style.opacity === '1') return; // Se o full screen estiver aberto, não faz nada
     e.preventDefault();
-    if (document.getElementById('chat').style.opacity === '1') {
-      document.getElementById('chat').style.opacity = '0';
-      document.getElementById('chat').style.pointerEvents = 'none';
-      editor.style.width = 'calc(100% - 97px)';
-      configMenu.style.width = 'calc(100% - 97px)';
-    } else { 
-      document.getElementById('chat').style.display = 'block';
-      document.getElementById('chat').style.opacity = '1';
-      document.getElementById('chat').style.pointerEvents = 'auto';
-      editor.style.width = '60%';
-      configMenu.style.width = '60.5%';
+    const chat = document.getElementById('chat');
+    const input = document.getElementById("input");
+    
+    // Se Shift estiver pressionado, apenas fullscreen
+    if (e.shiftKey ) {
+
+      if (chat.style.opacity !== '1') return; // Se o chat estiver oculto, não faz nada
+
+      if (chat.style.width !== '41vh') {
+        chat.style.width = '41vh';
+        editor.style.opacity = '1';
+      } else {
+        chat.style.width = '127.5vh';
+        editor.style.opacity = '0';
+      }
+    } else {
+      // Sem Shift, comportamento normal
+      if (chat.style.opacity === '1') {
+        chat.style.opacity = '0';
+        chat.style.pointerEvents = 'none';
+        document.getElementById("Editor-Input").focus();
+        editor.style.width = 'calc(100% - 97px)';
+        configMenu.style.width = 'calc(100% - 91px)';
+        chatOpen = false;
+      } else {
+        chat.style.display = 'block';
+        chat.style.opacity = '1';
+        chat.style.pointerEvents = 'auto';
+        input.focus();
+        editor.style.width = '60%';
+        configMenu.style.width = '60.5%';
+        chatOpen = true;
+      }
+
+      if (chat.style.width !== '41vh') {
+        chat.style.width = '41vh';
+        editor.style.opacity = '1';
+        //configMenu.style.width = 'calc(100% - 97px)';
+      }
     }
   }
 });
@@ -402,4 +444,5 @@ function handleNetworkChange() {
 
 window.addEventListener('online', handleNetworkChange);
 window.addEventListener('offline', handleNetworkChange);
+
 }
