@@ -1,0 +1,24 @@
+{
+  "codeEmpty": "O código está vazio!",
+  "startWriting": "Comece a escrever seu código e veja a linguagem aqui!",
+  "fileName": "Nome do arquivo:",
+  "defaultFile": "MeuArquivo",
+  "offline": "Você está offline!",
+  "noInternet": "Sem conexão com a internet 😢",
+
+  "JSBlocked": "O JavaScript está temporariamente desativado para manutenção!",
+  "Errorhtmljs": "O conteúdo não é um HTML nem um JS!",
+
+  "screenTooSmallTitle": "Largura ou altura insuficiente :(",
+  "screenTooSmallText": "Redimensione a tela ou remova o zoom para usar.",
+
+  "text": "Texto",
+  "gitText": "Texto (Git)",
+  "markdown": "Markdown",
+
+  "siteBlockedTitle": "Site Bloqueado :(",
+  "siteBlockedDesc": "Seu site favorito de edição de códigos está temporariamente indisponível!",
+  "reason": "Motivo",
+  "blockedMobile":
+    "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador."
+}

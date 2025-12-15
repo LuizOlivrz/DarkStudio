@@ -3,7 +3,9 @@ import { blockWeb, language } from "./config.js";
 if (!blockWeb) {
 
   const API_KEY = "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";
-  const MODEL = "llama-3.1-8b-instant";
+  const MODEL = "openai/gpt-oss-120b";
+  const STORAGE_KEY = "nightcoder_chat";
+  const MAX_MESSAGES = 10;
   const idioma = language;
 
   const chatHistory = [
@@ -13,6 +15,44 @@ if (!blockWeb) {
         `You are NightCoder, an AI focused on helping with programming or any other topic. Be direct like an intelligent terminal. Explain code changes at the end. Always speak in ${idioma}.`
     }
   ];
+
+  function saveChatToStorage() {
+    // remove system antes de salvar
+    const toSave = chatHistory.filter(m => m.role !== "system");
+
+    // mantém só as últimas 10
+    const limited = toSave.slice(-MAX_MESSAGES);
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(limited));
+  }
+
+  function loadChatFromStorage() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved);
+
+      parsed.forEach(msg => {
+        chatHistory.push(msg);
+
+        const divClass = msg.role === "user" ? "user" : "ai";
+        const content =
+          msg.role === "assistant"
+            ? renderMessage(msg.content)
+            : escapeHTML(msg.content);
+
+        document.getElementById("messages").innerHTML +=
+          `<div class='${divClass}'>${content}</div>`;
+      });
+
+    } catch (e) {
+      console.warn("Falha ao restaurar chat:", e);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
+  loadChatFromStorage();
 
   document.getElementById("send").onclick = sendMessage;
 
@@ -63,6 +103,7 @@ if (!blockWeb) {
     messages.scrollTop = messages.scrollHeight;
 
     chatHistory.push({ role: "assistant", content: reply });
+    saveChatToStorage();
   }
 
   function escapeHTML(str) {
@@ -107,7 +148,7 @@ if (!blockWeb) {
   }
 
   window.sendInlineRequest = async function (content) {
-    chatHistory.push({ role: "user", content});
+    chatHistory.push({ role: "user", content });
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",

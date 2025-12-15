@@ -12,63 +12,35 @@ export function getDevMode() {
 
 export const language = navigator.language || navigator.userLanguage;
 
-export const i18n = {
-  "pt-BR": {
-    codeEmpty: "O código está vazio!",
-    startWriting: "Comece a escrever seu código e veja a linguagem aqui!",
-    fileName: "Nome do arquivo:",
-    defaultFile: "MeuArquivo",
-    offline: "Você está offline!",
-    noInternet: "Sem conexão com a internet 😢",
+let i18n = {};
+let currentLang = "en-US";
 
-    JSBlocked: "O JavaScript está temporariamente desativado para manutenção!",
-    Errorhtmljs: "O conteúdo não é um HTML nem um JS!",
+export async function loadLanguage(langCode) {
+  try {
+    const res = await fetch(`languages/${langCode}.json`);
+    if (!res.ok) throw new Error("Language not found");
 
-    screenTooSmallTitle: "Largura ou altura insuficiente :(",
-    screenTooSmallText: "Redimensione a tela ou remova o zoom para usar.",
+    i18n = await res.json();
+    currentLang = langCode;
+  } catch (err) {
+    console.warn(`🌐 Idioma "${langCode}" não encontrado. Usando inglês.`);
 
-    text: "Texto",
-    gitText: "Texto (Git)",
-    markdown: "Markdown",
-
-    siteBlockedTitle: "Site Bloqueado :(",
-    siteBlockedDesc: "Seu site favorito de edição de códigos está temporariamente indisponível!",
-    reason: "Motivo",
-    blockedMobile:
-      "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador."
-  },
-
-  "en-US": {
-    codeEmpty: "The code is empty!",
-    startWriting: "Start writing your code and see the language here!",
-    fileName: "File name:",
-    defaultFile: "MyFile",
-    offline: "You are offline!",
-    noInternet: "No internet connection 😢",
-
-    JSBlocked: "JavaScript is temporarily disabled for maintenance!",
-    Errorhtmljs: "The content is neither HTML nor JS!",
-
-    screenTooSmallTitle: "Width or height too small :(",
-    screenTooSmallText: "Please resize or remove zoom to use.",
-
-    text: "Text",
-    gitText: "Git Text",
-    markdown: "Markdown",
-
-    siteBlockedTitle: "Site Blocked :(",
-    siteBlockedDesc: "Your favorite code editing website is temporarily unavailable!",
-    reason: "Reason",
-    blockedMobile:
-      "This site is not compatible with mobile devices at the moment.\nPlease access it from a desktop computer."
+    const fallbackRes = await fetch("languages/en-US.json");
+    i18n = await fallbackRes.json();
+    currentLang = "en-US";
   }
-
-};
+}
 
 export function t(key) {
-  if (getDevMode()) console.log(`🌐 Translating key: '${key}' for language: '${language}'`);
-  return i18n[language]?.[key] || i18n["en-US"][key] || key;
+  return i18n[key] ?? key;
 }
+
+export function getCurrentLanguage() {
+  return currentLang;
+}
+
+await loadLanguage(navigator.language);
+// exemplo: "pt-BR", "en-US", "es-ES"
 
 /**
  * Set the Dev Mode state in localStorage
@@ -211,17 +183,17 @@ export function loadFavicon(href) {
 // ─────────────────────────────────────────────
 
 if (!block) {
+  (async () => {
+    loadJS('spotify');
+    loadJS('monaco');
+    loadJS('main');
+    loadJS('AI');
 
-  // Exemplo de uso
-  loadJS('spotify');
-  loadJS('monaco');
-  loadJS('main');
-  loadJS('AI');
-  await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js");
-  loadCSS("Code/Dark.css");
-  loadFavicon("https://i.postimg.cc/1txBHHJn/Design-sem-nome-4.png");
+    await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js");
 
-
+    loadCSS("Code/Dark.css");
+    loadFavicon("https://i.postimg.cc/1txBHHJn/Design-sem-nome-4.png");
+  })();
 } else {
   document.body.innerHTML = `
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
