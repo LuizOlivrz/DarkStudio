@@ -511,6 +511,7 @@ p {
   overflow-x: hidden;
   overflow-y: auto;
   user-select: text;
+  z-index: 3;
 
   /* Glow bonito */
   box-shadow: 0 0 18px var(--orange);
