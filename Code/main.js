@@ -3,6 +3,11 @@
 // ─────────────────────────────────────────────
 
 let chatOpen = false;
+
+export function chatOpenValue(value) {
+  chatOpen = value;
+}
+
 // ─────────────────────────────────────────────
 // 🧠 Chat Verification / Verificação do Chat
 // ─────────────────────────────────────────────
@@ -352,6 +357,14 @@ if (!blockWeb) {
       e.preventDefault();
       const chat = document.getElementById('chat');
       const input = document.getElementById("input");
+      const inlineChat = document.getElementById('inline-chat');
+
+      if (inlineChat.style.opacity === '1') {
+        inlineChat.style.opacity = '0';
+        inlineChat.style.pointerEvents = 'none';
+        editor.style.height = 'calc(100vh - 71px)';
+        return; // Se o inline chat estiver aberto, não faz nada
+      }
 
       // Se Shift estiver pressionado, apenas fullscreen
       if (e.shiftKey) {
@@ -370,6 +383,7 @@ if (!blockWeb) {
         if (chat.style.opacity === '1') {
           chat.style.opacity = '0';
           chat.style.pointerEvents = 'none';
+          Input.blur();
           document.getElementById("Editor-Input").focus();
           editor.style.width = 'calc(100% - 97px)';
           configMenu.style.width = 'calc(100% - 91px)';

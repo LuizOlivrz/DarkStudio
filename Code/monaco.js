@@ -2,6 +2,9 @@
 // ✨ Importações / Imports
 // ─────────────────────────────────────────────
 import { getDevMode, blockWeb } from "./config.js";
+import { chatOpenValue, ChatVerification } from "./main.js";
+
+let chatOpen = chatOpenValue();
 
 // Bloqueia execução se estiver em mobile (definido em config.js)
 if (!blockWeb) {
@@ -15,6 +18,15 @@ if (!blockWeb) {
   let initialTheme = "dark";  // Tema inicial / Default theme
   let theme = "dark";         // Tema selecionado no dropdown / Selected theme from dropdown
   let autoTheme = true;     // Detectar tema automaticamente / Auto-detect theme
+  const inlineChat = document.getElementById("inline-chat");
+  const inlineInput = document.getElementById("inline-input");
+  const inlineSend = document.getElementById("inline-send");
+  const inlineMessages = document.getElementById("inline-messages");
+  const chat = document.getElementById('chat');
+  const configMenu = document.getElementById('config-menu');
+  const editorCodes = document.getElementById('Editor');
+
+
 
   // ─────────────────────────────────────────────
   // 🎃 Detecção de Tema por Data / Auto Theme by Date
@@ -166,6 +178,20 @@ if (!blockWeb) {
 
         reader.readAsText(file);
       });
+
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI,
+        () => {
+          const selection = editor.getSelection();
+          if (!selection) {
+            showInlineChat("⚠️ Selecione um trecho de código antes de usar a IA.");
+            return;
+          }
+
+          showInlineChat("🤖 O que você quer que eu faça com esse código?");
+        }
+      );
+
     });
   }
 
@@ -224,5 +250,125 @@ if (!blockWeb) {
     const autoValue = autoCheckbox ? autoCheckbox.checked : false;
     localStorage.setItem('autoTheme', String(autoValue));
   }
+
+  function getSelectedCode() {
+    const selection = editor.getSelection();
+    if (!selection || selection.isEmpty()) return null;
+
+    const model = editor.getModel();
+    return model.getValueInRange(selection);
+  }
+
+  async function copilotInline(promptUser) {
+    const selectedCode = getSelectedCode();
+
+    if (!selectedCode) {
+      alert("Selecione um trecho de código primeiro.");
+      return;
+    }
+
+    const prompt = `
+Código selecionado:
+${selectedCode}
+
+Pedido do usuário:
+${promptUser}
+
+Responda SOMENTE com o código corrigido.
+`;
+
+    sendToAI(prompt);
+  }
+
+  async function applyInlineFix(userPrompt) {
+    const selection = editor.getSelection();
+    const model = editor.getModel();
+    const selectedCode = model.getValueInRange(selection);
+
+    if (!selection) {
+      showInlineChat("⚠️ Selecione um trecho de código primeiro.");
+      return;
+    }
+
+
+    const rawResponse = await window.sendInlineRequest(`
+      Código:
+      ${selectedCode}
+
+      Pedido:
+      ${userPrompt}
+
+      Responda somente com código.
+      `);
+    const aiResponse = extractCodeOnly(rawResponse);
+
+    editor.executeEdits("copilot-inline", [
+      {
+        range: selection,
+        text: aiResponse,
+        forceMoveMarkers: true
+      }
+    ]);
+  }
+
+  function extractCodeOnly(text) {
+    const match = text.match(/```(?:javascript|js|ts|html|css)?\s*([\s\S]*?)```/i);
+    return match ? match[1].trim() : text.trim();
+  }
+
+  function showInlineChat(message = "") {
+
+    if (ChatVerification() === true) {
+      chat.style.opacity = '0';
+      chat.style.pointerEvents = 'none';
+      document.getElementById("Editor-Input").focus();
+      editorCodes.style.width = '130vh';
+    }
+
+    inlineChat.style.display = "block";
+    editorCodes.style.height = 'calc(100vh - 21.5vh)';
+    inlineChat.style.pointerEvents = "auto";
+    chatOpen = true;
+
+    requestAnimationFrame(() => {
+      inlineChat.style.opacity = "1";
+    });
+
+    if (message) {
+      inlineMessages.innerHTML = `<div class="ai">${message}</div>`;
+    }
+
+    inlineInput.value = "";
+    inlineInput.focus();
+  }
+
+  function hideInlineChat() {
+    inlineChat.style.opacity = "0";
+    editorCodes.style.height = 'calc(100vh - 71px)';
+    inlineChat.style.pointerEvents = "none";
+    chatOpen = false;
+    setTimeout(() => {
+      inlineChat.style.display = "none";
+      inlineMessages.innerHTML = "";
+      inlineInput.value = "";
+    }, 200);
+  }
+
+  inlineSend.onclick = async () => {
+    const userPrompt = inlineInput.value.trim();
+    if (!userPrompt) return;
+
+    hideInlineChat();
+    await applyInlineFix(userPrompt);
+  };
+
+  inlineInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      inlineSend.click();
+    }
+  });
+
+
 
 }

@@ -98,6 +98,7 @@ body {
   /* Antes era 88px */
   width: 130vh;
   height: calc(100vh - 71px);
+  /* calc(100vh - 71px) para ajustar a altura corretamente */
   background-color: #090909;
   padding: 2px;
   border-radius: 8px;
@@ -107,7 +108,7 @@ body {
   /* topo */
   justify-content: flex-start;
   /* esquerda */
-  transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out, width 0.2s ease-out;
+  transition: background 0.5s ease-in-out, color 0.5s ease-in-out, opacity 0.2s ease-in-out, width 0.2s ease-out, height 0.2s ease-out;
 
 }
 
@@ -254,7 +255,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  z-index: 2;
   transition: width 0.5s ease-in-out, opacity 0.8s ease-in-out, background-color 0.5s ease-in-out, color 0.5s ease-in-out, height 0.5s ease-in-out;
   pointer-events: none;
 
@@ -411,8 +412,7 @@ img {
   top: 5px;
   left: 9.8vh;
   /* Antes era 88px */
-  right: 5px;
-  width: 130.2vh;
+  width: 130.6vh;
   box-sizing: border-box;
   height: calc(100vh - 67px);
   background-color: #090909;
@@ -423,6 +423,7 @@ img {
   align-items: flex-start;
   /* topo */
   justify-content: flex-start;
+  z-index: 1;
   /* esquerda */
   padding: 3px;
   transition: background-color 0.5s ease-in-out, opacity 0.5s ease-in-out, width 0.2s ease-out;
@@ -494,9 +495,10 @@ p {
   width: 41vh;
   height: calc(97vh - 68px);
   background: var(--bg);
-  border: 2px solid var(--purple);
+  border: 2px solid var(--orange);
   border-radius: 10px;
   padding: 12px;
+  pointer-events: none;
   font-family: monospace;
   color: var(--text);
   display: flex;
@@ -511,7 +513,7 @@ p {
   user-select: text;
 
   /* Glow bonito */
-  box-shadow: 0 0 18px var(--purple);
+  box-shadow: 0 0 18px var(--orange);
   animation: fadeIn 0.3s ease;
 }
 
@@ -585,7 +587,6 @@ p {
   width: 100vh;
   display: flex;
   width: auto;
-  background-color: red;
   gap: 6px;
   animation: float 3s ease-in-out infinite;
   position: fixed;
@@ -602,7 +603,7 @@ p {
   flex: 1;
   padding: 8px;
   background: #111;
-  border: 1px solid var(--purple);
+  border: 1px solid var(--orange);
   color: var(--green);
   border-radius: 6px;
   outline: none;
@@ -612,11 +613,12 @@ p {
 
 #input:focus {
   box-shadow: 0 0 10px var(--purple);
+  border-color: var(--purple);
 }
 
 #send {
   padding: 8px 14px;
-  background: var(--purple);
+  background: var(--orange);
   border: none;
   color: var(--text);
   border-radius: 6px;
@@ -625,8 +627,9 @@ p {
 }
 
 #send:hover {
-  background: var(--orange);
-  box-shadow: 0 0 10px var(--orange);
+  background: var(--bg);
+  border: 1px solid var(--purple);
+  box-shadow: 0 0 10px var(--purple);
 }
 
 
@@ -675,4 +678,90 @@ p {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   transition: background-color 0.3s ease;
 
+}
+
+#inline-chat {
+  width: 129vh;
+  opacity: 0;
+  pointer-events: none;
+  height: fit-content;
+  background: var(--bg);
+  border: 2px solid var(--orange);
+  border-radius: 10px;
+  padding: 4px;
+  font-family: monospace;
+  color: var(--text);
+  display: flex;
+  position: fixed;
+  right: 7px;
+  bottom: 7.5vh;
+  transition: box-shadow 0.3s ease, opacity 0.3s ease, width 0.5s ease;
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  user-select: text;
+  z-index: 0;
+
+  /* Glow bonito */
+  box-shadow: 0 0 18px var(--orange);
+  animation: fadeIn 0.3s ease;
+}
+
+/* --- MENSAGENS --- */
+#inline-messages {
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 6vh;
+  padding-right: 4px;
+}
+
+/* Input e botão */
+#inline-input-area {
+  width: 100vh;
+  display: flex;
+  width: auto;
+  gap: 6px;
+  animation: float 3s ease-in-out infinite;
+  position: fixed;
+  bottom: 9vh;
+  transition: animation 0.3s ease-in-out;
+}
+
+#inline-input-area:focus-within {
+  animation: none;
+}
+
+#inline-input {
+  width: 118.8vh;
+  flex: 1;
+  padding: 8px;
+  background: #111;
+  border: 1px solid var(--orange);
+  color: var(--green);
+  border-radius: 6px;
+  outline: none;
+
+  transition: 0.2s;
+}
+
+#inline-input:focus {
+  box-shadow: 0 0 10px var(--purple);
+  border-color: var(--purple);
+}
+
+#inline-send {
+  padding: 8px 14px;
+  background: var(--orange);
+  border: none;
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#inline-send:hover {
+  background: var(--bg);
+  border: 1px solid var(--purple);
+  box-shadow: 0 0 10px var(--purple);
 }

@@ -106,4 +106,24 @@ if (!blockWeb) {
     return text;
   }
 
+  window.sendInlineRequest = async function (content) {
+    chatHistory.push({ role: "user", content});
+
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: chatHistory,
+      }),
+    });
+
+    const data = await res.json();
+    return data.choices[0].message.content;
+  };
+
+
 }
