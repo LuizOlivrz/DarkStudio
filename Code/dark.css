@@ -566,7 +566,9 @@ p {
   padding: 1vh;
   border-radius: 6px;
   border: 1px solid var(--green);
-  width: fit-content;
+  width: auto;
+  content: fit-content;
+  word-wrap: break-word;
   max-width: 80%;
   margin-left: auto;
 

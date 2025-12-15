@@ -188,8 +188,8 @@ if (!blockWeb) {
     if (/adb\s+(shell|devices|install|pull|push)/i.test(code)) return 'ADB';
     if (/BEGIN:VCARD/.test(code)) return 'VCF';
     if (/^@echo\s+off|set\s+\w+=|pause/i.test(code)) return 'Batch (BAT/CMD)';
-    if (/^# Please enter the commit message|On branch/m.test(code)) return 'Texto (Git)';
-    if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) return 'Text';
+    if (/^# Please enter the commit message|On branch/m.test(code)) return t("gitFile");
+    if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) return t("text");
 
     return t("startWriting");
   }
@@ -338,9 +338,9 @@ if (!blockWeb) {
   // ⚙️ Shortcuts / Atalhos
   // ─────────────────────────────────────────────
 
-  document.addEventListener("keydown", function (event) {
-    if (event.ctrlKey && event.key === ",") {
-      event.preventDefault(); // impede o comportamento padrão do browser
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey && e.key === ",") {
+      e.preventDefault(); // impede o comportamento padrão do browser
       config();    // chama sua função
     }
   });
