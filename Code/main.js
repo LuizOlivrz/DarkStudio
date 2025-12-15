@@ -383,7 +383,7 @@ if (!blockWeb) {
         if (chat.style.opacity === '1') {
           chat.style.opacity = '0';
           chat.style.pointerEvents = 'none';
-          Input.blur();
+          input.blur();
           document.getElementById("Editor-Input").focus();
           editor.style.width = 'calc(100% - 97px)';
           configMenu.style.width = 'calc(100% - 91px)';
