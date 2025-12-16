@@ -37,12 +37,7 @@
 
         <!-- Spotify control buttons -->
         <button id="login">Connect to Spotify</button>
-        <button
-          id="close"
-          tabindex="-1"
-          style="display: none"
-          onclick="fullScreenVerif()"
-        >
+        <button id="close" style="display: none" onclick="fullScreenVerif()">
           <p>Exit full screen</p>
         </button>
       </div>
@@ -172,12 +167,12 @@
           <label for="auto-background-checkbox">
             <input type="checkbox" id="auto-background-checkbox" checked />
             | Automatic background based on album cover. </label
-          ><br>
+          ><br />
         </div>
         <label for="spotify-checkbox">
           <input type="checkbox" id="spotify-checkbox" checked />
           | Show Spotify song. </label
-        ><br>
+        ><br />
         <h3>Editor theme:</h3>
         <select id="theme-select" title="Select Theme">
           <option value="dark">Dark</option>
@@ -185,20 +180,20 @@
           <option value="solarized-dark">Solarized Dark</option>
           <option value="solarized-light">Solarized Light</option>
           <option value="auto">Automatic</option></select
-        ><br>
+        ><br />
         <label for="auto-fest-checkbox">
           <input type="checkbox" id="auto-fest-checkbox" checked />
           | Automatically change theme based on holidays. </label
-        ><br>
+        ><br />
         <h3>Extras:</h3>
         <label for="dev-mode-checkbox">
           <input type="checkbox" id="dev-mode-checkbox" />
           | Debug mode (shows additional information). </label
-        ><br><br>
+        ><br /><br />
         <button id="logout-spotify" onclick="spotifyLogout();">
           Log out of Spotify
         </button>
-        <br><br>
+        <br /><br />
       </div>
 
       <div id="chat" style="opacity: 0; display: none">
