@@ -512,4 +512,10 @@ if (!blockWeb) {
       close.style.height = "6vh";
     }
   });
+
+  document.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      btn.blur(); // remove o foco
+    });
+  });
 }
