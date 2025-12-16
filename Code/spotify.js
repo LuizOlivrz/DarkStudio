@@ -288,29 +288,29 @@ if (!blockWeb) {
         }
 
         if (!data.item) return showNoMusic();
-
-        // Se chegou aqui, tem música tocando
-        if (!getDevMode()) console.clear();
-
-        albumArtEl2.setAttribute(
-          "title",
-          `${data.item.name} - ${data.item.artists
+        if (albumArtEl.src !== data.item.album.images[0].url) {
+          // Se chegou aqui, tem música tocando
+          if (!getDevMode()) console.clear();
+          albumArtEl2.setAttribute(
+            "title",
+            `${data.item.name} - ${data.item.artists
+              .map((artist) => artist.name)
+              .join(", ")} (Spotify)`
+          );
+          trackNameFullEl.textContent = data.item.name;
+          albumArtEl2.style.width = "600px";
+          artistNameFullEl.textContent = data.item.artists
             .map((artist) => artist.name)
-            .join(", ")} (Spotify)`
-        );
-        trackNameFullEl.textContent = data.item.name;
-        albumArtEl2.style.width = "600px";
-        artistNameFullEl.textContent = data.item.artists
-          .map((artist) => artist.name)
-          .join(", ");
-        trackNameEl.textContent = data.item.name;
-        artistNameEl.textContent = data.item.artists
-          .map((artist) => artist.name)
-          .join(", ");
-        albumArtEl.crossOrigin = "anonymous";
-        albumArtEl.src = data.item.album.images[0].url;
-        albumArtEl2.src = data.item.album.images[0].url;
-        albumArtEl.style.display = "block";
+            .join(", ");
+          trackNameEl.textContent = data.item.name;
+          artistNameEl.textContent = data.item.artists
+            .map((artist) => artist.name)
+            .join(", ");
+          albumArtEl.crossOrigin = "anonymous";
+          albumArtEl.src = data.item.album.images[0].url;
+          albumArtEl2.src = data.item.album.images[0].url;
+          albumArtEl.style.display = "block";
+        }
 
         if (albumArtEl && albumArtEl.src) {
           albumArtEl.onload = () => {
