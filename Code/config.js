@@ -30,8 +30,8 @@ if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
 
 export const language = navigator.language || navigator.userLanguage;
 
-let i18n = {};                // Loaded language dictionary / dicionário carregado
-let currentLang = "en-US";    // Current language / idioma atual
+let i18n = {}; // Loaded language dictionary / dicionário carregado
+let currentLang = "en-US"; // Current language / idioma atual
 
 /**
  * Load language JSON file
@@ -46,7 +46,9 @@ export async function loadLanguage(langCode) {
     i18n = await res.json();
     currentLang = langCode;
   } catch {
-    console.warn(`🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`);
+    console.warn(
+      `🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`
+    );
 
     const fallback = await fetch("languages/en-US.json");
     i18n = await fallback.json();
@@ -89,10 +91,9 @@ if (!block) detectDevice();
  * Detecta se é mobile ou desktop
  */
 function detectDevice() {
-  const isMobile =
-    /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(
-      navigator.userAgent
-    );
+  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(
+    navigator.userAgent
+  );
 
   device = isMobile ? "Mobile" : "Desktop";
 
@@ -103,7 +104,7 @@ function detectDevice() {
  * Returns current device type
  * Retorna o tipo de dispositivo
  */
-export function Mobile() {
+export function getDevice() {
   return device;
 }
 
@@ -129,8 +130,7 @@ function js(name) {
   script.type = "module";
   document.body.appendChild(script);
 
-  if (getDevMode())
-    console.log(`📜 Script '${name}.js' carregado / loaded`);
+  if (getDevMode()) console.log(`📜 Script '${name}.js' carregado / loaded`);
 }
 
 /**
@@ -259,7 +259,6 @@ if (!block) {
 // ⛔ BLOCK SCREEN
 // Tela de Bloqueio
 // ─────────────────────────────────────────────
-
 else {
   document.body.innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
