@@ -8,25 +8,22 @@ let chatOpen = chatOpenValue();
 
 // Bloqueia execução se estiver em mobile (definido em config.js)
 if (!blockWeb) {
-
   // ─────────────────────────────────────────────
   // ⚙️ Configurações Iniciais / Initial Settings
   // ─────────────────────────────────────────────
 
   const select = document.getElementById("theme-select");
-  let fontSize = 14;          // Fonte padrão do editor / Default font size
-  let initialTheme = "dark";  // Tema inicial / Default theme
-  let theme = "dark";         // Tema selecionado no dropdown / Selected theme from dropdown
-  let autoTheme = true;     // Detectar tema automaticamente / Auto-detect theme
+  let fontSize = 14; // Fonte padrão do editor / Default font size
+  let initialTheme = "dark"; // Tema inicial / Default theme
+  let theme = "dark"; // Tema selecionado no dropdown / Selected theme from dropdown
+  let autoTheme = true; // Detectar tema automaticamente / Auto-detect theme
   const inlineChat = document.getElementById("inline-chat");
   const inlineInput = document.getElementById("inline-input");
   const inlineSend = document.getElementById("inline-send");
   const inlineMessages = document.getElementById("inline-messages");
-  const chat = document.getElementById('chat');
-  const configMenu = document.getElementById('config-menu');
-  const editorCodes = document.getElementById('Editor');
-
-
+  const chat = document.getElementById("chat");
+  const configMenu = document.getElementById("config-menu");
+  const editorCodes = document.getElementById("Editor");
 
   // ─────────────────────────────────────────────
   // 🎃 Detecção de Tema por Data / Auto Theme by Date
@@ -43,19 +40,19 @@ if (!blockWeb) {
 
     if (month === 10 && day >= 20 && day <= 31) return "halloween"; // 🎃 Halloween
     if (month === 12 && day >= 10 && day <= 31) return "christmas"; // 🎄 Natal
-    if (month === 3 && day >= 15 && day <= 31) return "easter";     // 🐣 Páscoa
+    if (month === 3 && day >= 15 && day <= 31) return "easter"; // 🐣 Páscoa
     return "dark"; // 🌑 Tema padrão
   }
 
   // ─────────────────────────────────────────────
   // 🔄 Carrega o estado do autoTheme ANTES de montar o editor
   // ─────────────────────────────────────────────
-  const savedState = localStorage.getItem('autoTheme');
+  const savedState = localStorage.getItem("autoTheme");
 
   if (savedState !== null) {
-    autoTheme = savedState === 'true';
+    autoTheme = savedState === "true";
 
-    const autoCheckbox = document.getElementById('auto-fest-checkbox');
+    const autoCheckbox = document.getElementById("auto-fest-checkbox");
     if (autoCheckbox) autoCheckbox.checked = autoTheme;
   }
 
@@ -63,14 +60,13 @@ if (!blockWeb) {
     theme = this.value;
   });
 
-
-
   async function loadMonacoLoader() {
     if (window.require) return; // já carregado
 
     await new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js";
+      script.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js";
       script.onload = resolve;
       script.onerror = reject;
       document.head.appendChild(script);
@@ -83,7 +79,6 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
 
   async function initMonaco() {
-
     await loadMonacoLoader();
     require.config({
       paths: {
@@ -140,7 +135,8 @@ if (!blockWeb) {
       function saveCode() {
         const code = window.editor.getValue();
         localStorage.setItem("codigoSalvo", code);
-        if (getDevMode() === "true") console.log("💾 Código salvo automaticamente / Code auto-saved");
+        if (getDevMode() === "true")
+          console.log("💾 Código salvo automaticamente / Code auto-saved");
       }
 
       const saveDebounced = debounce(saveCode, 1000);
@@ -169,29 +165,33 @@ if (!blockWeb) {
         reader.onload = (e) => {
           const content = e.target.result;
           window.editor.setValue(content);
-          console.log("📂 Arquivo carregado com sucesso! / File loaded successfully!");
+          console.log(
+            "📂 Arquivo carregado com sucesso! / File loaded successfully!"
+          );
 
-          if (getDevMode()) console.log("💬 Código carregado do arquivo / Code loaded from file");
+          if (getDevMode())
+            console.log(
+              "💬 Código carregado do arquivo / Code loaded from file"
+            );
         };
 
-        reader.onerror = () => alert("❌ Erro ao ler o arquivo / Error reading file.");
+        reader.onerror = () =>
+          alert("❌ Erro ao ler o arquivo / Error reading file.");
 
         reader.readAsText(file);
       });
 
-      editor.addCommand(
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI,
-        () => {
-          const selection = editor.getSelection();
-          if (!selection) {
-            showInlineChat("⚠️ Selecione um trecho de código antes de usar a IA.");
-            return;
-          }
-
-          showInlineChat("🤖 O que você quer que eu faça com esse código?");
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
+        const selection = editor.getSelection();
+        if (!selection) {
+          showInlineChat(
+            "⚠️ Selecione um trecho de código antes de usar a IA."
+          );
+          return;
         }
-      );
 
+        showInlineChat("🤖 O que você quer que eu faça com esse código?");
+      });
     });
   }
 
@@ -221,17 +221,17 @@ if (!blockWeb) {
   // ✅ Corrige tooltips do Monaco Editor / ✅ Fix missing tooltip labels in Monaco Editor
   // ────────────────────────────────────────────────────────────────────────────────────────────
 
-  document.querySelectorAll('[role="tooltip"]').forEach(el => {
-    if (!el.hasAttribute('title') && !el.hasAttribute('aria-label')) {
-      el.setAttribute('title', 'Tooltip');
+  document.querySelectorAll('[role="tooltip"]').forEach((el) => {
+    if (!el.hasAttribute("title") && !el.hasAttribute("aria-label")) {
+      el.setAttribute("title", "Tooltip");
     }
   });
 
-  const autoCheckbox = document.getElementById('auto-fest-checkbox');
+  const autoCheckbox = document.getElementById("auto-fest-checkbox");
 
   if (autoCheckbox) {
-    autoCheckbox.addEventListener('change', function () {
-      autoTheme = this.checked;  // ← Atualiza a variável, não o elemento
+    autoCheckbox.addEventListener("change", function () {
+      autoTheme = this.checked; // ← Atualiza a variável, não o elemento
       if (getDevMode()) console.log("💾 Auto Theme changed to:", autoTheme);
       // Recarrega o tema do editor sem recarregar a página
       if (autoTheme) {
@@ -246,9 +246,10 @@ if (!blockWeb) {
 
   // Salvando o estado do checkbox com localStorage:
   function saveCheckboxState() {
-    if (getDevMode()) console.log("💾 Salvando estado do Auto Theme / Saving Auto Theme state");
+    if (getDevMode())
+      console.log("💾 Salvando estado do Auto Theme / Saving Auto Theme state");
     const autoValue = autoCheckbox ? autoCheckbox.checked : false;
-    localStorage.setItem('autoTheme', String(autoValue));
+    localStorage.setItem("autoTheme", String(autoValue));
   }
 
   function getSelectedCode() {
@@ -290,7 +291,6 @@ Responda SOMENTE com o código corrigido.
       return;
     }
 
-
     const rawResponse = await window.sendInlineRequest(`
       Código:
       ${selectedCode}
@@ -306,27 +306,28 @@ Responda SOMENTE com o código corrigido.
       {
         range: selection,
         text: aiResponse,
-        forceMoveMarkers: true
-      }
+        forceMoveMarkers: true,
+      },
     ]);
   }
 
   function extractCodeOnly(text) {
-    const match = text.match(/```(?:javascript|js|ts|html|css)?\s*([\s\S]*?)```/i);
+    const match = text.match(
+      /```(?:javascript|js|ts|html|css)?\s*([\s\S]*?)```/i
+    );
     return match ? match[1].trim() : text.trim();
   }
 
   function showInlineChat(message = "") {
-
     if (ChatVerification() === true) {
-      chat.style.opacity = '0';
-      chat.style.pointerEvents = 'none';
+      chat.style.opacity = "0";
+      chat.style.pointerEvents = "none";
       document.getElementById("Editor-Input").focus();
-      editorCodes.style.width = '130vh';
+      editorCodes.style.width = "130vh";
     }
 
     inlineChat.style.display = "block";
-    editorCodes.style.height = 'calc(100vh - 21.5vh)';
+    editorCodes.style.height = "calc(100vh - 21.5vh)";
     inlineChat.style.pointerEvents = "auto";
     chatOpen = true;
 
@@ -344,7 +345,7 @@ Responda SOMENTE com o código corrigido.
 
   function hideInlineChat() {
     inlineChat.style.opacity = "0";
-    editorCodes.style.height = 'calc(100vh - 71px)';
+    editorCodes.style.height = "calc(100vh - 71px)";
     inlineChat.style.pointerEvents = "none";
     chatOpen = false;
     setTimeout(() => {
@@ -362,13 +363,10 @@ Responda SOMENTE com o código corrigido.
     await applyInlineFix(userPrompt);
   };
 
-  inlineInput.addEventListener("keydown", e => {
+  inlineInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       inlineSend.click();
     }
   });
-
-
-
 }

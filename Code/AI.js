@@ -1,7 +1,6 @@
 import { blockWeb, language } from "./config.js";
 
 if (!blockWeb) {
-
   const API_KEY = "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";
   const MODEL = "openai/gpt-oss-120b";
   const STORAGE_KEY = "nightcoder_chat";
@@ -11,14 +10,13 @@ if (!blockWeb) {
   const chatHistory = [
     {
       role: "system",
-      content:
-        `You are NightCoder, an AI focused on helping with programming or any other topic. Be direct like an intelligent terminal. Explain code changes at the end. Always speak in ${idioma}.`
-    }
+      content: `You are NightCoder, an AI focused on helping with programming or any other topic. Be direct like an intelligent terminal. Explain code changes at the end. Always speak in ${idioma}.`,
+    },
   ];
 
   function saveChatToStorage() {
     // remove system antes de salvar
-    const toSave = chatHistory.filter(m => m.role !== "system");
+    const toSave = chatHistory.filter((m) => m.role !== "system");
 
     // mantém só as últimas 10
     const limited = toSave.slice(-MAX_MESSAGES);
@@ -33,7 +31,7 @@ if (!blockWeb) {
     try {
       const parsed = JSON.parse(saved);
 
-      parsed.forEach(msg => {
+      parsed.forEach((msg) => {
         chatHistory.push(msg);
 
         const divClass = msg.role === "user" ? "user" : "ai";
@@ -42,10 +40,10 @@ if (!blockWeb) {
             ? renderMessage(msg.content)
             : escapeHTML(msg.content);
 
-        document.getElementById("messages").innerHTML +=
-          `<div class='${divClass}'>${content}</div>`;
+        document.getElementById(
+          "messages"
+        ).innerHTML += `<div class='${divClass}'>${content}</div>`;
       });
-
     } catch (e) {
       console.warn("Falha ao restaurar chat:", e);
       localStorage.removeItem(STORAGE_KEY);
@@ -123,10 +121,16 @@ if (!blockWeb) {
     });
 
     // 3️⃣ negrito **texto**
-    text = text.replace(/\*\*(.*?)\*\*/g, "<h2><strong style='color: #00ff22ff; font-weight: bold'>$1</strong></h2>");
+    text = text.replace(
+      /\*\*(.*?)\*\*/g,
+      "<h2><strong style='color: #00ff22ff; font-weight: bold'>$1</strong></h2>"
+    );
 
     // 3️⃣ strong **texto**
-    text = text.replace(/\*(.*?)\*/g, "<strong style='color: #ff0055ff; font-weight: bold'>$1</strong>");
+    text = text.replace(
+      /\*(.*?)\*/g,
+      "<strong style='color: #ff0055ff; font-weight: bold'>$1</strong>"
+    );
 
     // 4️⃣ itálico `texto`
     text = text.replace(/`([^`]+)`/g, "<em>$1</em>");
@@ -165,6 +169,4 @@ if (!blockWeb) {
     const data = await res.json();
     return data.choices[0].message.content;
   };
-
-
 }
