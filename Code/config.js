@@ -197,7 +197,8 @@ function applyFavicon(e) {
 
 if (!block) {
   (async () => {
-    loadJS("spotify");
+    if (device === "desktop") loadJS("spotify");
+    else document.getElementById("spotify-now-playing").style.display = "none";
     loadJS("monaco");
     loadJS("main");
     loadJS("AI");
@@ -206,7 +207,8 @@ if (!block) {
       "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"
     );
 
-    loadCSS("Code/Dark.css");
+    if (device === "desktop") loadCSS("Code/Dark.css");
+    else loadCSS("Code/Mobile.css");
     applyFavicon(mediaQuery);
     mediaQuery.addEventListener("change", applyFavicon); // alterações posteriores
   })();
