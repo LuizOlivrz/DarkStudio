@@ -7,13 +7,16 @@
  * Obtém o estado atual do Modo Dev do localStorage
  */
 export function getDevMode() {
-  return localStorage.getItem('devMode') === 'true';
+  return localStorage.getItem("devMode") === "true";
 }
 
 export const language = navigator.language || navigator.userLanguage;
 
 let i18n = {};
 let currentLang = "en-US";
+const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const faviconLight = "Assets/White Favicon.png";
+const faviconDark = "Assets/Black Favicon.png";
 
 export async function loadLanguage(langCode) {
   try {
@@ -48,7 +51,7 @@ await loadLanguage(navigator.language);
  * @param {boolean} value - true to enable, false to disable / true para ativar, false para desativar
  */
 export function setDevMode(value) {
-  localStorage.setItem('devMode', String(value));
+  localStorage.setItem("devMode", String(value));
 }
 
 // ─────────────────────────────────────────────
@@ -56,7 +59,7 @@ export function setDevMode(value) {
 // ─────────────────────────────────────────────
 
 let device = "Detectando"; // current device status / status atual do dispositivo
-let block = false;         // whether to block access / se deve bloquear o acesso
+let block = false; // whether to block access / se deve bloquear o acesso
 
 if (!block) detectDevice();
 
@@ -65,7 +68,10 @@ if (!block) detectDevice();
  * Detecta se o usuário está em um dispositivo móvel
  */
 function detectDevice() {
-  const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
+  const isMobileDevice =
+    /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(
+      navigator.userAgent
+    );
   device = isMobileDevice ? "Mobile" : "Desktop";
 
   if (getDevMode()) console.log("Dispositivo / Device:", device);
@@ -96,18 +102,19 @@ export const blockWeb = block;
  * @param {string} name - nome do arquivo JS (sem .js) dentro da pasta Code
  */
 function js(name) {
-  const script = document.createElement('script');
+  const script = document.createElement("script");
   script.src = `Code/${name}.js`; // ajusta o caminho da sua pasta
-  script.type = 'module';         // importante pra aceitar import/export
+  script.type = "module"; // importante pra aceitar import/export
   document.body.appendChild(script);
 
-  if (getDevMode()) console.log(`🎵 Script '${name}.js' carregado com sucesso!`);
+  if (getDevMode())
+    console.log(`🎵 Script '${name}.js' carregado com sucesso!`);
 }
 
 // Garante que o body já existe antes de adicionar scripts
 function loadJS(name) {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => js(name));
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => js(name));
   } else {
     js(name);
   }
@@ -154,7 +161,7 @@ export function loadCSS(href) {
 
   if (getDevMode()) console.log("🎨 CSS carregado:", href);
   setTimeout(() => {
-    document.getElementById('Website-Container').style.opacity = '1'; // mostra o body após carregar o CSS
+    document.getElementById("Website-Container").style.opacity = "1"; // mostra o body após carregar o CSS
   }, 750); // delay pra garantir que o CSS foi aplicado
 }
 
@@ -178,21 +185,30 @@ export function loadFavicon(href) {
   if (getDevMode()) console.log("⭐ Favicon aplicado:", href);
 }
 
+// Detecta o modo atual e aplica o favicon correto
+function applyFavicon(e) {
+  const isDark = e.matches;
+  loadFavicon(!isDark ? faviconDark : faviconLight);
+}
+
 // ─────────────────────────────────────────────
 // 🚦 Main Loader / Carregador Principal
 // ─────────────────────────────────────────────
 
 if (!block) {
   (async () => {
-    loadJS('spotify');
-    loadJS('monaco');
-    loadJS('main');
-    loadJS('AI');
+    loadJS("spotify");
+    loadJS("monaco");
+    loadJS("main");
+    loadJS("AI");
 
-    await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js");
+    await loadExternalScript(
+      "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"
+    );
 
     loadCSS("Code/Dark.css");
-    loadFavicon("https://i.postimg.cc/1txBHHJn/Design-sem-nome-4.png");
+    applyFavicon(mediaQuery);
+    mediaQuery.addEventListener("change", applyFavicon); // alterações posteriores
   })();
 } else {
   document.body.innerHTML = `
@@ -207,10 +223,10 @@ if (!block) {
   </div>
 `;
 
-
   document.title = "DarkStudio :(";
-  const favicon = document.getElementById('favicon');
+  const favicon = document.getElementById("favicon");
   if (favicon) {
-    favicon.href = "https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png";
+    favicon.href =
+      "https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png";
   }
 }
