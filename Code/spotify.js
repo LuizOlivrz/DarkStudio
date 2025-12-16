@@ -1,4 +1,4 @@
-import { setDevMode, blockWeb, getDevMode } from "./config.js";
+import { setDevMode, blockWeb, getDevMode, Mobile } from "./config.js";
 import { ChatVerification } from "./main.js";
 
 let fullscreen = false;
@@ -78,7 +78,8 @@ function fullScreenCalc() {
   if (getDevMode()) console.log("Tela cheia:", fullscreen);
 }
 
-if (!blockWeb) {
+if (!blockWeb && Mobile !== "Mobile") {
+  console.log(Mobile)
   // Spotify ID e escopos
   const clientId = "602dd626c8014779aab8a1b118c80012";
   const redirectUri = window.location.origin + window.location.pathname;

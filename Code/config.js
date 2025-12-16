@@ -1,23 +1,43 @@
 // ─────────────────────────────────────────────
-// 🌐 Dev Mode Utilities / Utilitários do Modo Dev
+// 🌐 DEV MODE UTILITIES
+// Utilitários do Modo Desenvolvedor
 // ─────────────────────────────────────────────
 
 /**
- * Get the current Dev Mode state from localStorage
- * Obtém o estado atual do Modo Dev do localStorage
+ * Get Dev Mode state from localStorage
+ * Obtém o estado do Modo Dev do localStorage
+ * @returns {boolean}
  */
 export function getDevMode() {
   return localStorage.getItem("devMode") === "true";
 }
 
+/**
+ * Set Dev Mode state in localStorage
+ * Define o estado do Modo Dev no localStorage
+ * @param {boolean} value - true enable / false disable
+ */
+export function setDevMode(value) {
+  localStorage.setItem("devMode", String(value));
+}
+
+if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
+
+// ─────────────────────────────────────────────
+// 🌍 INTERNATIONALIZATION (i18n)
+// Internacionalização
+// ─────────────────────────────────────────────
+
 export const language = navigator.language || navigator.userLanguage;
 
-let i18n = {};
-let currentLang = "en-US";
-const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const faviconLight = "Assets/White Favicon.png";
-const faviconDark = "Assets/Black Favicon.png";
+let i18n = {};                // Loaded language dictionary / dicionário carregado
+let currentLang = "en-US";    // Current language / idioma atual
 
+/**
+ * Load language JSON file
+ * Carrega o arquivo JSON de idioma
+ * @param {string} langCode - ex: pt-BR, en-US
+ */
 export async function loadLanguage(langCode) {
   try {
     const res = await fetch(`languages/${langCode}.json`);
@@ -25,93 +45,98 @@ export async function loadLanguage(langCode) {
 
     i18n = await res.json();
     currentLang = langCode;
-  } catch (err) {
-    console.warn(`🌐 Idioma "${langCode}" não encontrado. Usando inglês.`);
+  } catch {
+    console.warn(`🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`);
 
-    const fallbackRes = await fetch("languages/en-US.json");
-    i18n = await fallbackRes.json();
+    const fallback = await fetch("languages/en-US.json");
+    i18n = await fallback.json();
     currentLang = "en-US";
   }
 }
 
+/**
+ * Translate key
+ * Traduz uma chave
+ * @param {string} key
+ */
 export function t(key) {
   return i18n[key] ?? key;
 }
 
+/**
+ * Get current language
+ * Retorna o idioma atual
+ */
 export function getCurrentLanguage() {
   return currentLang;
 }
 
-await loadLanguage(navigator.language);
-// exemplo: "pt-BR", "en-US", "es-ES"
-
-/**
- * Set the Dev Mode state in localStorage
- * Define o estado do Modo Dev no localStorage
- * @param {boolean} value - true to enable, false to disable / true para ativar, false para desativar
- */
-export function setDevMode(value) {
-  localStorage.setItem("devMode", String(value));
-}
+// Auto-load browser language
+await loadLanguage(language);
 
 // ─────────────────────────────────────────────
-// 📱 Device Detection / Detecção de Dispositivo
+// 📱 DEVICE DETECTION
+// Detecção de Dispositivo
 // ─────────────────────────────────────────────
 
-let device = "Detectando"; // current device status / status atual do dispositivo
-let block = false; // whether to block access / se deve bloquear o acesso
+let device = "Detectando";
+let block = false; // Block access flag / flag de bloqueio
 
 if (!block) detectDevice();
 
 /**
- * Detects whether the user is on a mobile device
- * Detecta se o usuário está em um dispositivo móvel
+ * Detect mobile or desktop
+ * Detecta se é mobile ou desktop
  */
 function detectDevice() {
-  const isMobileDevice =
+  const isMobile =
     /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(
       navigator.userAgent
     );
-  device = isMobileDevice ? "Mobile" : "Desktop";
 
-  if (getDevMode()) console.log("Dispositivo / Device:", device);
+  device = isMobile ? "Mobile" : "Desktop";
 
-  // ✅ If it's a mobile device, block access
-  // ✅ Se for um dispositivo móvel, bloqueia o acesso
-  if (device === "Mobile") block = true;
+  if (getDevMode()) console.log("📱 Dispositivo / Device:", device);
 }
 
-// ─────────────────────────────────────────────
-// 🧩 Dev Mode Logging / Log do Modo Dev
-// ─────────────────────────────────────────────
-
-if (getDevMode() && !block) console.log("Dev Mode:", getDevMode());
-
-// ─────────────────────────────────────────────
-// 🚫 Exported Flag / Flag Exportada
-// ─────────────────────────────────────────────
+/**
+ * Returns current device type
+ * Retorna o tipo de dispositivo
+ */
+export function Mobile() {
+  return device;
+}
 
 /**
- * Indicates if the web app should be blocked (mobile users)
- * Indica se o app web deve ser bloqueado (usuários mobile)
+ * Export block flag
+ * Exporta a flag de bloqueio
  */
 export const blockWeb = block;
 
+// ─────────────────────────────────────────────
+// 📦 DYNAMIC SCRIPT & STYLE LOADERS
+// Carregadores Dinâmicos de JS e CSS
+// ─────────────────────────────────────────────
+
 /**
- * Carrega qualquer arquivo JS dinamicamente
- * @param {string} name - nome do arquivo JS (sem .js) dentro da pasta Code
+ * Load internal JS module
+ * Carrega um script JS interno
+ * @param {string} name - file name without .js
  */
 function js(name) {
   const script = document.createElement("script");
-  script.src = `Code/${name}.js`; // ajusta o caminho da sua pasta
-  script.type = "module"; // importante pra aceitar import/export
+  script.src = `Code/${name}.js`;
+  script.type = "module";
   document.body.appendChild(script);
 
   if (getDevMode())
-    console.log(`🎵 Script '${name}.js' carregado com sucesso!`);
+    console.log(`📜 Script '${name}.js' carregado / loaded`);
 }
 
-// Garante que o body já existe antes de adicionar scripts
+/**
+ * Ensure DOM is ready before loading script
+ * Garante que o DOM esteja pronto
+ */
 function loadJS(name) {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => js(name));
@@ -121,13 +146,12 @@ function loadJS(name) {
 }
 
 /**
- * Carrega um script externo (CDN) dinamicamente
- * @param {string} url - URL do script
- * @returns {Promise<void>}
+ * Load external script (CDN)
+ * Carrega script externo (CDN)
+ * @param {string} url
  */
 export function loadExternalScript(url) {
   return new Promise((resolve, reject) => {
-    // evita carregar duas vezes
     if (document.querySelector(`script[src="${url}"]`)) {
       resolve();
       return;
@@ -137,7 +161,7 @@ export function loadExternalScript(url) {
     script.src = url;
     script.defer = true;
     script.onload = () => {
-      if (getDevMode()) console.log("📦 Script externo carregado:", url);
+      if (getDevMode()) console.log("📦 Script externo:", url);
       resolve();
     };
     script.onerror = () => reject(`Erro ao carregar ${url}`);
@@ -147,27 +171,38 @@ export function loadExternalScript(url) {
 }
 
 /**
- * Carrega um arquivo CSS dinamicamente
- * @param {string} href - caminho do CSS
+ * Load CSS dynamically
+ * Carrega CSS dinamicamente
+ * @param {string} href
  */
 export function loadCSS(href) {
-  if (document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) return;
+  if (document.querySelector(`link[href="${href}"]`)) return;
 
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;
-
   document.head.appendChild(link);
 
   if (getDevMode()) console.log("🎨 CSS carregado:", href);
+
   setTimeout(() => {
-    document.getElementById("Website-Container").style.opacity = "1"; // mostra o body após carregar o CSS
-  }, 750); // delay pra garantir que o CSS foi aplicado
+    const container = document.getElementById("Website-Container");
+    if (container) container.style.opacity = "1";
+  }, 750);
 }
 
+// ─────────────────────────────────────────────
+// ⭐ FAVICON HANDLER
+// Controle de Favicon
+// ─────────────────────────────────────────────
+
+const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const faviconLight = "Assets/White Favicon.png";
+const faviconDark = "Assets/Black Favicon.png";
+
 /**
- * Define o favicon dinamicamente
- * @param {string} href - URL do favicon
+ * Apply favicon dynamically
+ * Aplica favicon dinamicamente
  */
 export function loadFavicon(href) {
   let favicon = document.getElementById("favicon");
@@ -176,29 +211,28 @@ export function loadFavicon(href) {
     favicon = document.createElement("link");
     favicon.id = "favicon";
     favicon.rel = "icon";
-    favicon.type = "image/jpeg";
     document.head.appendChild(favicon);
   }
 
   favicon.href = href;
 
-  if (getDevMode()) console.log("⭐ Favicon aplicado:", href);
+  if (getDevMode()) console.log("⭐ Favicon:", href);
 }
 
-// Detecta o modo atual e aplica o favicon correto
 function applyFavicon(e) {
-  const isDark = e.matches;
-  loadFavicon(!isDark ? faviconDark : faviconLight);
+  loadFavicon(e.matches ? faviconLight : faviconDark);
 }
 
 // ─────────────────────────────────────────────
-// 🚦 Main Loader / Carregador Principal
+// 🚦 MAIN LOADER
+// Carregador Principal
 // ─────────────────────────────────────────────
 
 if (!block) {
+  const spotify = document.getElementById("spotify-now-playing");
+  const spotifyFS = document.getElementById("full-screen");
+
   (async () => {
-    if (device === "desktop") loadJS("spotify");
-    else document.getElementById("spotify-now-playing").style.display = "none";
     loadJS("monaco");
     loadJS("main");
     loadJS("AI");
@@ -207,28 +241,37 @@ if (!block) {
       "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"
     );
 
-    if (device === "desktop") loadCSS("Code/Dark.css");
-    else loadCSS("Code/Mobile.css");
+    if (device !== "Mobile") {
+      loadCSS("Code/dark.css");
+      loadJS("spotify");
+    } else {
+      loadCSS("Code/mobile.css");
+      if (spotify) spotify.style.display = "none";
+      if (spotifyFS) spotifyFS.style.display = "none";
+    }
+
     applyFavicon(mediaQuery);
-    mediaQuery.addEventListener("change", applyFavicon); // alterações posteriores
+    mediaQuery.addEventListener("change", applyFavicon);
   })();
-} else {
+}
+
+// ─────────────────────────────────────────────
+// ⛔ BLOCK SCREEN
+// Tela de Bloqueio
+// ─────────────────────────────────────────────
+
+else {
   document.body.innerHTML = `
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
-    <h1>${t("siteBlockedTitle")}</h1>
-    <p>${t("siteBlockedDesc")}</p>
-    <h5>By: CDP 💚</h5>
-    <div style="margin-top:20px;font-size:12px;">
-      <strong>${t("reason")}:</strong><br/>
-      ${t("blockedMobile").replaceAll("\n", "<br/>")}
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
+      <h1>${t("siteBlockedTitle")}</h1>
+      <p>${t("siteBlockedDesc")}</p>
+      <h5>By: CDP 💚</h5>
+      <div style="margin-top:20px;font-size:12px;">
+        <strong>${t("reason")}:</strong><br/>
+        ${t("blockedMobile").replaceAll("\n", "<br/>")}
+      </div>
     </div>
-  </div>
-`;
+  `;
 
   document.title = "DarkStudio :(";
-  const favicon = document.getElementById("favicon");
-  if (favicon) {
-    favicon.href =
-      "https://cdn-0.emojis.wiki/emoji-pics/twitter/red-square-twitter.png";
-  }
 }
