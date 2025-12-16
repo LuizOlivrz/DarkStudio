@@ -1,7 +1,8 @@
-import { setDevMode, blockWeb, getDevMode, Mobile } from "./config.js";
+import { setDevMode, blockWeb, getDevMode, getDevice } from "./config.js";
 import { ChatVerification } from "./main.js";
 
 let fullscreen = false;
+const Mobile = getDevice();
 const full = document.getElementById("full-screen");
 
 export function fullScreenValue() {
@@ -79,7 +80,6 @@ function fullScreenCalc() {
 }
 
 if (!blockWeb && Mobile !== "Mobile") {
-  console.log(Mobile)
   // Spotify ID e escopos
   const clientId = "602dd626c8014779aab8a1b118c80012";
   const redirectUri = window.location.origin + window.location.pathname;
