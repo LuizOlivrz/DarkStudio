@@ -207,7 +207,7 @@ if (!blockWeb) {
    */
   async function loadTheme(themeName) {
     try {
-      const response = await fetch(`Themes/${themeName}.json`);
+      const response = await fetch(`Extras/Themes/${themeName}.json`);
       const theme = await response.json();
 
       monaco.editor.defineTheme(themeName, theme);

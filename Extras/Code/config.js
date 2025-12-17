@@ -40,7 +40,7 @@ let currentLang = "en-US"; // Current language / idioma atual
  */
 export async function loadLanguage(langCode) {
   try {
-    const res = await fetch(`languages/${langCode}.json`);
+    const res = await fetch(`Extras/languages/${langCode}.json`);
     if (!res.ok) throw new Error("Language not found");
 
     i18n = await res.json();
@@ -50,7 +50,7 @@ export async function loadLanguage(langCode) {
       `🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`
     );
 
-    const fallback = await fetch("languages/en-US.json");
+    const fallback = await fetch("Extras/languages/en-US.json");
     i18n = await fallback.json();
     currentLang = "en-US";
   }
@@ -124,13 +124,16 @@ export const blockWeb = block;
  * Carrega um script JS interno
  * @param {string} name - file name without .js
  */
-function js(name) {
+async function js(name) {
+  const path = `Extras/Code/${name}.js`;
+
+  const ok = await checkFile(path, `${name}.js`);
+  if (!ok) return;
+
   const script = document.createElement("script");
-  script.src = `Code/${name}.js`;
+  script.src = path;
   script.type = "module";
   document.body.appendChild(script);
-
-  if (getDevMode()) console.log(`📜 Script '${name}.js' carregado / loaded`);
 }
 
 /**
@@ -175,20 +178,45 @@ export function loadExternalScript(url) {
  * Carrega CSS dinamicamente
  * @param {string} href
  */
-export function loadCSS(href) {
-  if (document.querySelector(`link[href="${href}"]`)) return;
+export async function loadCSS(name) {
+  const path = `Extras/Code/${name}`;
+
+  if (!name.endsWith(".css")) {
+    console.warn(`❌ ${name} — não é CSS`);
+    return;
+  }
+
+  if (document.querySelector(`link[href="${path}"]`)) return;
+
+  const ok = await checkFile(path, name);
+  if (!ok) return;
 
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = href;
+  link.href = path;
   document.head.appendChild(link);
-
-  if (getDevMode()) console.log("🎨 CSS carregado:", href);
 
   setTimeout(() => {
     const container = document.getElementById("Website-Container");
     if (container) container.style.opacity = "1";
   }, 750);
+}
+
+async function checkFile(path, label) {
+  try {
+    const res = await fetch(path, { method: "HEAD" });
+
+    if (res.ok) {
+      console.log(`✅ ${label} — ${path}`);
+      return true;
+    } else {
+      console.warn(`❌ ${label} — ${path}`);
+      return false;
+    }
+  } catch {
+    console.warn(`❌ ${label} — erro ao acessar ${path}`);
+    return false;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -242,10 +270,10 @@ if (!block) {
     );
 
     if (device !== "Mobile") {
-      loadCSS("Code/dark.css");
+      loadCSS("dark.css");
       loadJS("spotify");
     } else {
-      loadCSS("Code/mobile.css");
+      loadCSS("mobile.css");
       if (spotify) spotify.style.display = "none";
       if (spotifyFS) spotifyFS.style.display = "none";
     }
@@ -253,6 +281,29 @@ if (!block) {
     applyFavicon(mediaQuery);
     mediaQuery.addEventListener("change", applyFavicon);
   })();
+
+  async function getBrowser() {
+    if (navigator.userAgentData) {
+      const brands = navigator.userAgentData.brands;
+
+      for (const b of brands) {
+        if (b.brand.includes("Edge")) return "Edge";
+        if (b.brand.includes("Chrome")) return "Chrome";
+        if (b.brand.includes("Opera")) return "Opera";
+      }
+
+      return "Chromium";
+    }
+
+    // fallback
+    const ua = navigator.userAgent;
+    if (ua.includes("Edg")) return "Edge";
+    if (ua.includes("Chrome")) return "Chrome";
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("Safari")) return "Safari";
+
+    return "Desconhecido";
+  }
 }
 
 // ─────────────────────────────────────────────
