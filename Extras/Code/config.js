@@ -1,4 +1,20 @@
 // ─────────────────────────────────────────────
+// ⚙ DarkStudio — Config Script
+// ─────────────────────────────────────────────
+
+let i18n = {}; // Loaded language dictionary / dicionário carregado
+let currentLang = "en-US"; // Current language / idioma atual
+let device = "Detectando";
+let block = false; // Block access flag / flag de bloqueio
+const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const faviconLight = "Assets/White Favicon.png";
+const faviconDark = "Assets/Black Favicon.png";
+const spotify = document.getElementById("spotify-now-playing");
+const spotifyFS = document.getElementById("full-screen");
+
+export const language = navigator.language || navigator.userLanguage;
+
+// ─────────────────────────────────────────────
 // 🌐 DEV MODE UTILITIES
 // Utilitários do Modo Desenvolvedor
 // ─────────────────────────────────────────────
@@ -27,11 +43,6 @@ if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
 // 🌍 INTERNATIONALIZATION (i18n)
 // Internacionalização
 // ─────────────────────────────────────────────
-
-export const language = navigator.language || navigator.userLanguage;
-
-let i18n = {}; // Loaded language dictionary / dicionário carregado
-let currentLang = "en-US"; // Current language / idioma atual
 
 /**
  * Load language JSON file
@@ -80,9 +91,6 @@ await loadLanguage(language);
 // 📱 DEVICE DETECTION
 // Detecção de Dispositivo
 // ─────────────────────────────────────────────
-
-let device = "Detectando";
-let block = false; // Block access flag / flag de bloqueio
 
 if (!block) detectDevice();
 
@@ -224,10 +232,6 @@ async function checkFile(path, label) {
 // Controle de Favicon
 // ─────────────────────────────────────────────
 
-const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const faviconLight = "Assets/White Favicon.png";
-const faviconDark = "Assets/Black Favicon.png";
-
 /**
  * Apply favicon dynamically
  * Aplica favicon dinamicamente
@@ -257,9 +261,6 @@ function applyFavicon(e) {
 // ─────────────────────────────────────────────
 
 if (!block) {
-  const spotify = document.getElementById("spotify-now-playing");
-  const spotifyFS = document.getElementById("full-screen");
-
   (async () => {
     loadJS("monaco");
     loadJS("main");
@@ -281,29 +282,6 @@ if (!block) {
     applyFavicon(mediaQuery);
     mediaQuery.addEventListener("change", applyFavicon);
   })();
-
-  async function getBrowser() {
-    if (navigator.userAgentData) {
-      const brands = navigator.userAgentData.brands;
-
-      for (const b of brands) {
-        if (b.brand.includes("Edge")) return "Edge";
-        if (b.brand.includes("Chrome")) return "Chrome";
-        if (b.brand.includes("Opera")) return "Opera";
-      }
-
-      return "Chromium";
-    }
-
-    // fallback
-    const ua = navigator.userAgent;
-    if (ua.includes("Edg")) return "Edge";
-    if (ua.includes("Chrome")) return "Chrome";
-    if (ua.includes("Firefox")) return "Firefox";
-    if (ua.includes("Safari")) return "Safari";
-
-    return "Desconhecido";
-  }
 }
 
 // ─────────────────────────────────────────────
