@@ -4,6 +4,16 @@ import { ChatVerification } from "./main.js";
 let fullscreen = false;
 const Mobile = getDevice();
 const full = document.getElementById("full-screen");
+const configMenu = document.getElementById("config");
+const closeBtn = document.getElementById("close");
+const options = document.getElementById("options");
+const viewCode = document.getElementById("code-language");
+const editor = document.getElementById("Editor");
+const trackInfoEl = document.getElementById("track-info");
+const trackInfoFullEl = document.getElementById("track-info-full");
+const chatIA = document.getElementById("chat");
+const albumArtEl = document.getElementById("album-art");
+const albumArtEl2 = document.getElementById("album-art-full");
 
 export function fullScreenValue() {
   return fullscreen;
@@ -15,17 +25,10 @@ export function fullScreenActivate() {
 
 // Função para alternar tela cheia
 function fullScreen() {
-  const img = document.getElementById("album-art-full");
+  const img = albumArtEl2;
   if (!img.src) return; // Não faz nada se não houver imagem
-  const img2 = document.getElementById("album-art");
-  const closeBtn = document.getElementById("close");
+  const img2 = albumArtEl;
   const isVisible = full.style.width >= "50%";
-  const configMenu = document.getElementById("config");
-  const trackInfoEl = document.getElementById("track-info");
-  const trackInfoFullEl = document.getElementById("track-info-full");
-  const options = document.getElementById("options");
-  const editor = document.getElementById("Editor");
-  const chatIA = document.getElementById("chat");
 
   closeBtn.style.display = "block";
   full.style.width = isVisible ? "0.1px" : "99.3%";
@@ -51,8 +54,6 @@ function fullScreen() {
 
 function fullScreenCalc() {
   const notVisible = full.style.width <= "10px";
-  const closeBtn = document.getElementById("close");
-  const viewCode = document.getElementById("code-language");
 
   if (notVisible) {
     viewCode.style.display = "block";
@@ -89,22 +90,15 @@ if (!blockWeb && Mobile !== "Mobile") {
   const artistNameFullEl = document.getElementById("artist-name-full");
   const trackNameEl = document.getElementById("track-name");
   const artistNameEl = document.getElementById("artist-name");
-  const albumArtEl = document.getElementById("album-art");
-  const albumArtEl2 = document.getElementById("album-art-full");
-  const trackInfoEl = document.getElementById("track-info");
-  const trackInfoFullEl = document.getElementById("track-info-full");
   const profilePicEl = document.getElementById("spotify-profile-pic");
-  const viewCode = document.getElementById("code-language");
-  const closeBtn = document.getElementById("close");
-  const options = document.getElementById("options");
-  const editor = document.getElementById("Editor");
-  const chatIA = document.getElementById("chat");
 
   const path = document.querySelector("#spotify-logo-full path");
   const btns = document.querySelector("#options").querySelectorAll("button");
   let fullscreenLock = false;
   let autoBackground = true;
   let spotify = true;
+  let back = "Muda dinamicamente de acordo com a configuração";
+  let textColor = "Muda dinamicamente de acordo com a configuração";
 
   // Função para gerar code verifier PKCE
   function generateCodeVerifier(length = 128) {
@@ -289,7 +283,7 @@ if (!blockWeb && Mobile !== "Mobile") {
         }
 
         if (!data.item) return showNoMusic();
-        if (albumArtEl.src !== data.item.album.images[0].url) {
+        if (trackNameEl.textContent !== data.item.name) {
           // Se chegou aqui, tem música tocando
           if (!getDevMode()) console.clear();
           albumArtEl2.setAttribute(
@@ -313,13 +307,14 @@ if (!blockWeb && Mobile !== "Mobile") {
           albumArtEl.style.display = "block";
         }
 
-        if (albumArtEl && albumArtEl.src) {
+        if (albumArtEl && albumArtEl.src !== "") {
           albumArtEl.onload = () => {
+            //A linha acima é a que causa o erro que torna impossivel remover as cores ao clicar em: tirar fundo automatico!
             try {
               const colorThief = new ColorThief();
               const dominantColor = colorThief.getColor(albumArtEl);
               const brightness = getBrightness(dominantColor);
-              const back = `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`;
+              back = `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`;
 
               // Ajuste automático com base no brilho
               let adjustedColor;
@@ -334,7 +329,7 @@ if (!blockWeb && Mobile !== "Mobile") {
                 adjustedColor = `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`;
               }
 
-              const textColor =
+              textColor =
                 brightness < 100
                   ? lightenRGB(dominantColor, 55)
                   : darkenRGB(dominantColor, 50);
@@ -351,29 +346,9 @@ if (!blockWeb && Mobile !== "Mobile") {
 
               path.style.fill = textColor;
               full.style.backgroundColor = back;
-
-              if (autoBackground) {
-                document.getElementById("options").style.backgroundColor = back;
-                document.getElementById("options").style.borderColor =
-                  textColor;
-                document.getElementById("youtube-logo").style.fill = textColor;
-                document.getElementById("options").style.color = textColor;
-                document.getElementById("Editor").style.backgroundColor = back;
-                closeBtn.style.backgroundColor = back;
+              if (albumArtEl.style.display !== "none") {
                 closeBtn.style.color = textColor;
-                closeBtn.style.borderColor = textColor;
-                viewCode.style.backgroundColor = back;
-                viewCode.style.borderColor = textColor;
-                viewCode.style.color = textColor;
-                document.getElementById("config").style.backgroundColor = back;
-                document.getElementById("config").style.color = textColor;
-                document.getElementById("theme-select").style.color = textColor;
-                document.getElementById("theme-select").style.borderColor =
-                  textColor;
-                document.getElementById("theme-select").style.backgroundColor =
-                  back;
-              } else {
-                resetTextColors();
+                closeBtn.style.backgroundColor = back;
               }
             } catch (error) {
               console.log("Erro ao pegar cor dominante:", error);
@@ -381,6 +356,29 @@ if (!blockWeb && Mobile !== "Mobile") {
               resetTextColors();
             }
           };
+
+          if (autoBackground) {
+            document.getElementById("options").style.backgroundColor = back;
+            document.getElementById("options").style.borderColor = textColor;
+            document.getElementById("youtube-logo").style.fill = textColor;
+            document.getElementById("options").style.color = textColor;
+            document.getElementById("Editor").style.backgroundColor = back;
+            closeBtn.style.backgroundColor = back;
+            closeBtn.style.color = textColor;
+            closeBtn.style.borderColor = textColor;
+            viewCode.style.backgroundColor = back;
+            viewCode.style.borderColor = textColor;
+            viewCode.style.color = textColor;
+            document.getElementById("config").style.backgroundColor = back;
+            document.getElementById("config").style.color = textColor;
+            document.getElementById("theme-select").style.color = textColor;
+            document.getElementById("theme-select").style.borderColor =
+              textColor;
+            document.getElementById("theme-select").style.backgroundColor =
+              back;
+          } else {
+            resetTextColors();
+          }
         }
       } else {
         resetTextColors();
@@ -422,18 +420,14 @@ if (!blockWeb && Mobile !== "Mobile") {
     viewCode.style.borderColor = "#3c3c3c";
     document.getElementById("youtube-logo").style.fill = "#FF6700";
     document.getElementById("Editor").style.backgroundColor = "#3c3c3c";
-    document.getElementById("close").style.backgroundColor = "#090909";
-    document.getElementById("close").style.color = "#FF6700";
-    document.getElementById("close").style.borderColor = "#3c3c3c";
     viewCode.style.backgroundColor = "#090909";
     viewCode.style.color = "#FF6700";
-    document.getElementById("config").style.backgroundColor = "#090909";
+    configMenu.style.backgroundColor = "#090909";
     document.getElementById("youtube-logo").style.fill = "#FF6700";
-    document.getElementById("config").style.color = "#FF6700";
+    configMenu.style.color = "#FF6700";
     document.getElementById("theme-select").style.color = "#FF6700";
     document.getElementById("theme-select").style.borderColor = "#FF6700";
     document.getElementById("theme-select").style.backgroundColor = "#090909";
-    path.style.fill = "#1ED760";
 
     btns.forEach((btn) => {
       btn.style.color = "#FF6700";
@@ -465,7 +459,7 @@ if (!blockWeb && Mobile !== "Mobile") {
 
     if (token) {
       loginBtn.style.display = "none";
-      setInterval(getNowPlaying, 2000);
+      setInterval(getNowPlaying, 1000);
       getUserProfilePicture();
     } else {
       loginBtn.style.display = "block";
@@ -516,6 +510,8 @@ if (!blockWeb && Mobile !== "Mobile") {
 
   const autoCheckbox = document.getElementById("auto-background-checkbox");
   const spotifyCheckbox = document.getElementById("spotify-checkbox");
+
+  spotifyCheckbox.checked = spotify;
 
   // Salvando o estado do checkbox com localStorage:
   function saveCheckboxState() {
@@ -568,6 +564,7 @@ if (!blockWeb && Mobile !== "Mobile") {
     artistNameFullEl.textContent = "";
     albumArtEl.src = "";
     albumArtEl.style.display = "none";
+    closeBtn.style.color = "";
 
     if (!albumArtEl2.dataset.isProfile) {
       const token = sessionStorage.getItem("access_token");

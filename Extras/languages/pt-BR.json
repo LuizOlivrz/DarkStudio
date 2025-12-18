@@ -5,6 +5,7 @@
   "defaultFile": "MeuArquivo",
   "offline": "Você está offline!",
   "noInternet": "Sem conexão com a internet 😢",
+  "onInternet": "Reconectado a internet 😊",
 
   "JSBlocked": "O JavaScript está temporariamente desativado para manutenção!",
   "Errorhtmljs": "O conteúdo não é um HTML nem um JS!",
@@ -19,6 +20,5 @@
   "siteBlockedTitle": "Site Bloqueado :(",
   "siteBlockedDesc": "Seu site favorito de edição de códigos está temporariamente indisponível!",
   "reason": "Motivo",
-  "blockedMobile":
-    "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador."
+  "blockedMobile": "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador."
 }

@@ -21,10 +21,7 @@
   </head>
 
   <body style="background-color: black">
-    <div
-      id="Website-Container"
-      style="opacity: 0; transition: opacity 1.5s ease"
-    >
+    <div id="Website-Container" style="opacity: 0;">
       <!-- ====== SPOTIFY MINI PLAYER ====== -->
       <div id="spotify-now-playing">
         <div id="mini-player" onclick="fullScreenVerif()">
@@ -43,7 +40,7 @@
       </div>
 
       <!-- ====== NETWORK STATUS / STATUS DA REDE ====== -->
-      <span id="network-status"></span>
+      <span id="network-status">Position</span>
 
       <!-- ====== CONFIGURATION ICON / ÍCONE DE CONFIGURAÇÃO ====== -->
       <div id="spotify-profile-container" onclick="config()">
@@ -196,7 +193,7 @@
         <br /><br />
       </div>
 
-      <div id="chat" style="opacity: 0; display: none">
+      <div id="chat" style="display: none">
         <div id="messages"></div>
 
         <div id="input-area">
