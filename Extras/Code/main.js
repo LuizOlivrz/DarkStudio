@@ -346,7 +346,7 @@ if (!blockWeb) {
   function checkScreenWidth() {
     const existing = document.getElementById("min-width-overlay");
 
-    if (window.innerWidth < 715 || window.innerHeight < 800) {
+    if (window.innerWidth < 620 || window.innerHeight < 700) {
       if (!existing) {
         document.body.dataset.prevOverflow = document.body.style.overflow || "";
         document.body.style.overflow = "hidden";
@@ -363,7 +363,9 @@ if (!blockWeb) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "red",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)", // Safari
           color: "#fff",
           fontFamily: "sans-serif",
           textAlign: "center",
@@ -384,8 +386,11 @@ if (!blockWeb) {
     }
   }
 
-  //window.addEventListener("load", checkScreenWidth);
-  //window.addEventListener("resize", checkScreenWidth);
+  window.addEventListener("load", checkScreenWidth);
+  window.onload = function () {
+    checkScreenWidth();
+  };
+  window.addEventListener("resize", checkScreenWidth);
 
   // ─────────────────────────────────────────────
   // ⚙️ Shortcuts / Atalhos
@@ -435,6 +440,7 @@ if (!blockWeb) {
         input.focus();
 
         chat.style.display = "block";
+        chat.style.pointerEvents = "auto";
 
         WebsiteContainer.classList.remove("no-chat");
         WebsiteContainer.classList.add("with-chat");
@@ -464,7 +470,7 @@ if (!blockWeb) {
           aviso.style.opacity = "1";
         }, 300);
       }
-      if (fullScreenValue()) {
+      if (fullScreenValue() === "true") {
         fullScreenActivate();
       }
     } else {

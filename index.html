@@ -21,7 +21,7 @@
   </head>
 
   <body style="background-color: black">
-    <div id="Website-Container" style="opacity: 0;">
+    <div id="Website-Container" style="opacity: 0">
       <!-- ====== SPOTIFY MINI PLAYER ====== -->
       <div id="spotify-now-playing">
         <div id="mini-player" onclick="fullScreenVerif()">
@@ -188,12 +188,48 @@
           | Debug mode (shows additional information). </label
         ><br /><br />
         <button id="logout-spotify" onclick="spotifyLogout();">
-          Log out of Spotify
+          Log Out of Spotify
         </button>
         <br /><br />
+        <h3>AI (NightCoder)</h3>
+        <button id="clearIAChat" onclick="clearChatStorage()">
+          Delete AI Chat
+        </button>
+        <br>
+        <p>Edit AI Prompt</p>
+        <textarea
+          id="system-prompt-editor"
+          placeholder="NightCoder system behavior..."
+          style="
+            width: 100%;
+            height: 120px;
+            background: #0b0b0b;
+            color: #ff6700;
+            border: 2px solid #ff6700;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            resize: vertical;
+          "
+        ></textarea>
+
+        <button onclick="saveSystemPrompt()">Save AI Behavior</button>
       </div>
 
       <div id="chat" style="display: none">
+        <img
+          id="chat-welcome"
+          src="Extras/Assets/NightCoder.png"
+          alt="NightCoder"
+          style="
+            width: 100%;
+            max-width: 260px;
+            margin: 40px auto;
+            display: none;
+            opacity: 0.85;
+            pointer-events: none;
+          "
+        />
         <div id="messages"></div>
 
         <div id="input-area">

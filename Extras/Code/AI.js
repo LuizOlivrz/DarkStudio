@@ -6,11 +6,17 @@ if (!blockWeb) {
   const STORAGE_KEY = "nightcoder_chat";
   const MAX_MESSAGES = 10;
   const idioma = language;
+  let firstTime = true;
+  const DEFAULT_SYSTEM_PROMPT = `You are NightCoder, an AI focused on helping with programming or any other topic. Be direct. Explain code changes at the end. Always speak in ${idioma} only change the language if requested by the user.`;
+  const SYSTEM_PROMPT_KEY = "nightcoder_system_prompt";
+
+  const savedSystemPrompt =
+    localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT;
 
   const chatHistory = [
     {
       role: "system",
-      content: `You are NightCoder, an AI focused on helping with programming or any other topic. Be direct like an intelligent terminal. Explain code changes at the end. Always speak in ${idioma}.`,
+      content: savedSystemPrompt,
     },
   ];
 
@@ -26,7 +32,7 @@ if (!blockWeb) {
 
   function loadChatFromStorage() {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
+    if (!saved) firstTime = true;
 
     try {
       const parsed = JSON.parse(saved);
@@ -43,14 +49,34 @@ if (!blockWeb) {
         document.getElementById(
           "messages"
         ).innerHTML += `<div class='${divClass}'>${content}</div>`;
+        firstTime = false;
       });
     } catch (e) {
-      console.warn("Falha ao restaurar chat:", e);
+      console.warn(
+        "Falha ao restaurar chat:",
+        e,
+        "Será considerado a 1 vez do usuario"
+      );
+      firstTime = true;
       localStorage.removeItem(STORAGE_KEY);
     }
   }
 
   loadChatFromStorage();
+  updateWelcomeImage();
+
+  function updateWelcomeImage() {
+    const img = document.getElementById("chat-welcome");
+    if (!img) return;
+
+    if (firstTime) {
+      img.style.opacity = "0";
+      img.style.display = "block";
+      img.style.opacity = "1";
+    } else {
+      img.style.display = "none";
+    }
+  }
 
   document.getElementById("send").onclick = sendMessage;
 
@@ -72,6 +98,11 @@ if (!blockWeb) {
     const messages = document.getElementById("messages");
     const content = input.value.trim();
     if (!content) return;
+
+    if (firstTime) {
+      firstTime = false;
+      updateWelcomeImage();
+    }
 
     // Mostra texto do usuário
     messages.innerHTML += `<div class='user'>${escapeHTML(content)}</div>`;
@@ -185,7 +216,6 @@ if (!blockWeb) {
 
     return text;
   }
-  
 
   window.sendInlineRequest = async function (content) {
     chatHistory.push({ role: "user", content });
@@ -205,4 +235,44 @@ if (!blockWeb) {
     const data = await res.json();
     return data.choices[0].message.content;
   };
+
+  function clearChatStorage() {
+    localStorage.removeItem(STORAGE_KEY);
+
+    chatHistory.length = 1;
+
+    const messages = document.getElementById("messages");
+    if (messages) messages.innerHTML = "";
+
+    firstTime = true;
+    updateWelcomeImage();
+  }
+
+  window.clearChatStorage = clearChatStorage;
+
+  function loadSystemPromptEditor() {
+    const textarea = document.getElementById("system-prompt-editor");
+    if (!textarea) return;
+
+    textarea.value =
+      localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT;
+  }
+
+  function saveSystemPrompt() {
+    const textarea = document.getElementById("system-prompt-editor");
+    if (!textarea) return;
+
+    const value = textarea.value.trim() || DEFAULT_SYSTEM_PROMPT;
+
+    localStorage.setItem(SYSTEM_PROMPT_KEY, value);
+
+    // Atualiza o system prompt em memória
+    chatHistory[0].content = value;
+
+    alert("NightCoder behavior updated.");
+  }
+
+  window.saveSystemPrompt = saveSystemPrompt;
+  loadSystemPromptEditor();
+  
 }

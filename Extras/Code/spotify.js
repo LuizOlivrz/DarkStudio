@@ -564,7 +564,9 @@ if (!blockWeb && Mobile !== "Mobile") {
     artistNameFullEl.textContent = "";
     albumArtEl.src = "";
     albumArtEl.style.display = "none";
-    closeBtn.style.color = "";
+    closeBtn.style.color = "#ff8a3d";
+    closeBtn.style.backgroundColor = "#080808";
+    closeBtn.borderColor = "#e6e6e6";
 
     if (!albumArtEl2.dataset.isProfile) {
       const token = sessionStorage.getItem("access_token");
@@ -642,6 +644,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   // Detecta atividade do usuário
   window.addEventListener("mousemove", resetarTimer);
   window.addEventListener("keydown", resetarTimer);
+  window.addEventListener("click", resetarTimer);
 
   // Detecta mudança de visibilidade da aba (ex: trocou de guia)
   document.addEventListener("visibilitychange", () => {
