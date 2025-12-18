@@ -109,47 +109,83 @@ if (!blockWeb) {
   }
 
   function renderMessage(text) {
-    // 1️⃣ escapa HTML
+    // 1️⃣ Escapa HTML (segurança)
     text = escapeHTML(text);
 
-    // 2️⃣ guarda blocos de código temporariamente
+    // 2️⃣ Guarda blocos de código ``` ```
     const codeBlocks = [];
-    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-      const index = codeBlocks.length;
+    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+      const id = codeBlocks.length;
       codeBlocks.push({ lang, code });
-      return `@@CODEBLOCK_${index}@@`;
+      return `@@CODEBLOCK_${id}@@`;
     });
 
-    // 3️⃣ negrito **texto**
+    // 3️⃣ Títulos
+    text = text.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    text = text.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+    text = text.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
+    // 4️⃣ Negrito / Itálico
+    text = text.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
+    text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    text = text.replace(/\*(.+?)\*/g, "<em>$1</em>");
+
+    // 5️⃣ Inline code
+    text = text.replace(/`([^`]+)`/g, "<code class='inline'>$1</code>");
+
+    // 6️⃣ Quotes
+    text = text.replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>");
+
+    // 7️⃣ Listas
+    text = text.replace(/^\- (.+)$/gm, "<li>$1</li>");
+    text = text.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+
+    // 8️⃣ Tabelas simples
     text = text.replace(
-      /\*\*(.*?)\*\*/g,
-      "<h2><strong style='color: #00ff22ff; font-weight: bold'>$1</strong></h2>"
+      /\|(.+)\|\n\|([\-\s\|]+)\|\n((?:\|.*\|\n?)*)/g,
+      (_, header, separator, rows) => {
+        const th = header
+          .split("|")
+          .map((h) => `<th>${h.trim()}</th>`)
+          .join("");
+
+        const trs = rows
+          .trim()
+          .split("\n")
+          .map((row) => {
+            const tds = row
+              .split("|")
+              .filter(Boolean)
+              .map((c) => `<td>${c.trim()}</td>`)
+              .join("");
+            return `<tr>${tds}</tr>`;
+          })
+          .join("");
+
+        return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+      }
     );
 
-    // 3️⃣ strong **texto**
-    text = text.replace(
-      /\*(.*?)\*/g,
-      "<strong style='color: #ff0055ff; font-weight: bold'>$1</strong>"
-    );
+    // 9️⃣ Quebras de linha
+    text = text.replace(/\n{2,}/g, "</p><p>");
+    text = `<p>${text}</p>`;
 
-    // 4️⃣ itálico `texto`
-    text = text.replace(/`([^`]+)`/g, "<em>$1</em>");
-
-    // 5️⃣ devolve os blocos de código
+    // 🔟 Restaura blocos de código
     codeBlocks.forEach((block, i) => {
       text = text.replace(
         `@@CODEBLOCK_${i}@@`,
         `
-      <div class="code-block">
-        <div class="code-lang">${block.lang || "code"}:</div>
-        <pre><code>${block.code}</code></pre>
-      </div>
-      `
+        <div class="code-block">
+          <div class="code-lang">${block.lang || "code"}</div>
+          <pre><code>${block.code}</code></pre>
+        </div>
+        `
       );
     });
 
     return text;
   }
+  
 
   window.sendInlineRequest = async function (content) {
     chatHistory.push({ role: "user", content });

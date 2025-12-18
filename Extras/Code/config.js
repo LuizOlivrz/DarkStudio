@@ -7,8 +7,8 @@ let currentLang = "en-US"; // Current language / idioma atual
 let device = "Detectando";
 let block = false; // Block access flag / flag de bloqueio
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const faviconLight = "Assets/White Favicon.png";
-const faviconDark = "Assets/Black Favicon.png";
+const faviconLight = "Extras/Assets/White Favicon.png";
+const faviconDark = "Extras/Assets/Black Favicon.png";
 const spotify = document.getElementById("spotify-now-playing");
 const spotifyFS = document.getElementById("full-screen");
 
@@ -207,7 +207,7 @@ export async function loadCSS(name) {
   setTimeout(() => {
     const container = document.getElementById("Website-Container");
     if (container) container.style.opacity = "1";
-  }, 750);
+  }, 1000);
 }
 
 async function checkFile(path, label) {

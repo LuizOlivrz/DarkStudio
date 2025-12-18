@@ -21,7 +21,7 @@ export function ChatVerification() {
 // 🚫 Bloqueia acesso em dispositivos móveis
 // ─────────────────────────────────────────────
 
-import { blockWeb, getDevMode, t } from "./config.js";
+import { blockWeb, getDevMode, t, getDevice } from "./config.js";
 import { fullScreenValue, fullScreenActivate } from "./spotify.js";
 
 if (!blockWeb) {
@@ -30,14 +30,18 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
 
   const languageDisplay = document.querySelector("#code-language h4");
+  const isMobile = getDevice();
   const executeButton = document.getElementById("execute");
   const iframeButton = document.getElementById("new-iframe-button");
   const downloadButton = document.getElementById("download-file");
   const clearButton = document.getElementById("clear");
   const editor = document.getElementById("Editor");
   const configMenu = document.getElementById("config");
+  const options = document.getElementById("options");
   const chat = document.getElementById("chat");
   const close = document.getElementById("close");
+  const WebsiteContainer = document.getElementById("Website-Container");
+  let configValue = false;
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -318,21 +322,21 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
 
   function config() {
-    const configDiv = document.getElementById("config");
-    if (!configDiv) return;
-
-    if (configDiv.style.opacity === "1") {
-      configDiv.style.opacity = "0";
-      configDiv.style.pointerEvents = "none";
-      config = false;
+    if (configValue) {
+      configMenu.style.opacity = "0";
+      configMenu.style.pointerEvents = "none";
+      editor.style.opacity = "1";
+      editor.style.pointerEvents = "auto";
+      configValue = false;
     } else {
-      if (document.getElementById("full-screen").style.width === "99.3%")
-        fullScreenVerif();
-      configDiv.style.opacity = "1";
-      configDiv.style.pointerEvents = "auto";
-      config = true;
+      configMenu.style.opacity = "1";
+      configMenu.style.pointerEvents = "auto";
+      editor.style.opacity = "0";
+      editor.style.pointerEvents = "none";
+      configValue = true;
     }
   }
+
   window.config = config;
 
   // ─────────────────────────────────────────────
@@ -380,8 +384,8 @@ if (!blockWeb) {
     }
   }
 
-  window.addEventListener("load", checkScreenWidth);
-  window.addEventListener("resize", checkScreenWidth);
+  //window.addEventListener("load", checkScreenWidth);
+  //window.addEventListener("resize", checkScreenWidth);
 
   // ─────────────────────────────────────────────
   // ⚙️ Shortcuts / Atalhos
@@ -401,55 +405,41 @@ if (!blockWeb) {
   });
 
   document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+
     if (e.ctrlKey && e.key.toLowerCase() === "i") {
-      if (document.getElementById("full-screen").style.opacity === "1") return; // Se o full screen estiver aberto, não faz nada
+      if (document.getElementById("full-screen").style.opacity === "1") return;
       e.preventDefault();
+
       const input = document.getElementById("input");
       const inlineChat = document.getElementById("inline-chat");
 
       if (inlineChat.style.opacity === "1") {
         inlineChat.style.opacity = "0";
-        inlineChat.style.pointerEvents = "none";
-        editor.style.height = "calc(100vh - 71px)";
-        return; // Se o inline chat estiver aberto, não faz nada
+        return;
       }
 
-      // Se Shift estiver pressionado, apenas fullscreen
-      if (e.shiftKey) {
-        if (chat.style.opacity !== "1") return; // Se o chat estiver oculto, não faz nada
+      if (e.shiftKey) return;
 
-        if (chat.style.width !== "41vh") {
-          chat.style.width = "41vh";
-          editor.style.opacity = "1";
-        } else {
-          chat.style.width = "127.5vh";
-          editor.style.opacity = "0";
-        }
+      if (chatOpen) {
+        input.blur();
+        document.getElementById("Editor-Input").focus();
+
+        WebsiteContainer.classList.remove("with-chat");
+        WebsiteContainer.classList.add("no-chat");
+
+        chat.style.display = "none";
+
+        chatOpen = false;
       } else {
-        // Sem Shift, comportamento normal
-        if (chat.style.opacity === "1") {
-          chat.style.opacity = "0";
-          chat.style.pointerEvents = "none";
-          input.blur();
-          document.getElementById("Editor-Input").focus();
-          editor.style.width = "calc(100% - 97px)";
-          configMenu.style.width = "calc(100% - 91px)";
-          chatOpen = false;
-        } else {
-          chat.style.display = "block";
-          chat.style.opacity = "1";
-          chat.style.pointerEvents = "auto";
-          input.focus();
-          editor.style.width = "60%";
-          configMenu.style.width = "60.5%";
-          chatOpen = true;
-        }
+        input.focus();
 
-        if (chat.style.width !== "41vh") {
-          chat.style.width = "41vh";
-          editor.style.opacity = "1";
-          //configMenu.style.width = 'calc(100% - 97px)';
-        }
+        chat.style.display = "block";
+
+        WebsiteContainer.classList.remove("no-chat");
+        WebsiteContainer.classList.add("with-chat");
+
+        chatOpen = true;
       }
     }
   });
@@ -463,24 +453,39 @@ if (!blockWeb) {
     const login = document.getElementById("login");
     const player = document.getElementById("spotify-now-playing");
 
-    if (!navigator.onLine) {
+    if (!navigator.onLine && isMobile !== "Mobile") {
       if (getDevMode()) console.warn("🔴 " + t("offline"));
       if (aviso && login) {
         aviso.textContent = t("noInternet");
-        aviso.style.display = "block";
         login.style.opacity = "0";
+        editor.style.height = "calc(100vh - 12vh)";
+        configMenu.style.height = "calc(100vh - 11vh)";
+        setTimeout(() => {
+          aviso.style.opacity = "1";
+        }, 300);
       }
       if (fullScreenValue()) {
         fullScreenActivate();
       }
     } else {
       if (getDevMode()) console.log("🟢 " + t("online"));
-      if (aviso) aviso.style.display = "none";
-      if (login) login.style.opacity = "1";
+      if (login && aviso) {
+        aviso.textContent = t("onInternet");
+        login.style.opacity = "1";
+      }
+
       setTimeout(() => {
-        if (player) player.style.opacity = "1";
-        if (player) player.style.pointerEvents = "auto";
-        if (player) player.style.display = "block";
+        aviso.style.opacity = "0";
+      }, 1000);
+
+      setTimeout(() => {
+        if (player) {
+          player.style.display = "block";
+          player.style.opacity = "1";
+          player.style.pointerEvents = "auto";
+          editor.style.height = "calc(100vh - 8vh)";
+          configMenu.style.height = "calc(100vh - 7vh)";
+        }
       }, 1200);
     }
   }
