@@ -578,7 +578,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   }
 
   async function showNoMusic() {
-    trackNameEl.textContent = t(noSongs);
+    trackNameEl.textContent = t("noSongs");
     artistNameEl.textContent = "";
     trackNameFullEl.textContent = "";
     artistNameFullEl.textContent = "";
