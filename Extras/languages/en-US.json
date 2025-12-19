@@ -12,6 +12,7 @@
 
   "screenTooSmallTitle": "Width or height too small :(",
   "screenTooSmallText": "Please resize or remove zoom to use.",
+  "CloseFullScreen": "Exit full screen",
 
   "text": "Text",
   "gitText": "Git Text",

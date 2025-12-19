@@ -43,6 +43,8 @@ if (!blockWeb) {
   const WebsiteContainer = document.getElementById("Website-Container");
   let configValue = false;
 
+  close.innerText = t("CloseFullScreen");
+
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
   // ─────────────────────────────────────────────
@@ -338,59 +340,6 @@ if (!blockWeb) {
   }
 
   window.config = config;
-
-  // ─────────────────────────────────────────────
-  // 🖥️ Screen Size Check / Verificação de Tela
-  // ─────────────────────────────────────────────
-
-  function checkScreenWidth() {
-    const existing = document.getElementById("min-width-overlay");
-
-    if (window.innerWidth < 620 || window.innerHeight < 700) {
-      if (!existing) {
-        document.body.dataset.prevOverflow = document.body.style.overflow || "";
-        document.body.style.overflow = "hidden";
-
-        const overlay = document.createElement("div");
-        overlay.id = "min-width-overlay";
-        Object.assign(overlay.style, {
-          position: "fixed",
-          top: "0",
-          left: "0",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)", // Safari
-          color: "#fff",
-          fontFamily: "sans-serif",
-          textAlign: "center",
-          padding: "20px",
-          boxSizing: "border-box",
-          zIndex: "999999",
-        });
-        overlay.innerHTML = `
-        <h1>Width or height :(</h1>
-        <p>Please resize or remove zoom to use.</p>
-      `;
-        document.body.appendChild(overlay);
-      }
-    } else if (existing) {
-      existing.remove();
-      document.body.style.overflow = document.body.dataset.prevOverflow || "";
-      delete document.body.dataset.prevOverflow;
-    }
-  }
-
-  window.addEventListener("load", checkScreenWidth);
-  window.onload = function () {
-    checkScreenWidth();
-  };
-  window.addEventListener("resize", checkScreenWidth);
 
   // ─────────────────────────────────────────────
   // ⚙️ Shortcuts / Atalhos

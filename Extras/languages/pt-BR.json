@@ -12,6 +12,7 @@
 
   "screenTooSmallTitle": "Largura ou altura insuficiente :(",
   "screenTooSmallText": "Redimensione a tela ou remova o zoom para usar.",
+  "CloseFullScreen": "Fechar a Tela Cheia",
 
   "text": "Texto",
   "gitText": "Texto (Git)",
