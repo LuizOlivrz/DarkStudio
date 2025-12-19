@@ -100,6 +100,28 @@ if (!blockWeb && Mobile !== "Mobile") {
   let back = "Muda dinamicamente de acordo com a configuração";
   let textColor = "Muda dinamicamente de acordo com a configuração";
 
+  const storage = localStorage; // <-- troca fácil no futuro
+
+  function saveAuth(data) {
+    storage.setItem("access_token", data.access_token);
+    storage.setItem("refresh_token", data.refresh_token);
+    storage.setItem("expires_at", Date.now() + data.expires_in * 1000);
+  }
+
+  function getAuth() {
+    return {
+      accessToken: storage.getItem("access_token"),
+      refreshToken: storage.getItem("refresh_token"),
+      expiresAt: parseInt(storage.getItem("expires_at"), 10) || 0,
+    };
+  }
+
+  function clearAuth() {
+    storage.removeItem("access_token");
+    storage.removeItem("refresh_token");
+    storage.removeItem("expires_at");
+  }
+
   // Função para gerar code verifier PKCE
   function generateCodeVerifier(length = 128) {
     const chars =
@@ -164,9 +186,7 @@ if (!blockWeb && Mobile !== "Mobile") {
     const data = await response.json();
 
     if (data.access_token) {
-      sessionStorage.setItem("access_token", data.access_token);
-      sessionStorage.setItem("refresh_token", data.refresh_token);
-      sessionStorage.setItem("expires_at", Date.now() + data.expires_in * 1000);
+      saveAuth(data);
     } else {
       console.error("Erro ao buscar access token:", data);
     }
@@ -176,7 +196,7 @@ if (!blockWeb && Mobile !== "Mobile") {
 
   // Renova access token usando refresh token
   async function refreshAccessToken() {
-    const refreshToken = sessionStorage.getItem("refresh_token");
+    const refreshToken = getAuth().refreshToken;
     if (!refreshToken) {
       console.error("Refresh token não disponível");
       return;
@@ -199,18 +219,18 @@ if (!blockWeb && Mobile !== "Mobile") {
 
       const data = await response.json();
 
-      sessionStorage.setItem("access_token", data.access_token);
+      const auth = getAuth();
+
+      localStorage.setItem("access_token", data.access_token);
 
       if (data.expires_in) {
-        sessionStorage.setItem(
-          "expires_at",
-          Date.now() + data.expires_in * 1000
-        );
+        localStorage.setItem("expires_at", Date.now() + data.expires_in * 1000);
       }
 
       if (data.refresh_token) {
-        // Algumas vezes o refresh token é retornado novamente
-        sessionStorage.setItem("refresh_token", data.refresh_token);
+        localStorage.setItem("refresh_token", data.refresh_token);
+      } else if (auth.refreshToken) {
+        localStorage.setItem("refresh_token", auth.refreshToken);
       }
 
       console.log("Token renovado com sucesso!");
@@ -222,14 +242,14 @@ if (!blockWeb && Mobile !== "Mobile") {
 
   // Faz requisição com token válido (renova se necessário)
   async function fetchWithToken(url, options = {}) {
-    const expiresAt = parseInt(sessionStorage.getItem("expires_at"), 10) || 0;
+    const { accessToken, expiresAt } = getAuth();
+
     if (Date.now() > expiresAt - 60000) {
       // renova 1 min antes
       console.log("Token expirando, renovando...");
       await refreshAccessToken();
     }
 
-    const accessToken = sessionStorage.getItem("access_token");
     options.headers = options.headers || {};
     options.headers["Authorization"] = `Bearer ${accessToken}`;
 
@@ -256,7 +276,7 @@ if (!blockWeb && Mobile !== "Mobile") {
           albumArtEl.style.opacity = "1";
         }
 
-        const token = sessionStorage.getItem("access_token");
+        const token = getAuth().accessToken;
         if (!token) return;
 
         let response;
@@ -393,7 +413,7 @@ if (!blockWeb && Mobile !== "Mobile") {
 
   // Busca a foto do perfil do usuário
   async function getUserProfilePicture() {
-    const token = sessionStorage.getItem("access_token");
+    const token = getAuth().accessToken;
     if (!token) return;
 
     const response = await fetchWithToken("https://api.spotify.com/v1/me");
@@ -454,7 +474,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   (async () => {
     await handleRedirect();
 
-    const token = sessionStorage.getItem("access_token");
+    const token = getAuth().accessToken;
     const loginBtn = document.getElementById("login");
 
     if (token) {
@@ -569,7 +589,7 @@ if (!blockWeb && Mobile !== "Mobile") {
     closeBtn.borderColor = "#e6e6e6";
 
     if (!albumArtEl2.dataset.isProfile) {
-      const token = sessionStorage.getItem("access_token");
+      const token = getAuth().accessToken;
       if (!token) return;
       const userResponse = await fetchWithToken(
         "https://api.spotify.com/v1/me"
@@ -659,9 +679,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   resetarTimer();
 
   function spotifyLogout() {
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("refresh_token");
-    sessionStorage.removeItem("expires_at");
+    clearAuth();
     sessionStorage.removeItem("code_verifier");
 
     document.getElementById("login").style.display = "block";
