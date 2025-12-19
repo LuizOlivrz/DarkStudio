@@ -6,6 +6,7 @@
   "offline": "Você está offline!",
   "noInternet": "Sem conexão com a internet 😢",
   "onInternet": "Reconectado a internet 😊",
+  "noSongs": "Nenhuma musica tocando no momento",
 
   "JSBlocked": "O JavaScript está temporariamente desativado para manutenção!",
   "Errorhtmljs": "O conteúdo não é um HTML nem um JS!",
