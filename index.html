@@ -182,15 +182,6 @@
           <input type="checkbox" id="auto-fest-checkbox" checked />
           | Automatically change theme based on holidays. </label
         ><br />
-        <h3>Extras:</h3>
-        <label for="dev-mode-checkbox">
-          <input type="checkbox" id="dev-mode-checkbox" />
-          | Debug mode (shows additional information). </label
-        ><br /><br />
-        <button id="logout-spotify" onclick="spotifyLogout();">
-          Log Out of Spotify
-        </button>
-        <br /><br>
         <h3>AI (NightCoder)</h3>
         <button id="clearIAChat" onclick="clearChatStorage()">
           Delete AI Chat
@@ -214,9 +205,22 @@
         ></textarea>
 
         <button onclick="saveSystemPrompt()">Save AI Behavior</button>
+        <button onclick="deleteSystemPrompt()">Reset AI Behavior</button>
+
+
+        <h3>Extras:</h3>
+        <label for="dev-mode-checkbox">
+          <input type="checkbox" id="dev-mode-checkbox" />
+          | Debug mode (shows additional information). </label
+        ><br /><br />
+        <button id="logout-spotify" onclick="spotifyLogout();">
+          Log Out of Spotify
+        </button>
+        <br /><br>
       </div>
 
       <div id="chat" style="display: none">
+        <h1>NightCoder</h1>
         <img
           id="chat-welcome"
           src="Extras/Assets/NightCoder.png"
@@ -234,7 +238,7 @@
 
         <div id="input-area">
           <textarea id="input" placeholder="Type your message..."></textarea>
-          <button id="send">Enviar</button>
+          <button id="send">Send</button>
         </div>
       </div>
 

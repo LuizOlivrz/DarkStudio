@@ -1,4 +1,4 @@
-import { setDevMode, blockWeb, getDevMode, getDevice } from "./config.js";
+import { setDevMode, blockWeb, getDevMode, getDevice, t } from "./config.js";
 import { ChatVerification } from "./main.js";
 
 let fullscreen = false;
@@ -578,7 +578,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   }
 
   async function showNoMusic() {
-    trackNameEl.textContent = "Nenhuma música tocando";
+    trackNameEl.textContent = t();
     artistNameEl.textContent = "";
     trackNameFullEl.textContent = "";
     artistNameFullEl.textContent = "";
@@ -691,4 +691,57 @@ if (!blockWeb && Mobile !== "Mobile") {
   }
 
   window.spotifyLogout = spotifyLogout;
+
+  // ─────────────────────────────────────────────
+  // 🖥️ Screen Size Check / Verificação de Tela
+  // ─────────────────────────────────────────────
+
+  function checkScreenWidth() {
+    const existing = document.getElementById("min-width-overlay");
+
+    if (window.innerWidth < 620 || window.innerHeight < 700) {
+      if (!existing) {
+        document.body.dataset.prevOverflow = document.body.style.overflow || "";
+        document.body.style.overflow = "hidden";
+
+        const overlay = document.createElement("div");
+        overlay.id = "min-width-overlay";
+        Object.assign(overlay.style, {
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)", // Safari
+          color: "#fff",
+          fontFamily: "sans-serif",
+          textAlign: "center",
+          padding: "20px",
+          boxSizing: "border-box",
+          zIndex: "999999",
+        });
+        overlay.innerHTML = `
+        <h1>${t("screenTooSmallTitle")}</h1>
+        <p>${t("screenTooSmallText")}</p>
+      `;
+        document.body.appendChild(overlay);
+      }
+    } else if (existing) {
+      existing.remove();
+      document.body.style.overflow = document.body.dataset.prevOverflow || "";
+      delete document.body.dataset.prevOverflow;
+    }
+  }
+
+  window.addEventListener("load", checkScreenWidth);
+  window.onload = function () {
+    checkScreenWidth();
+  };
+  window.addEventListener("resize", checkScreenWidth);
 }

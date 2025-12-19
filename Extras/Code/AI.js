@@ -1,4 +1,4 @@
-import { blockWeb, language } from "./config.js";
+import { blockWeb, getDevMode, language } from "./config.js";
 
 if (!blockWeb) {
   const API_KEY = "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";
@@ -7,11 +7,15 @@ if (!blockWeb) {
   const MAX_MESSAGES = 10;
   const idioma = language;
   let firstTime = true;
-  const DEFAULT_SYSTEM_PROMPT = `You are NightCoder, an AI focused on helping with programming or any other topic. Be direct. Explain code changes at the end. Always speak in ${idioma} only change the language if requested by the user.`;
+  const primaryPrompt =
+    "You are NightCoder, an AI focused on helping with programming or any other topic.";
+  const DEFAULT_SYSTEM_PROMPT = `Be direct. Explain code changes at the end. Always speak in ${idioma} only change the language if requested by the user.`;
   const SYSTEM_PROMPT_KEY = "nightcoder_system_prompt";
+  const textarea = document.getElementById("system-prompt-editor");
 
   const savedSystemPrompt =
-    localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT;
+    primaryPrompt + localStorage.getItem(SYSTEM_PROMPT_KEY) ||
+    DEFAULT_SYSTEM_PROMPT;
 
   const chatHistory = [
     {
@@ -251,7 +255,6 @@ if (!blockWeb) {
   window.clearChatStorage = clearChatStorage;
 
   function loadSystemPromptEditor() {
-    const textarea = document.getElementById("system-prompt-editor");
     if (!textarea) return;
 
     textarea.value =
@@ -259,7 +262,6 @@ if (!blockWeb) {
   }
 
   function saveSystemPrompt() {
-    const textarea = document.getElementById("system-prompt-editor");
     if (!textarea) return;
 
     const value = textarea.value.trim() || DEFAULT_SYSTEM_PROMPT;
@@ -269,10 +271,16 @@ if (!blockWeb) {
     // Atualiza o system prompt em memória
     chatHistory[0].content = value;
 
-    alert("NightCoder behavior updated.");
+    if (getDevMode() === "true") alert("NightCoder behavior updated.");
   }
 
   window.saveSystemPrompt = saveSystemPrompt;
   loadSystemPromptEditor();
-  
+
+  function deleteSystemPrompt() {
+    textarea.value = DEFAULT_SYSTEM_PROMPT;
+    saveSystemPrompt();
+  }
+
+  window.deleteSystemPrompt = deleteSystemPrompt;
 }
