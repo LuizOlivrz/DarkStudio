@@ -270,6 +270,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   // Busca a música que está tocando no momento
   async function getNowPlaying() {
     if (navigator.onLine) {
+      if (getDevMode() !== true) console.clear();
       if (spotify) {
         if (!fullscreen) {
           trackInfoEl.style.opacity = "1";
@@ -305,7 +306,6 @@ if (!blockWeb && Mobile !== "Mobile") {
         if (!data.item) return showNoMusic();
         if (trackNameEl.textContent !== data.item.name) {
           // Se chegou aqui, tem música tocando
-          if (!getDevMode()) console.clear();
           albumArtEl2.setAttribute(
             "title",
             `${data.item.name} - ${data.item.artists
@@ -578,7 +578,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   }
 
   async function showNoMusic() {
-    trackNameEl.textContent = t();
+    trackNameEl.textContent = t(noSongs);
     artistNameEl.textContent = "";
     trackNameFullEl.textContent = "";
     artistNameFullEl.textContent = "";
