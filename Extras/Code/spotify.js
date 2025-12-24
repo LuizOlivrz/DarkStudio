@@ -85,6 +85,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   const clientId = "602dd626c8014779aab8a1b118c80012";
   const redirectUri = window.location.origin + window.location.pathname;
   const scopes = "user-read-currently-playing user-read-playback-state";
+  const loginBtn = document.getElementById("login");
 
   const trackNameFullEl = document.getElementById("track-name-full");
   const artistNameFullEl = document.getElementById("artist-name-full");
@@ -475,12 +476,12 @@ if (!blockWeb && Mobile !== "Mobile") {
     await handleRedirect();
 
     const token = getAuth().accessToken;
-    const loginBtn = document.getElementById("login");
 
     if (token) {
       loginBtn.style.display = "none";
       setInterval(getNowPlaying, 1000);
       getUserProfilePicture();
+      setInterval(getUserProfilePicture, 10000);
     } else {
       loginBtn.style.display = "block";
       loginBtn.addEventListener("click", redirectToSpotifyAuth);
