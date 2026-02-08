@@ -97,6 +97,7 @@ if (!blockWeb && Mobile !== "Mobile") {
   const btns = document.querySelector("#options").querySelectorAll("button");
   let fullscreenLock = false;
   let autoBackground = true;
+  let spotifyOffline = false;
   let spotify = true;
   let back = "Muda dinamicamente de acordo com a configuração";
   let textColor = "Muda dinamicamente de acordo com a configuração";
@@ -254,7 +255,7 @@ if (!blockWeb && Mobile !== "Mobile") {
     options.headers = options.headers || {};
     options.headers["Authorization"] = `Bearer ${accessToken}`;
 
-    return fetch(url, options);
+    if (navigator.onLine) return fetch(url, options);
   }
 
   // Trata o redirecionamento do Spotify com o código
@@ -266,6 +267,10 @@ if (!blockWeb && Mobile !== "Mobile") {
       await fetchAccessToken(code);
       window.history.replaceState({}, document.title, redirectUri); // limpa query string
     }
+  }
+
+  function optionsLanguage() {
+    let text = t("optionsLanguage");
   }
 
   // Busca a música que está tocando no momento
@@ -284,7 +289,7 @@ if (!blockWeb && Mobile !== "Mobile") {
         let response;
         try {
           response = await fetchWithToken(
-            "https://api.spotify.com/v1/me/player/currently-playing"
+            "https://api.spotify.com/v1/me/player/currently-playing",
           );
         } catch (err) {
           console.error("Erro ao buscar música:", err);
@@ -311,7 +316,7 @@ if (!blockWeb && Mobile !== "Mobile") {
             "title",
             `${data.item.name} - ${data.item.artists
               .map((artist) => artist.name)
-              .join(", ")} (Spotify)`
+              .join(", ")} (Spotify)`,
           );
           trackNameFullEl.textContent = data.item.name;
           albumArtEl2.style.width = "600px";
@@ -418,6 +423,11 @@ if (!blockWeb && Mobile !== "Mobile") {
     if (!token) return;
 
     const response = await fetchWithToken("https://api.spotify.com/v1/me");
+
+    if (!response) {
+      // offline ou falha silenciosa
+      return;
+    }
 
     if (!response.ok) {
       console.error("Erro ao buscar perfil do Spotify");
@@ -593,7 +603,7 @@ if (!blockWeb && Mobile !== "Mobile") {
       const token = getAuth().accessToken;
       if (!token) return;
       const userResponse = await fetchWithToken(
-        "https://api.spotify.com/v1/me"
+        "https://api.spotify.com/v1/me",
       );
       if (!userResponse.ok) {
         console.error("Erro ao buscar perfil do Spotify para tela cheia");
