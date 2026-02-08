@@ -133,6 +133,15 @@ if (!blockWeb) {
   initEditorEvents();
 
   // ─────────────────────────────────────────────
+  // 🧹 Remove código Markdown (inline e blocos)
+  // ─────────────────────────────────────────────
+  function stripMarkdownCode(code) {
+    return code
+      .replace(/```[\s\S]*?```/g, "") // blocos
+      .replace(/`[^`]*`/g, ""); // inline
+  }
+
+  // ─────────────────────────────────────────────
   // 🧩 Language Detection / Detecção de Linguagem
   // ─────────────────────────────────────────────
 
@@ -140,6 +149,9 @@ if (!blockWeb) {
     if (code.trim() === "") {
       return t("startWriting");
     }
+
+    // 👉 código limpo (sem inline/block code do Markdown)
+    const cleanCode = stripMarkdownCode(code);
 
     // 🔗 Detect common URLs / Detecta links e plataformas
     function detectLink(url) {
@@ -167,6 +179,9 @@ if (!blockWeb) {
       return detectLink(code.trim());
     }
 
+    if (/^# Please enter the commit message|On branch/m.test(code))
+      return t("gitText");
+
     // 📝 Markdown detection / Detecção de Markdown
     if (
       (/^#{1,6}\s.+/m.test(code) ||
@@ -176,7 +191,9 @@ if (!blockWeb) {
         /^[-*+]\s/m.test(code) ||
         /\*\*.+\*\*/.test(code) ||
         /_.+_/.test(code)) &&
-      !/(function|const|let|var|=>|if\s*\(|for\s*\(|console\.log)/.test(code) &&
+      !/(function|const|let|var|=>|if\s*\(|for\s*\(|console\.log)/.test(
+        cleanCode,
+      ) &&
       !/<[a-z!]/i.test(code)
     )
       return "Markdown";
@@ -184,31 +201,39 @@ if (!blockWeb) {
     // Linguagem pura: JS / Arduino / Java / C++ / etc.
     if (
       !/<[a-z!]/i.test(code) &&
-      /(function\s+\w+\s*\(|console\.log|let\s+|const\s+|var\s+)/.test(code)
+      /(function\s+\w+\s*\(|console\.log|let\s+|const\s+|var\s+)/.test(
+        cleanCode,
+      )
     )
       return "JavaScript";
-    if (/\bvoid\s+setup\s*\(\)|\bvoid\s+loop\s*\(\)/.test(code))
+    if (/\bvoid\s+setup\s*\(\)|\bvoid\s+loop\s*\(\)/.test(cleanCode))
       return "Arduino";
-    if (/public\s+class\s+\w+|static\s+void\s+main/.test(code)) return "Java";
-    if (/#include\s*<[^>]+>|std::|cout\s*<<|cin\s*>>/.test(code)) return "C++";
-    if (/using\s+\w+;|Console\.WriteLine/.test(code)) return "C#";
-    if (/def\s+\w+\(.*\):|print\(/.test(code)) return "Python";
-    if (/<(html|head|body|script|style|div)/i.test(code)) return "HTML";
-    if (/[.#]?[a-zA-Z][\w-]*\s*\{[^}]*:[^;]+;[^}]*\}/.test(code)) return "CSS";
-    if (/fun\s+\w+\s*\(.*\)/.test(code)) return "Kotlin";
-    if (/\bSELECT\b[\s\S]+?\bFROM\b/i.test(code)) return "SQL";
-    if (/^\s*\{[\s\S]*?\}/.test(code) && /"\s*[^"]+"\s*:\s*/.test(code)) {
+    if (/public\s+class\s+\w+|static\s+void\s+main/.test(cleanCode))
+      return "Java";
+    if (/#include\s*<[^>]+>|std::|cout\s*<<|cin\s*>>/.test(cleanCode))
+      return "C++";
+    if (/using\s+\w+;|Console\.WriteLine/.test(cleanCode)) return "C#";
+    if (/def\s+\w+\(.*\):|print\(/.test(cleanCode)) return "Python";
+    if (/<(html|head|body|script|style|div)/i.test(cleanCode)) return "HTML";
+    if (/[.#]?[a-zA-Z][\w-]*\s*\{[^}]*:[^;]+;[^}]*\}/.test(cleanCode))
+      return "CSS";
+    if (/fun\s+\w+\s*\(.*\)/.test(cleanCode)) return "Kotlin";
+    if (/\bSELECT\b[\s\S]+?\bFROM\b/i.test(cleanCode)) return "SQL";
+    if (
+      /^\s*\{[\s\S]*?\}/.test(cleanCode) &&
+      /"\s*[^"]+"\s*:\s*/.test(cleanCode)
+    ) {
       try {
-        JSON.parse(code);
+        JSON.parse(cleanCode);
         return "JSON";
       } catch {}
     }
-    if (/adb\s+(shell|devices|install|pull|push)/i.test(code)) return "ADB";
-    if (/BEGIN:VCARD/.test(code)) return "VCF";
-    if (/^@echo\s+off|set\s+\w+=|pause/i.test(code)) return "Batch (BAT/CMD)";
-    if (/^# Please enter the commit message|On branch/m.test(code))
-      return t("gitFile");
-    if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(code)) return t("text");
+    if (/adb\s+(shell|devices|install|pull|push)/i.test(cleanCode))
+      return "ADB";
+    if (/BEGIN:VCARD/.test(cleanCode)) return "VCF";
+    if (/^@echo\s+off|set\s+\w+=|pause/i.test(cleanCode))
+      return "Batch (BAT/CMD)";
+    if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(cleanCode)) return t("text");
 
     return t("startWriting");
   }
@@ -462,7 +487,7 @@ if (!blockWeb) {
         document.exitFullscreen();
       }
     }
-  });  
+  });
 
   document.addEventListener("fullscreenchange", () => {
     if (document.fullscreenElement) {
