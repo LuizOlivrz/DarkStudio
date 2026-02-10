@@ -21,6 +21,10 @@
   </head>
 
   <body style="background-color: black">
+    <!-- Full-page background element (controlled from Settings) -->
+    <div id="page-bg" aria-hidden="true">
+      <img id="page-bg-img" src="" alt="Background image" />
+    </div>
     <div id="Website-Container" style="opacity: 0">
       <!-- ====== SPOTIFY MINI PLAYER ====== -->
       <div id="spotify-now-playing">
@@ -207,6 +211,16 @@
         <button onclick="deleteSystemPrompt()">Reset AI Behavior</button>
 
         <h3>Extras:</h3>
+        <label for="bg-image-checkbox">
+          <input type="checkbox" id="bg-image-checkbox" />
+          | Enable background image. </label>
+        <br />
+        <label for="bg-image-file">Choose image:</label>
+        <input type="file" id="bg-image-file" accept="image/*" />
+        <br />
+        <label for="bg-blur-range">Background blur: <span id="bg-blur-value">6</span>px</label>
+        <input type="range" id="bg-blur-range" min="0" max="20" value="6" />
+        <br />
         <label for="dev-mode-checkbox">
           <input type="checkbox" id="dev-mode-checkbox" />
           | Debug mode (shows additional information). </label
