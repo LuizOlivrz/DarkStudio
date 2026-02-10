@@ -270,8 +270,15 @@ if (!blockWeb && Mobile !== "Mobile") {
   }
 
   function optionsLanguage() {
-    let text = t("optionsLanguage");
+    const upload = document.getElementById("load-button");
+    const clear = document.getElementById("clear");
+    const execute = document.getElementById("execute");
+    upload.textContent = t("upload");
+    clear.textContent = t("clear");
+    execute.textContent = t("execute");
   }
+
+  optionsLanguage();
 
   // Busca a música que está tocando no momento
   async function getNowPlaying() {
@@ -756,3 +763,4 @@ if (!blockWeb && Mobile !== "Mobile") {
   };
   window.addEventListener("resize", checkScreenWidth);
 }
+//fix no options!

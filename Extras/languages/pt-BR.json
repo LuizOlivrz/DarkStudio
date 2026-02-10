@@ -22,5 +22,6 @@
   "siteBlockedTitle": "Site Bloqueado :(",
   "siteBlockedDesc": "Seu site favorito de edição de códigos está temporariamente indisponível!",
   "reason": "Motivo",
-  "blockedMobile": "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador."
+  "blockedMobile": "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador.",
+  "upload": "Arquivo local"
 }

@@ -22,5 +22,6 @@
   "siteBlockedTitle": "Site Blocked :(",
   "siteBlockedDesc": "Your favorite code editing website is temporarily unavailable!",
   "reason": "Reason",
-  "blockedMobile": "This site is not compatible with mobile devices at the moment.\nPlease access it from a desktop computer."
+  "blockedMobile": "This site is not compatible with mobile devices at the moment.\nPlease access it from a desktop computer.",
+  "upload": "Local file"
 }
