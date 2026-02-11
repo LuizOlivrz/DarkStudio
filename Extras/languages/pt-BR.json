@@ -23,5 +23,9 @@
   "siteBlockedDesc": "Seu site favorito de edição de códigos está temporariamente indisponível!",
   "reason": "Motivo",
   "blockedMobile": "Este site não é compatível com dispositivos móveis no momento.\nAcesse pelo computador.",
-  "upload": "Arquivo local"
+  "upload": "Arquivo local",
+  "clear": "Limpar editor",
+  "settings": "Configurações",
+  "execute": "Executar código",
+  "download": "Baixar código"
 }

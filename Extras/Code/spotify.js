@@ -2,6 +2,7 @@ import { setDevMode, blockWeb, getDevMode, getDevice, t } from "./config.js";
 import { ChatVerification } from "./main.js";
 
 let fullscreen = false;
+let configFull = false;
 const Mobile = getDevice();
 const full = document.getElementById("full-screen");
 const configMenu = document.getElementById("config");
@@ -29,6 +30,16 @@ function fullScreen() {
   if (!img.src) return; // Não faz nada se não houver imagem
   const img2 = albumArtEl;
   const isVisible = full.style.width >= "50%";
+
+  if (!isVisible && configMenu.style.opacity === "1") {
+    console.log("Fechando menu de configurações ao entrar em tela cheia.");
+    configMenu.style.opacity = "0";
+    configFull = true;
+  } else if (configFull) {
+    console.log("Restaurando menu de configurações ao sair de tela cheia.");
+    configFull = false;
+    configMenu.style.opacity = "1";
+  }
 
   closeBtn.style.display = "block";
   full.style.width = isVisible ? "0.1px" : "99.3%";
@@ -269,16 +280,18 @@ if (!blockWeb && Mobile !== "Mobile") {
     }
   }
 
-  function optionsLanguage() {
+  function fixLanguage() {
     const upload = document.getElementById("load-button");
     const clear = document.getElementById("clear");
     const execute = document.getElementById("execute");
+    const dowload = document.getElementById("download-file");
     upload.textContent = t("upload");
     clear.textContent = t("clear");
     execute.textContent = t("execute");
+    dowload.textContent = t("download");
   }
 
-  optionsLanguage();
+  fixLanguage();
 
   // Busca a música que está tocando no momento
   async function getNowPlaying() {
@@ -411,6 +424,30 @@ if (!blockWeb && Mobile !== "Mobile") {
               textColor;
             document.getElementById("theme-select").style.backgroundColor =
               back;
+
+            document
+              .getElementById("config")
+              .querySelectorAll("button")
+              .forEach((btn) => {
+                btn.style.color = textColor;
+                btn.style.borderColor = textColor;
+              });
+            document
+              .getElementById("config")
+              .querySelectorAll("button")
+              .forEach((btn) => {
+                if (btn.id !== "logout-spotify") {
+                  btn.style.color = textColor;
+                  btn.style.borderColor = textColor;
+                }
+              });
+            document
+              .getElementById("config")
+              .querySelectorAll("textarea")
+              .forEach((btn) => {
+                btn.style.color = textColor;
+                btn.style.borderColor = textColor;
+              });
 
             btns.forEach((btn) => {
               btn.style.color = back;
@@ -771,91 +808,91 @@ if (!blockWeb && Mobile !== "Mobile") {
     checkScreenWidth();
   };
   window.addEventListener("resize", checkScreenWidth);
-}
 
-// ─────────────────────────────────────────────
-// 🖼 Background image + blur controls
-// Adds a full-page background image element and settings
-// ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // 🖼 Background image + blur controls
+  // Adds a full-page background image element and settings
+  // ─────────────────────────────────────────────
 
-function toggleBg(enable) {
-  const pageBg = document.getElementById("page-bg");
-  if (!pageBg) return;
-  if (enable) pageBg.classList.add("active");
-  else pageBg.classList.remove("active");
-}
-
-function initBackgroundFeature() {
-  const checkbox = document.getElementById("bg-image-checkbox");
-  const fileInput = document.getElementById("bg-image-file");
-  const range = document.getElementById("bg-blur-range");
-  const valueSpan = document.getElementById("bg-blur-value");
-  const pageBgImg = document.getElementById("page-bg-img");
-
-  if (!checkbox) return; // nothing to do if UI not present
-
-  // Load saved values
-  const savedEnabled = localStorage.getItem("bgEnabled") === "true";
-  const savedImg = localStorage.getItem("bgImageData") || "";
-  const savedBlur = parseInt(localStorage.getItem("bgBlur") || "10", 10);
-
-  checkbox.checked = savedEnabled;
-  if (savedImg && pageBgImg) pageBgImg.src = savedImg;
-  if (range) {
-    range.value = savedBlur;
-    if (valueSpan) valueSpan.textContent = String(savedBlur);
-    document.documentElement.style.setProperty("--bg-blur", savedBlur + "px");
+  function toggleBg(enable) {
+    const pageBg = document.getElementById("page-bg");
+    if (!pageBg) return;
+    if (enable) pageBg.classList.add("active");
+    else pageBg.classList.remove("active");
   }
 
-  // Ensure UI reflects current enabled state
-  setTimeout(() => toggleBg(savedEnabled), 10);
+  function initBackgroundFeature() {
+    const checkbox = document.getElementById("bg-image-checkbox");
+    const fileInput = document.getElementById("bg-image-file");
+    const range = document.getElementById("bg-blur-range");
+    const valueSpan = document.getElementById("bg-blur-value");
+    const pageBgImg = document.getElementById("page-bg-img");
 
-  checkbox.addEventListener("change", (e) => {
-    const v = e.target.checked;
-    localStorage.setItem("bgEnabled", String(v));
-    toggleBg(v);
-  });
+    if (!checkbox) return; // nothing to do if UI not present
 
-  if (fileInput) {
-    fileInput.addEventListener("change", (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (pageBgImg) pageBgImg.src = reader.result;
-        try {
-          localStorage.setItem("bgImageData", reader.result);
-        } catch (err) {
-          if (getDevMode())
-            console.warn("Could not persist background image:", err);
-        }
-        // Auto-enable background when a new image is selected
-        try {
-          if (checkbox) {
-            checkbox.checked = true;
-            localStorage.setItem("bgEnabled", "true");
-            toggleBg(true);
+    // Load saved values
+    const savedEnabled = localStorage.getItem("bgEnabled") === "true";
+    const savedImg = localStorage.getItem("bgImageData") || "";
+    const savedBlur = parseInt(localStorage.getItem("bgBlur") || "10", 10);
+
+    checkbox.checked = savedEnabled;
+    if (savedImg && pageBgImg) pageBgImg.src = savedImg;
+    if (range) {
+      range.value = savedBlur;
+      if (valueSpan) valueSpan.textContent = String(savedBlur);
+      document.documentElement.style.setProperty("--bg-blur", savedBlur + "px");
+    }
+
+    // Ensure UI reflects current enabled state
+    setTimeout(() => toggleBg(savedEnabled), 10);
+
+    checkbox.addEventListener("change", (e) => {
+      const v = e.target.checked;
+      localStorage.setItem("bgEnabled", String(v));
+      toggleBg(v);
+    });
+
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (pageBgImg) pageBgImg.src = reader.result;
+          try {
+            localStorage.setItem("bgImageData", reader.result);
+          } catch (err) {
+            if (getDevMode())
+              console.warn("Could not persist background image:", err);
           }
-        } catch (err) {
-          if (getDevMode()) console.warn("Error enabling background:", err);
-        }
-      };
-      reader.readAsDataURL(f);
-    });
+          // Auto-enable background when a new image is selected
+          try {
+            if (checkbox) {
+              checkbox.checked = true;
+              localStorage.setItem("bgEnabled", "true");
+              toggleBg(true);
+            }
+          } catch (err) {
+            if (getDevMode()) console.warn("Error enabling background:", err);
+          }
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+
+    if (range) {
+      range.addEventListener("input", (e) => {
+        const r = e.target.value;
+        if (valueSpan) valueSpan.textContent = r;
+        document.documentElement.style.setProperty("--bg-blur", r + "px");
+        localStorage.setItem("bgBlur", String(r));
+      });
+    }
   }
 
-  if (range) {
-    range.addEventListener("input", (e) => {
-      const r = e.target.value;
-      if (valueSpan) valueSpan.textContent = r;
-      document.documentElement.style.setProperty("--bg-blur", r + "px");
-      localStorage.setItem("bgBlur", String(r));
-    });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initBackgroundFeature);
+  } else {
+    initBackgroundFeature();
   }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initBackgroundFeature);
-} else {
-  initBackgroundFeature();
 }
