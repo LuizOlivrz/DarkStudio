@@ -541,7 +541,6 @@ if (!blockWeb && Mobile !== "Mobile") {
         btn.style.color = "#FF6700";
         btn.style.borderColor = "#FF6700";
       });
-
   }
 
   function fullScreenVerif() {

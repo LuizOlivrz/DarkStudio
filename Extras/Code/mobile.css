@@ -559,3 +559,7 @@ p {
   border: 1px solid var(--purple);
   box-shadow: 0 0 10px var(--purple);
 }
+
+#page-bg {
+  displayt: none;
+}

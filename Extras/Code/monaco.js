@@ -107,7 +107,7 @@ if (!blockWeb) {
           automaticLayout: true,
           fontSize,
           minimap: { enabled: false },
-        }
+        },
       );
 
       // ─────────────────────────────────────────────
@@ -166,12 +166,12 @@ if (!blockWeb) {
           const content = e.target.result;
           window.editor.setValue(content);
           console.log(
-            "📂 Arquivo carregado com sucesso! / File loaded successfully!"
+            "📂 Arquivo carregado com sucesso! / File loaded successfully!",
           );
 
           if (getDevMode())
             console.log(
-              "💬 Código carregado do arquivo / Code loaded from file"
+              "💬 Código carregado do arquivo / Code loaded from file",
             );
         };
 
@@ -185,7 +185,7 @@ if (!blockWeb) {
         const selection = editor.getSelection();
         if (!selection) {
           showInlineChat(
-            "⚠️ Selecione um trecho de código antes de usar a IA."
+            "⚠️ Selecione um trecho de código antes de usar a IA.",
           );
           return;
         }
@@ -313,7 +313,7 @@ Responda SOMENTE com o código corrigido.
 
   function extractCodeOnly(text) {
     const match = text.match(
-      /```(?:javascript|js|ts|html|css)?\s*([\s\S]*?)```/i
+      /```(?:javascript|js|ts|html|css)?\s*([\s\S]*?)```/i,
     );
     return match ? match[1].trim() : text.trim();
   }
