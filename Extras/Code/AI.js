@@ -50,16 +50,15 @@ if (!blockWeb) {
             ? renderMessage(msg.content)
             : escapeHTML(msg.content);
 
-        document.getElementById(
-          "messages"
-        ).innerHTML += `<div class='${divClass}'>${content}</div>`;
+        document.getElementById("messages").innerHTML +=
+          `<div class='${divClass}'>${content}</div>`;
         firstTime = false;
       });
     } catch (e) {
       console.warn(
         "Falha ao restaurar chat:",
         e,
-        "Será considerado a 1 vez do usuario"
+        "Será considerado a 1 vez do usuario",
       );
       firstTime = true;
       localStorage.removeItem(STORAGE_KEY);
@@ -198,7 +197,7 @@ if (!blockWeb) {
           .join("");
 
         return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
-      }
+      },
     );
 
     // 9️⃣ Quebras de linha
@@ -214,7 +213,7 @@ if (!blockWeb) {
           <div class="code-lang">${block.lang || "code"}</div>
           <pre><code>${block.code}</code></pre>
         </div>
-        `
+        `,
       );
     });
 

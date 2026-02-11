@@ -58,7 +58,7 @@ export async function loadLanguage(langCode) {
     currentLang = langCode;
   } catch {
     console.warn(
-      `🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`
+      `🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`,
     );
 
     const fallback = await fetch("Extras/languages/en-US.json");
@@ -100,7 +100,7 @@ if (!block) detectDevice();
  */
 function detectDevice() {
   const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(
-    navigator.userAgent
+    navigator.userAgent,
   );
 
   device = isMobile ? "Mobile" : "Desktop";
@@ -267,7 +267,7 @@ if (!block) {
     loadJS("AI");
 
     await loadExternalScript(
-      "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"
+      "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
     );
 
     if (device !== "Mobile") {
