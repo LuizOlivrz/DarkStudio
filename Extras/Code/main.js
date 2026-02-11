@@ -69,6 +69,8 @@ if (!blockWeb) {
     Markdown: "markdown",
     Git: "plaintext",
     Texto: "plaintext",
+    "Comece a escrever seu código e veja a linguagem aqui!": "plaintext",
+    "Start writing your code and see the language here!": "plaintext",
   };
 
   // ─────────────────────────────────────────────
@@ -155,84 +157,145 @@ if (!blockWeb) {
 
     // 🔗 Detect common URLs / Detecta links e plataformas
     function detectLink(url) {
-      if (/youtube\.com|youtu\.be/.test(url)) return "Link (YouTube)";
-      if (/github\.com/.test(url)) return "Link (GitHub)";
-      if (/spotify\.com/.test(url)) return "Link (Spotify)";
-      if (/drive\.google\.com/.test(url)) return "Link (Google Drive)";
-      if (/pastebin\.com/.test(url)) return "Link (Pastebin)";
-      if (/chatgpt\.com|openai\.com/.test(url)) return "Link (ChatGPT/OpenAI)";
-      if (/facebook\.com/.test(url)) return "Link (Facebook)";
-      if (/instagram\.com/.test(url)) return "Link (Instagram)";
-      if (/twitter\.com|x\.com/.test(url)) return "Link (Twitter/X)";
-      if (/tiktok\.com/.test(url)) return "Link (TikTok)";
-      if (/reddit\.com/.test(url)) return "Link (Reddit)";
-      if (/discord\.com|discord\.gg/.test(url)) return "Link (Discord)";
-      if (/steamcommunity\.com|store\.steampowered\.com/.test(url))
+      const u = url.toLowerCase();
+
+      if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//.test(u))
+        return "Link (YouTube)";
+      if (/^(https?:\/\/)?(www\.)?github\.com\//.test(u))
+        return "Link (GitHub)";
+      if (/^(https?:\/\/)?(open\.)?spotify\.com\//.test(u))
+        return "Link (Spotify)";
+      if (/^(https?:\/\/)?drive\.google\.com\//.test(u))
+        return "Link (Google Drive)";
+      if (/^(https?:\/\/)?pastebin\.com\//.test(u)) return "Link (Pastebin)";
+      if (/^(https?:\/\/)?(chatgpt\.com|openai\.com)\//.test(u))
+        return "Link (ChatGPT/OpenAI)";
+      if (/^(https?:\/\/)?(www\.)?facebook\.com\//.test(u))
+        return "Link (Facebook)";
+      if (/^(https?:\/\/)?(www\.)?instagram\.com\//.test(u))
+        return "Link (Instagram)";
+      if (/^(https?:\/\/)?(twitter\.com|x\.com)\//.test(u))
+        return "Link (Twitter/X)";
+      if (/^(https?:\/\/)?(www\.)?tiktok\.com\//.test(u))
+        return "Link (TikTok)";
+      if (/^(https?:\/\/)?(www\.)?reddit\.com\//.test(u))
+        return "Link (Reddit)";
+      if (/^(https?:\/\/)?(discord\.com|discord\.gg)\//.test(u))
+        return "Link (Discord)";
+      if (
+        /^(https?:\/\/)?(steamcommunity\.com|store\.steampowered\.com)\//.test(
+          u,
+        )
+      )
         return "Link (Steam)";
-      if (/docs\.google\.com/.test(url)) return "Link (Google Docs)";
-      if (/whatsapp\.com/.test(url)) return "Link (WhatsApp)";
-      if (/telegram\.org|t\.me/.test(url)) return "Link (Telegram)";
+      if (/^(https?:\/\/)?docs\.google\.com\//.test(u))
+        return "Link (Google Docs)";
+      if (/^(https?:\/\/)?(www\.)?whatsapp\.com\//.test(u))
+        return "Link (WhatsApp)";
+      if (/^(https?:\/\/)?(t\.me|telegram\.org)\//.test(u))
+        return "Link (Telegram)";
+
       return "Link (URL)";
     }
 
-    if (/^https?:\/\/[^\s]+$/i.test(code.trim())) {
+    if (/^https?:\/\/\S+$/i.test(code.trim())) {
       return detectLink(code.trim());
     }
 
-    if (/^# Please enter the commit message|On branch/m.test(code))
-      return t("gitText");
-
-    // 📝 Markdown detection / Detecção de Markdown
-    if (
-      (/^#{1,6}\s.+/m.test(code) ||
-        /^>/.test(code) ||
-        /^```[\s\S]+```/m.test(code) ||
-        /\[.+\]\(.+\)/.test(code) ||
-        /^[-*+]\s/m.test(code) ||
-        /\*\*.+\*\*/.test(code) ||
-        /_.+_/.test(code)) &&
-      !/(function|const|let|var|=>|if\s*\(|for\s*\(|console\.log)/.test(
+    const isGit =
+      (/^# Please enter the commit message/m.test(code) ||
+        /^On branch\s+\w+/m.test(code)) &&
+      !/\b(function|const|let|var|import|export|document\.)\b/.test(
         cleanCode,
       ) &&
-      !/<[a-z!]/i.test(code)
-    )
-      return "Markdown";
+      !/[{};]/.test(cleanCode);
+
+    if (isGit) return t("gitText");
+
+    // 📝 Markdown detection / Detecção de Markdown
+    const isMarkdown =
+      (/^#{1,6}\s+\S+/m.test(code) ||
+        /^\s*>.+/m.test(code) ||
+        /^```[\s\S]+```$/m.test(code.trim()) ||
+        /\[[^\]]+\]\([^)]+\)/.test(code) ||
+        /^\s*[-*+]\s+\S+/m.test(code) ||
+        /\*\*[^*]+\*\*/.test(code) ||
+        /_[^_]+_/.test(code)) &&
+      !/[{}();]/.test(cleanCode) && // mata JS/CSS disfarçado
+      !/<\/?[a-z][\s\S]*>/i.test(cleanCode);
+
+    if (isMarkdown) return "Markdown";
 
     // Linguagem pura: JS / Arduino / Java / C++ / etc.
-    if (
-      !/<[a-z!]/i.test(code) &&
-      /(function\s+\w+\s*\(|console\.log|let\s+|const\s+|var\s+)/.test(
-        cleanCode,
-      )
-    )
-      return "JavaScript";
+    const isJavaScript =
+      (/\b(import|export)\s+.*from\s+['"]/.test(cleanCode) ||
+        /\b(function\s+\w+|\(\)\s*=>|=>\s*\{)/.test(cleanCode) ||
+        /\b(const|let|var)\s+\w+\s*=/.test(cleanCode) ||
+        /\bconsole\.(log|warn|error)\s*\(/.test(cleanCode)) &&
+      !/^\s*:(root)|@keyframes/.test(cleanCode);
+
+    if (isJavaScript) return "JavaScript";
+
     if (/\bvoid\s+setup\s*\(\)|\bvoid\s+loop\s*\(\)/.test(cleanCode))
       return "Arduino";
+
     if (/public\s+class\s+\w+|static\s+void\s+main/.test(cleanCode))
       return "Java";
+
     if (/#include\s*<[^>]+>|std::|cout\s*<<|cin\s*>>/.test(cleanCode))
       return "C++";
+
     if (/using\s+\w+;|Console\.WriteLine/.test(cleanCode)) return "C#";
+
     if (/def\s+\w+\(.*\):|print\(/.test(cleanCode)) return "Python";
+
     if (/<(html|head|body|script|style|div)/i.test(cleanCode)) return "HTML";
-    if (/[.#]?[a-zA-Z][\w-]*\s*\{[^}]*:[^;]+;[^}]*\}/.test(cleanCode))
+
+    if (/^\/\*[\s\S]*?\*\//.test(cleanCode) && /:\s*[^;]+;/.test(cleanCode)) {
       return "CSS";
-    if (/fun\s+\w+\s*\(.*\)/.test(cleanCode)) return "Kotlin";
-    if (/\bSELECT\b[\s\S]+?\bFROM\b/i.test(cleanCode)) return "SQL";
+    }
+
+    // CSS fallback forte (arquivo inteiro)
     if (
-      /^\s*\{[\s\S]*?\}/.test(cleanCode) &&
-      /"\s*[^"]+"\s*:\s*/.test(cleanCode)
+      /[a-zA-Z-]+\s*:\s*[^;]+;/.test(cleanCode) &&
+      /{[\s\S]*}/.test(cleanCode) &&
+      !/<\/?[a-z]/i.test(cleanCode)
     ) {
+      return "CSS";
+    }
+
+    if (/fun\s+\w+\s*\(.*\)/.test(cleanCode)) return "Kotlin";
+
+    const isSQL =
+      /^\s*(SELECT|INSERT|UPDATE|DELETE)\s+[\s\S]+?\s+(FROM|INTO|SET)\s+/im.test(
+        cleanCode,
+      ) &&
+      /;\s*$|$/m.test(cleanCode) && // normalmente termina comando
+      !/[{}]/.test(cleanCode) && // CSS/JS usam {}
+      !/--bg|--[a-z-]+:/i.test(cleanCode); // variáveis CSS
+
+    if (isSQL) return "SQL";
+
+    const isJSON =
+      /^\s*[\[{]/.test(cleanCode) && // começa com { ou [
+      /"\s*[^"]+"\s*:\s*/.test(cleanCode) && // chave válida
+      !/[;()=]/.test(cleanCode); // não é JS
+
+    if (isJSON) {
       try {
         JSON.parse(cleanCode);
         return "JSON";
       } catch {}
     }
+
     if (/adb\s+(shell|devices|install|pull|push)/i.test(cleanCode))
       return "ADB";
+
     if (/BEGIN:VCARD/.test(cleanCode)) return "VCF";
+
     if (/^@echo\s+off|set\s+\w+=|pause/i.test(cleanCode))
       return "Batch (BAT/CMD)";
+
     if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(cleanCode)) return t("text");
 
     return t("startWriting");
