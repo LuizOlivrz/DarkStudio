@@ -104,11 +104,13 @@ if (!blockWeb && Mobile !== "Mobile") {
   const artistNameEl = document.getElementById("artist-name");
   const profilePicEl = document.getElementById("spotify-profile-pic");
 
+  const autoCheckbox = document.getElementById("auto-background-checkbox");
+  const spotifyCheckbox = document.getElementById("spotify-checkbox");
+
   const path = document.querySelector("#spotify-logo-full path");
   const btns = document.querySelector("#options").querySelectorAll("button");
   let fullscreenLock = false;
   let autoBackground = true;
-  let spotifyOffline = false;
   let spotify = true;
   let back = "Muda dinamicamente de acordo com a configuração";
   let textColor = "Muda dinamicamente de acordo com a configuração";
@@ -594,20 +596,16 @@ if (!blockWeb && Mobile !== "Mobile") {
   devModeCheckbox.checked = getDevMode();
 
   // Função para atualizar o valor da variável com o estado atual do checkbox
-  document
-    .getElementById("auto-background-checkbox")
-    .addEventListener("change", function () {
-      autoBackground = this.checked;
-      saveCheckboxState();
-    });
+  autoCheckbox.addEventListener("change", () => {
+    autoBackground = autoCheckbox.checked;
+    saveCheckboxState();
+  });
 
-  document
-    .getElementById("spotify-checkbox")
-    .addEventListener("change", function () {
-      spotify = this.checked;
-      Spotify();
-      saveCheckboxState();
-    });
+  spotifyCheckbox.addEventListener("change", () => {
+    spotify = spotifyCheckbox.checked;
+    Spotify();
+    saveCheckboxState();
+  });
 
   // Ao mudar o checkbox
   devModeCheckbox.addEventListener("change", function () {
@@ -616,38 +614,32 @@ if (!blockWeb && Mobile !== "Mobile") {
     console.log("Dev Mode atualizado:", getDevMode());
   });
 
-  const autoCheckbox = document.getElementById("auto-background-checkbox");
-  const spotifyCheckbox = document.getElementById("spotify-checkbox");
-
   spotifyCheckbox.checked = spotify;
 
-  // Salvando o estado do checkbox com localStorage:
   function saveCheckboxState() {
-    const autoValue = !!(autoCheckbox && autoCheckbox.checked);
-    const spotifyValue = !!(spotifyCheckbox && spotifyCheckbox.checked);
-
-    localStorage.setItem("autoBackground", String(autoValue));
-    localStorage.setItem("spotify", String(spotifyValue));
+    localStorage.setItem("autoBackground", String(autoCheckbox.checked));
+    localStorage.setItem("spotify", String(spotifyCheckbox.checked));
   }
 
-  // Carregar estado salvo ao iniciar
-  document.addEventListener("DOMContentLoaded", () => {
-    const savedState = localStorage.getItem("autoBackground");
-    const savedStateSpotify = localStorage.getItem("spotify");
-    if (savedState !== null) {
-      autoBackground = savedState === "true";
-      const autoCheckbox = document.getElementById("auto-background-checkbox");
-      if (autoCheckbox) autoCheckbox.checked = autoBackground;
+  function loadCheckboxState() {
+    const savedAuto = localStorage.getItem("autoBackground");
+    const savedSpotify = localStorage.getItem("spotify");
+
+    if (savedAuto !== null) {
+      autoCheckbox.checked = savedAuto === "true";
+      autoBackground = autoCheckbox.checked;
     }
-    if (savedStateSpotify !== null) {
-      spotify = savedStateSpotify === "true";
-      const spotifyCheckbox = document.getElementById("spotify-checkbox");
-      if (spotifyCheckbox) spotifyCheckbox.checked = spotify;
+
+    if (savedSpotify !== null) {
+      spotifyCheckbox.checked = savedSpotify === "true";
+      spotify = spotifyCheckbox.checked;
       Spotify();
     }
 
     if (devModeCheckbox) devModeCheckbox.checked = getDevMode();
-  });
+  }
+
+  loadCheckboxState();
 
   function Spotify() {
     if (spotify) {
