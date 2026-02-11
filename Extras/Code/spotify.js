@@ -517,6 +517,31 @@ if (!blockWeb && Mobile !== "Mobile") {
       btn.style.color = "#FF6700";
       btn.style.borderColor = "#FF6700";
     });
+
+    document
+      .getElementById("config")
+      .querySelectorAll("button")
+      .forEach((btn) => {
+        btn.style.color = "#FF6700";
+        btn.style.borderColor = "#FF6700";
+      });
+    document
+      .getElementById("config")
+      .querySelectorAll("button")
+      .forEach((btn) => {
+        if (btn.id !== "logout-spotify") {
+          btn.style.color = "#FF6700";
+          btn.style.borderColor = "#FF6700";
+        }
+      });
+    document
+      .getElementById("config")
+      .querySelectorAll("textarea")
+      .forEach((btn) => {
+        btn.style.color = "#FF6700";
+        btn.style.borderColor = "#FF6700";
+      });
+
   }
 
   function fullScreenVerif() {
