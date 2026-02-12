@@ -69,6 +69,7 @@ if (!blockWeb) {
     Markdown: "markdown",
     Git: "plaintext",
     Texto: "plaintext",
+    Rust: "rust",
     "Comece a escrever seu código e veja a linguagem aqui!": "plaintext",
     "Start writing your code and see the language here!": "plaintext",
   };
@@ -242,8 +243,7 @@ if (!blockWeb) {
     if (/public\s+class\s+\w+|static\s+void\s+main/.test(cleanCode))
       return "Java";
 
-    if (/#include\s*<[^>]+>|std::|cout\s*<<|cin\s*>>/.test(cleanCode))
-      return "C++";
+    if (/#include\s*<[^>]+>|cout\s*<<|cin\s*>>/.test(cleanCode)) return "C++";
 
     if (/using\s+\w+;|Console\.WriteLine/.test(cleanCode)) return "C#";
 
@@ -259,12 +259,27 @@ if (!blockWeb) {
     if (
       /[a-zA-Z-]+\s*:\s*[^;]+;/.test(cleanCode) &&
       /{[\s\S]*}/.test(cleanCode) &&
-      !/<\/?[a-z]/i.test(cleanCode)
+      !/<\/?[a-z]/i.test(cleanCode) &&
+      !/\b(fn|let|mut|println!|use\s+std::|impl|struct|enum)\b/.test(cleanCode)
     ) {
       return "CSS";
     }
 
     if (/fun\s+\w+\s*\(.*\)/.test(cleanCode)) return "Kotlin";
+
+    const isRust =
+      (/\bfn\s+main\s*\(\s*\)/.test(cleanCode) || // fn main()
+        /\bfn\s+\w+\s*\([^)]*\)\s*(->\s*\w+)?\s*\{/.test(cleanCode) || // fn foo() {}
+        /\blet\s+(mut\s+)?\w+/.test(cleanCode) || // let / let mut
+        /\bprintln!\s*\(/.test(cleanCode) || // println!
+        /\buse\s+[\w:]+;/.test(cleanCode) || // use std::...
+        /\bimpl\s+\w+/.test(cleanCode) || // impl Struct
+        /\bstruct\s+\w+/.test(cleanCode) || // struct
+        /\benum\s+\w+/.test(cleanCode)) && // enum
+      !/#include|cout\s*<<|Console\.WriteLine|print\(/.test(cleanCode) && // evita C++/C#/Python
+      !/function\s+|=>/.test(cleanCode); // evita JS
+
+    if (isRust) return "Rust";
 
     const isSQL =
       /^\s*(SELECT|INSERT|UPDATE|DELETE)\s+[\s\S]+?\s+(FROM|INTO|SET)\s+/im.test(

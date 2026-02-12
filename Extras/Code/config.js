@@ -13,6 +13,7 @@ const spotify = document.getElementById("spotify-now-playing");
 const spotifyFS = document.getElementById("full-screen");
 
 export const language = navigator.language || navigator.userLanguage;
+export const version = "9.0.1"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
 // 🌐 DEV MODE UTILITIES
