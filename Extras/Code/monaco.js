@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────
 import { getDevMode, blockWeb } from "./config.js";
 import { chatOpenValue, ChatVerification } from "./main.js";
+import { loadPlugins } from "/core/plugin-engine.js";
 
 let chatOpen = chatOpenValue();
 
@@ -88,7 +89,9 @@ if (!blockWeb) {
 
     initialTheme = theme;
 
-    require(["vs/editor/editor.main"], () => {
+    require(["vs/editor/editor.main"], (monacoInstance) => {
+      window.monaco = monacoInstance;
+
       // 1️⃣ Definir tema inicial
       if (autoTheme) {
         initialTheme = autoTheme ? detectThemeByDate() : "dark";
@@ -97,6 +100,9 @@ if (!blockWeb) {
         initialTheme = "dark";
         loadTheme(initialTheme);
       }
+
+      window.loadTheme = loadTheme;
+
       // 2️⃣ Criar editor
       window.editor = monaco.editor.create(
         document.getElementById("Editor-Input"),
@@ -109,6 +115,8 @@ if (!blockWeb) {
           minimap: { enabled: false },
         },
       );
+
+      loadPlugins(window.editor);
 
       // ─────────────────────────────────────────────
       // 💾 Auto Save / Salvamento Automático
