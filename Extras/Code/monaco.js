@@ -116,7 +116,7 @@ if (!blockWeb) {
         },
       );
 
-      loadPlugins(window.editor);
+      //loadPlugins(window.editor);
 
       // ─────────────────────────────────────────────
       // 💾 Auto Save / Salvamento Automático
