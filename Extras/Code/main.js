@@ -51,7 +51,7 @@ if (!blockWeb) {
 
   const modeMap = {
     JavaScript: "javascript",
-    VeloScript: "javascript",
+    "VeloScript - pqpcara": "javascript",
     Python: "python",
     Java: "java",
     HTML: "html",
@@ -236,7 +236,7 @@ if (!blockWeb) {
         /\bconsole\s*\(/.test(cleanCode) &&
         !/\bconsole\.(log|warn|error)\s*\(/.test(cleanCode));
 
-    if (isVeloScript) return "VeloScript";
+    if (isVeloScript) return "VeloScript - pqpcara";
 
     // 👇 SÓ DEPOIS disso vem o JS
     const isJavaScript =
@@ -342,7 +342,7 @@ if (!blockWeb) {
 
     const extensionMap = {
       JavaScript: "js",
-      VeloScript: "velo",
+      "VeloScript - pqpcara": "velo",
       Python: "py",
       Java: "java",
       HTML: "html",
