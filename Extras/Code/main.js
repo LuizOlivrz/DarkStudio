@@ -51,6 +51,7 @@ if (!blockWeb) {
 
   const modeMap = {
     JavaScript: "javascript",
+    VeloScript: "javascript",
     Python: "python",
     Java: "java",
     HTML: "html",
@@ -227,7 +228,17 @@ if (!blockWeb) {
 
     if (isMarkdown) return "Markdown";
 
-    // Linguagem pura: JS / Arduino / Java / C++ / etc.
+    // 🟣 VeloScript detection
+    const isVeloScript =
+      /#![\s\S]*?VeloScript[\s\S]*?!#/i.test(code) ||
+      /\bfunc\s+\w+\s*\(/.test(cleanCode) ||
+      (/\bvar\s+\w+\s*=/.test(cleanCode) &&
+        /\bconsole\s*\(/.test(cleanCode) &&
+        !/\bconsole\.(log|warn|error)\s*\(/.test(cleanCode));
+
+    if (isVeloScript) return "VeloScript";
+
+    // 👇 SÓ DEPOIS disso vem o JS
     const isJavaScript =
       (/\b(import|export)\s+.*from\s+['"]/.test(cleanCode) ||
         /\b(function\s+\w+|\(\)\s*=>|=>\s*\{)/.test(cleanCode) ||
@@ -331,6 +342,7 @@ if (!blockWeb) {
 
     const extensionMap = {
       JavaScript: "js",
+      VeloScript: "velo",
       Python: "py",
       Java: "java",
       HTML: "html",
