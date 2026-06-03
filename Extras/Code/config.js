@@ -9,8 +9,6 @@ let block = false; // Block access flag / flag de bloqueio
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
-const spotify = document.getElementById("spotify-now-playing");
-const spotifyFS = document.getElementById("full-screen");
 
 export const language = navigator.language || navigator.userLanguage;
 export const version = "9.1.0"; // Current version / versão atual
@@ -273,11 +271,8 @@ if (!block) {
 
     if (device !== "Mobile") {
       loadCSS("dark.css");
-      loadJS("spotify");
     } else {
       loadCSS("mobile.css");
-      if (spotify) spotify.style.display = "none";
-      if (spotifyFS) spotifyFS.style.display = "none";
     }
 
     applyFavicon(mediaQuery);

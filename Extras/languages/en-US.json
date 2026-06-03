@@ -6,14 +6,12 @@
   "offline": "You are offline!",
   "noInternet": "No internet connection 😢",
   "onInternet": "Reconnected to intenet 😊",
-  "noSongs": "No music playing at the moment",
 
   "JSBlocked": "JavaScript is temporarily disabled for maintenance!",
   "Errorhtmljs": "The content is neither HTML nor JS!",
 
   "screenTooSmallTitle": "Width or height too small :(",
   "screenTooSmallText": "Please resize or remove zoom to use.",
-  "CloseFullScreen": "Exit full screen",
 
   "text": "Text",
   "gitText": "Git Text",
