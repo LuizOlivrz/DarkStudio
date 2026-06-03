@@ -39,7 +39,15 @@ if (!blockWeb) {
   const options = document.getElementById("options");
   const chat = document.getElementById("chat");
   const WebsiteContainer = document.getElementById("Website-Container");
+  const dynamicPanel = document.getElementById("dynamic-panel");
+  const dynamicPanelText = document.getElementById("dynamic-panel-text");
+  const pageOpenedAt = Date.now();
   let configValue = false;
+  let panelIndex = 0;
+  let panelRotationTimer = null;
+  let typingTimer = null;
+  let isTyping = false;
+  let weatherText = "☁️ Carregando clima...";
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -110,7 +118,12 @@ if (!blockWeb) {
     updateUI();
 
     // 3️⃣ Atualiza a interface sempre que o usuário digitar
-    window.editor.onDidChangeModelContent(updateUI);
+    window.editor.onDidChangeModelContent(() => {
+      updateUI();
+      handleTypingActivity();
+    });
+
+    initDynamicPanel();
   }
 
   /**
@@ -131,6 +144,189 @@ if (!blockWeb) {
   }
 
   initEditorEvents();
+
+  // ─────────────────────────────────────────────
+  // 🧭 Dynamic Panel / Painel Dinâmico
+  // ─────────────────────────────────────────────
+
+  function formatUptime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${String(minutes).padStart(2, "0")}m ${String(
+        seconds,
+      ).padStart(2, "0")}s`;
+    }
+
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
+
+  function getClockText() {
+    return `🕒 ${new Date().toLocaleTimeString("pt-BR", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })}`;
+  }
+
+  function getWeatherText() {
+    return weatherText;
+  }
+
+  function getUptimeText() {
+    return `⏱️ Aberto há ${formatUptime(Date.now() - pageOpenedAt)}`;
+  }
+
+  function getPanelText() {
+    switch (panelIndex) {
+      case 0:
+        return getClockText();
+      case 1:
+        return getWeatherText();
+      default:
+        return getUptimeText();
+    }
+  }
+
+  function setPanelText(text) {
+    if (!dynamicPanel || !dynamicPanelText) return;
+    if (
+      dynamicPanelText.textContent === text &&
+      dynamicPanelText.classList.contains("visible")
+    ) {
+      return;
+    }
+
+    dynamicPanel.classList.add("visible");
+    dynamicPanelText.classList.remove("visible");
+
+    window.setTimeout(() => {
+      dynamicPanelText.textContent = text;
+      dynamicPanelText.classList.add("visible");
+    }, 250);
+  }
+
+  function updateDynamicPanel() {
+    if (isTyping) {
+      setPanelText("# NightCoder pode te ajudar - Ctrl+I");
+      return;
+    }
+
+    setPanelText(getPanelText());
+  }
+
+  function cycleDynamicPanel() {
+    if (isTyping) return;
+    panelIndex = (panelIndex + 1) % 3;
+    updateDynamicPanel();
+  }
+
+  function startPanelRotation() {
+    if (panelRotationTimer) clearInterval(panelRotationTimer);
+    panelRotationTimer = setInterval(cycleDynamicPanel, 8000);
+  }
+
+  function stopPanelRotation() {
+    if (panelRotationTimer) {
+      clearInterval(panelRotationTimer);
+      panelRotationTimer = null;
+    }
+  }
+
+  function handleTypingActivity() {
+    isTyping = true;
+    updateDynamicPanel();
+
+    if (typingTimer) clearTimeout(typingTimer);
+    typingTimer = window.setTimeout(() => {
+      isTyping = false;
+      panelIndex = 0;
+      updateDynamicPanel();
+    }, 3800);
+  }
+
+  async function fetchWeather() {
+    if (!navigator.geolocation) {
+      weatherText = "☁️ Clima desconhecido";
+      updateDynamicPanel();
+      return;
+    }
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 6000,
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`,
+      );
+      const data = await response.json();
+
+      if (data && data.current_weather) {
+        const weatherCode = data.current_weather.weathercode;
+        const temp = Math.round(data.current_weather.temperature);
+        const label = mapWeatherCode(weatherCode);
+        weatherText = `☁️ ${label} — ${temp}°C`;
+      } else {
+        weatherText = "☁️ Clima indisponível";
+      }
+    } catch {
+      weatherText = "☁️ Clima indisponível";
+    }
+
+    if (!isTyping) updateDynamicPanel();
+  }
+
+  function mapWeatherCode(code) {
+    switch (code) {
+      case 0:
+        return "Céu limpo";
+      case 1:
+      case 2:
+        return "Parcialmente nublado";
+      case 3:
+        return "Nublado";
+      case 45:
+      case 48:
+        return "Neblina";
+      case 51:
+      case 53:
+      case 55:
+        return "Chuvisco";
+      case 61:
+      case 63:
+      case 65:
+      case 80:
+      case 81:
+      case 82:
+        return "Chuva";
+      case 71:
+      case 73:
+      case 75:
+        return "Neve";
+      case 95:
+      case 96:
+      case 99:
+        return "Tempestade";
+      default:
+        return "Clima";
+    }
+  }
+
+  function initDynamicPanel() {
+    if (!dynamicPanel || !dynamicPanelText) return;
+    updateDynamicPanel();
+    startPanelRotation();
+    fetchWeather();
+  }
 
   // ─────────────────────────────────────────────
   // 🧹 Remove código Markdown (inline e blocos)

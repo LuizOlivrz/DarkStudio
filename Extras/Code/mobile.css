@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #000000;
-  color: #ff6700;
+  color: var(--accent-color);
   user-select: none;
   /* Bloqueia seleção de texto */
   -webkit-user-select: none;
@@ -24,6 +24,7 @@ body {
   /* calc(100vh - 71px) para ajustar a altura corretamente */
   background-color: #090909;
   padding: 2px;
+  border: 2px solid var(--border-orange);
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -71,18 +72,24 @@ body {
   position: fixed;
   bottom: 3.5vh;
   left: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 28px rgba(255, 103, 0, 0.18);
   display: flex;
-  border: 2px solid #3c3c3c;
+  border: 2px solid var(--border-orange);
   gap: 10px;
-  height: 2vh;
-  border-radius: 6px;
-  background: #090909;
+  height: 2.8vh;
+  border-radius: 14px;
+  background: rgba(9, 9, 9, 0.88);
+  backdrop-filter: blur(12px);
   color: #fff;
-  padding: 3px;
-  transition: background 0.5s ease-in-out, color 0.5s ease-in-out,
-    opacity 0.2s ease-in-out;
+  padding: 6px 12px;
+  transition: background 0.4s ease-in-out, color 0.4s ease-in-out,
+    opacity 0.2s ease-in-out, transform 0.4s ease;
   width: 55.3vh;
+  animation: pulse 8s ease-in-out infinite;
+}
+
+#options:hover {
+  transform: translateY(-2px);
 }
 
 #config-icon {
@@ -125,24 +132,33 @@ body {
   }
 }
 
-  transition: width 0.5s ease-in-out, opacity 0.8s ease-in-out,
-    background-color 0.5s ease-in-out, color 0.5s ease-in-out,
-    height 0.5s ease-in-out;
-  pointer-events: none;
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 22px rgba(255, 103, 0, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(255, 103, 0, 0.22);
+  }
 }
 
 #code-language {
   position: fixed;
+  bottom: -40px;
   right: 75px;
-  background-color: #090909;
-  border: 2px solid #3c3c3c;
-  text-align: center;
-  color: #ff6700;
-  z-index: 4;
-  bottom: -9px;
+  background-color: rgba(9, 9, 9, 0.88);
+  border: 2px solid var(--border-orange);
+  border-radius: 999px;
   width: calc(100% - 85px) !important;
-  border-radius: 10px;
-  animation: none;
+  text-align: center;
+  color: var(--accent-color);
+  padding: 12px 18px;
+  animation: float 3s ease-in-out infinite;
+  transition: width 0.5s ease, bottom 0.5s ease-in-out,
+    border-radius 0.5s ease-in-out, opacity 0.5s ease-in-out,
+    background 0.5s ease-in-out, color 0.5s ease-in-out,
+    box-shadow 0.5s ease-in-out;
+  box-shadow: 0 0 30px rgba(255, 103, 0, 0.2);
+  z-index: 4;
 }
 
 #code-language:hover {
@@ -152,14 +168,54 @@ body {
   animation: none;
 }
 
+#dynamic-panel {
+  position: fixed;
+  bottom: 100px;
+  right: 14px;
+  max-width: 280px;
+  min-width: 200px;
+  padding: 14px 16px;
+  background: rgba(12, 12, 12, 0.95);
+  border: 2px solid var(--border-orange);
+  border-radius: 20px;
+  box-shadow: 0 16px 38px rgba(255, 103, 0, 0.25);
+  color: #f5f5f5;
+  font-family: monospace;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+  pointer-events: none;
+  z-index: 8;
+  backdrop-filter: blur(10px);
+}
+
+#dynamic-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#dynamic-panel-text {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+#dynamic-panel-text.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 button {
   background-color: black;
-  color: #ff6700;
+  color: var(--accent-color);
   text-align: center;
   width: auto;
   border-radius: 5px;
-  border: 2px solid #ff6700;
-  /* largura 3px, estilo solid, cor laranja */
+  border: 2px solid var(--border-orange);
   padding: 5px;
   background: none;
   max-width: 100%;
@@ -188,7 +244,7 @@ img {
 #social-links svg {
   width: 30px;
   height: auto;
-  fill: #ff6700;
+  fill: var(--accent-color);
   transition: fill 0.3s ease;
 }
 
@@ -222,18 +278,20 @@ input[type="checkbox"] {
   appearance: none;
   width: 20px;
   height: 20px;
-  border: 2px solid red;
-  border-radius: 4px;
+  border: 2px solid var(--border-orange);
+  border-radius: 6px;
   vertical-align: middle;
   cursor: pointer;
   transition: all 0.3s ease;
+  background: rgba(255, 103, 0, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 103, 0, 0.18);
 }
 
 /* Quando estiver ativo (checked) */
 input[type="checkbox"]:checked {
-  border: 2px solid green;
-  background-color: green;
-  /* muda a cor de fundo */
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  box-shadow: 0 0 0 6px rgba(255, 103, 0, 0.16);
 }
 
 label {
@@ -244,13 +302,37 @@ label {
 
 select {
   background-color: #090909;
-  color: #ff6700;
-  border: 2px solid #ff6700;
+  color: var(--accent-color);
+  border: 2px solid var(--border-orange);
   border-radius: 5px;
   padding: 5px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+#system-prompt-editor {
+  width: 100%;
+  max-width: 100%;
+  min-height: 140px;
+  background: #0b0b0b;
+  color: var(--accent-color);
+  border: 2px solid var(--border-orange);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: monospace;
+  resize: vertical;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#system-prompt-editor:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 20px rgba(255, 103, 0, 0.2);
+  outline: none;
+}
+
+#system-prompt-editor::placeholder {
+  color: rgba(255, 103, 0, 0.6);
 }
 
 #auto-back-complete {
@@ -268,6 +350,7 @@ p {
   --green: #18ff72;
   --purple: #a44bff;
   --orange: #ff8a3d;
+  --border-orange: #ff8a3d;
   --text: #e6e6e6;
 }
 
@@ -275,10 +358,10 @@ p {
 #chat {
   width: 41vh;
   height: calc(97vh - 68px);
-  background: var(--bg);
-  border: 2px solid var(--orange);
-  border-radius: 10px;
-  padding: 12px;
+  background: rgba(8, 8, 8, 0.96);
+  border: 2px solid var(--border-orange);
+  border-radius: 18px;
+  padding: 14px;
   pointer-events: none;
   font-family: monospace;
   color: var(--text);
@@ -287,15 +370,14 @@ p {
   position: fixed;
   right: 5px;
   top: 5px;
-  transition: box-shadow 0.3s ease, opacity 0.3s ease, width 0.5s ease;
+  transition: box-shadow 0.3s ease, opacity 0.3s ease, width 0.5s ease, transform 0.3s ease;
   display: block;
   overflow-x: hidden;
   overflow-y: auto;
   user-select: text;
   z-index: 3;
 
-  /* Glow bonito */
-  box-shadow: 0 0 18px var(--orange);
+  box-shadow: 0 0 38px rgba(255, 103, 0, 0.22);
   animation: fadeIn 0.3s ease;
 }
 
@@ -343,24 +425,24 @@ p {
 
 /* --- ESTILOS DAS MENSAGENS --- */
 .user {
-  color: var(--green);
-  background-color: #9b3e00;
-  padding: 1vh;
-  border-radius: 6px;
-  border: 1px solid var(--green);
-  width: auto;
-  content: fit-content;
+  align-self: flex-end;
+  background: rgba(255, 103, 0, 0.18);
+  color: #fff;
+  padding: 1vh 1.2vh;
+  border-radius: 16px 16px 6px 16px;
+  border: 1px solid var(--border-orange);
   word-wrap: break-word;
   max-width: 80%;
   margin-left: auto;
 }
 
 .ai {
-  color: var(--purple);
-  background-color: #202020;
-  padding: 1vh;
-  border-radius: 6px;
-  border: 1px solid var(--purple);
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ddd;
+  padding: 1vh 1.2vh;
+  border-radius: 16px 16px 16px 6px;
+  border: 1px solid var(--accent-color);
   max-width: 80%;
   margin-right: auto;
 }
@@ -386,7 +468,7 @@ p {
   flex: 1;
   padding: 8px;
   background: #111;
-  border: 1px solid var(--orange);
+  border: 1px solid var(--border-orange);
   color: var(--green);
   border-radius: 6px;
   outline: none;
@@ -446,19 +528,13 @@ p {
   font-size: 14px;
 }
 
-  font-weight: bold;
-  padding: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  transition: background-color 0.3s ease;
-}
-
 #inline-chat {
   width: 129vh;
   opacity: 0;
   pointer-events: none;
   height: fit-content;
   background: var(--bg);
-  border: 2px solid var(--orange);
+  border: 2px solid var(--border-orange);
   border-radius: 10px;
   padding: 4px;
   font-family: monospace;
@@ -509,7 +585,7 @@ p {
   flex: 1;
   padding: 8px;
   background: #111;
-  border: 1px solid var(--orange);
+  border: 1px solid var(--border-orange);
   color: var(--green);
   border-radius: 6px;
   outline: none;
