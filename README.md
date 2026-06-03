@@ -2,7 +2,7 @@
 
 ## O que é
 
-O **Dark Studio** é um editor de código web baseado no **Monaco Editor** (o mesmo do VS Code), totalmente personalizado com **tema escuro**, integração com Spotify, detecção automática de linguagem e recursos de salvar/carregar códigos.
+O **Dark Studio** é um editor de código web baseado no **Monaco Editor** (o mesmo do VS Code), totalmente personalizado com **tema escuro**, detecção automática de linguagem e recursos de salvar/carregar códigos.
 
 ---
 
@@ -27,12 +27,10 @@ O **Dark Studio** é um editor de código web baseado no **Monaco Editor** (o me
 - Cria nova aba ou iframe para rodar o código.
 - Tratamento de logs e erros em JS.
 
-### Integração com Spotify
+### Links detectados
 
-- Mostra música atual, capa do álbum e foto do usuário.
-- Tela cheia opcional com cores dinâmicas baseadas na capa (usando **Color Thief**).
-- Login OAuth via Spotify (PKCE flow) com refresh automático de token.
-- Ajusta cores do editor de acordo com a capa da música, com contraste automático.
+- Detecta links populares em código e exibe um rótulo genérico.
+- Reconhece YouTube, GitHub, Google Drive, ChatGPT/OpenAI e outros.
 
 ### Interface e UI
 
@@ -42,7 +40,7 @@ O **Dark Studio** é um editor de código web baseado no **Monaco Editor** (o me
 
 ### Detecção inteligente
 
-- Detecta links (YouTube, GitHub, Spotify, Google Drive, etc.).
+- Detecta links (YouTube, GitHub, Google Drive, etc.).
 - Analisa o conteúdo do código para determinar a linguagem.
 - Diferencia CSS de JS, HTML de JS e SBV (legendas), Arduino, ADB, etc.
 
@@ -62,7 +60,6 @@ O **Dark Studio** não é só um editor, é quase um mini VS Code web com:
 - Tema escuro e cores personalizadas por linguagem.
 - Salvamento automático + carregamento de arquivo.
 - Execução de HTML/JS.
-- Integração visual com Spotify (tela cheia dinâmica).
 - Detecção automática de linguagem.
 - UI limpa e responsiva.
 

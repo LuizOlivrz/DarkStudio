@@ -22,7 +22,6 @@ export function ChatVerification() {
 // ─────────────────────────────────────────────
 
 import { blockWeb, getDevMode, t, getDevice } from "./config.js";
-import { fullScreenValue, fullScreenActivate } from "./spotify.js";
 
 if (!blockWeb) {
   // ─────────────────────────────────────────────
@@ -39,11 +38,8 @@ if (!blockWeb) {
   const configMenu = document.getElementById("config");
   const options = document.getElementById("options");
   const chat = document.getElementById("chat");
-  const close = document.getElementById("close");
   const WebsiteContainer = document.getElementById("Website-Container");
   let configValue = false;
-
-  close.innerText = t("CloseFullScreen");
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -165,8 +161,6 @@ if (!blockWeb) {
         return "Link (YouTube)";
       if (/^(https?:\/\/)?(www\.)?github\.com\//.test(u))
         return "Link (GitHub)";
-      if (/^(https?:\/\/)?(open\.)?spotify\.com\//.test(u))
-        return "Link (Spotify)";
       if (/^(https?:\/\/)?drive\.google\.com\//.test(u))
         return "Link (Google Drive)";
       if (/^(https?:\/\/)?pastebin\.com\//.test(u)) return "Link (Pastebin)";
@@ -477,7 +471,6 @@ if (!blockWeb) {
     if (e.repeat) return;
 
     if (e.ctrlKey && e.key.toLowerCase() === "i") {
-      if (document.getElementById("full-screen").style.opacity === "1") return;
       e.preventDefault();
 
       const input = document.getElementById("input");
@@ -521,77 +514,35 @@ if (!blockWeb) {
   function handleNetworkChange() {
     const aviso = document.getElementById("network-status");
     const login = document.getElementById("login");
-    const player = document.getElementById("spotify-now-playing");
 
     if (!navigator.onLine && isMobile !== "Mobile") {
       if (getDevMode()) console.warn("🔴 " + t("offline"));
-      if (aviso && login) {
+      if (aviso) {
         aviso.textContent = t("noInternet");
-        login.style.opacity = "0";
-        editor.style.height = "calc(100vh - 12vh)";
-        configMenu.style.height = "calc(100vh - 11vh)";
         setTimeout(() => {
           aviso.style.opacity = "1";
         }, 300);
       }
-      if (fullScreenValue() === "true") {
-        fullScreenActivate();
+      if (login) {
+        login.style.opacity = "0";
       }
     } else {
       if (getDevMode()) console.log("🟢 " + t("online"));
-      if (login && aviso) {
+      if (aviso) {
         aviso.textContent = t("onInternet");
+      }
+      if (login) {
         login.style.opacity = "1";
       }
 
       setTimeout(() => {
-        aviso.style.opacity = "0";
+        if (aviso) aviso.style.opacity = "0";
       }, 1000);
-
-      setTimeout(() => {
-        if (player) {
-          player.style.display = "block";
-          player.style.opacity = "1";
-          player.style.pointerEvents = "auto";
-          editor.style.height = "calc(100vh - 8vh)";
-          configMenu.style.height = "calc(100vh - 7vh)";
-        }
-      }, 1200);
     }
   }
 
   window.addEventListener("online", handleNetworkChange);
   window.addEventListener("offline", handleNetworkChange);
-
-  // ─────────────────────────────────────────────
-  // 🖥️ Fullscreen Detection / Detecção de Tela Cheia
-  // ─────────────────────────────────────────────
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "F11") {
-      e.preventDefault();
-
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    }
-  });
-
-  document.addEventListener("fullscreenchange", () => {
-    if (document.fullscreenElement) {
-      // Entrou em tela cheia
-      if (getDevMode()) console.log("📺 Entered fullscreen");
-      // Adicione sua ação aqui
-      close.style.height = "5vh";
-    } else {
-      // Saiu de tela cheia
-      if (getDevMode()) console.log("📺 Exited fullscreen");
-      // Adicione sua ação aqui
-      close.style.height = "6vh";
-    }
-  });
 
   document.querySelectorAll("button").forEach((btn) => {
     btn.addEventListener("click", () => {
