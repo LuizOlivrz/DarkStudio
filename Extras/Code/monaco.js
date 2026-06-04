@@ -235,10 +235,6 @@ if (!blockWeb) {
     }
   });
 
-  const borderColorInput = document.getElementById("border-color-input");
-  const resetBorderColorButton = document.getElementById("reset-border-color");
-  const accentColorInput = document.getElementById("accent-color-input");
-  const resetAccentColorButton = document.getElementById("reset-accent-color");
   const autoCheckbox = document.getElementById("auto-fest-checkbox");
 
   if (autoCheckbox) {
@@ -256,57 +252,7 @@ if (!blockWeb) {
     });
   }
 
-  function setBorderColor(color) {
-    if (!color) return;
-    document.documentElement.style.setProperty("--border-orange", color);
-    localStorage.setItem("borderColor", color);
-    if (borderColorInput) borderColorInput.value = color;
-  }
-
-  function setAccentColor(color) {
-    if (!color) return;
-    document.documentElement.style.setProperty("--accent-color", color);
-    localStorage.setItem("accentColor", color);
-    if (accentColorInput) accentColorInput.value = color;
-  }
-
-  const savedBorderColor = localStorage.getItem("borderColor");
-  if (savedBorderColor) {
-    setBorderColor(savedBorderColor);
-  } else {
-    setBorderColor("#ff8a3d");
-  }
-
-  const savedAccentColor = localStorage.getItem("accentColor");
-  if (savedAccentColor) {
-    setAccentColor(savedAccentColor);
-  } else {
-    setAccentColor("#ff6700");
-  }
-
-  if (borderColorInput) {
-    borderColorInput.addEventListener("input", (event) => {
-      setBorderColor(event.target.value);
-    });
-  }
-
-  if (accentColorInput) {
-    accentColorInput.addEventListener("input", (event) => {
-      setAccentColor(event.target.value);
-    });
-  }
-
-  if (resetBorderColorButton) {
-    resetBorderColorButton.addEventListener("click", () => {
-      setBorderColor("#ff8a3d");
-    });
-  }
-
-  if (resetAccentColorButton) {
-    resetAccentColorButton.addEventListener("click", () => {
-      setAccentColor("#ff6700");
-    });
-  }
+  
 
   // Salvando o estado do checkbox com localStorage:
   function saveCheckboxState() {

@@ -21,7 +21,7 @@ export function ChatVerification() {
 // 🚫 Bloqueia acesso em dispositivos móveis
 // ─────────────────────────────────────────────
 
-import { blockWeb, getDevMode, t, getDevice } from "./config.js";
+import { blockWeb, setDevMode, getDevMode, t, getDevice } from "./config.js";
 
 if (!blockWeb) {
   // ─────────────────────────────────────────────
@@ -30,6 +30,10 @@ if (!blockWeb) {
 
   const languageDisplay = document.querySelector("#code-language h4");
   const isMobile = getDevice();
+  const borderColorInput = document.getElementById("border-color-input");
+  const resetBorderColorButton = document.getElementById("reset-border-color");
+  const accentColorInput = document.getElementById("accent-color-input");
+  const resetAccentColorButton = document.getElementById("reset-accent-color");
   const executeButton = document.getElementById("execute");
   const iframeButton = document.getElementById("new-iframe-button");
   const downloadButton = document.getElementById("download-file");
@@ -172,7 +176,6 @@ if (!blockWeb) {
       hour12: false,
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     })}`;
   }
 
@@ -749,32 +752,276 @@ if (!blockWeb) {
     });
   });
 
-
   function setSignature(text) {
-    if (!text) text = "LUIZzz";
-    text = text.substring(0, 22);
-    if (signatureInput) signatureInput.value = text;
-    if (signatureElement) signatureElement.textContent = text;
-    localStorage.setItem("signature", text);
+  text = text.substring(0, 22);
+
+  if (signatureInput) signatureInput.value = text;
+  if (signatureElement) signatureElement.textContent = text;
+
+  localStorage.setItem("signature", text);
+}
+
+const DEFAULT_SIGNATURE = "LUIZzz";
+
+const savedSignature = localStorage.getItem("signature");
+setSignature(savedSignature || DEFAULT_SIGNATURE);
+
+let signatureTimeout;
+
+if (signatureInput) {
+  signatureInput.addEventListener("input", (event) => {
+    const value = event.target.value;
+
+    // Atualiza apenas a visualização em tempo real
+    if (signatureElement) {
+      signatureElement.textContent =
+        value.substring(0, 22) || DEFAULT_SIGNATURE;
+    }
+
+    clearTimeout(signatureTimeout);
+
+    signatureTimeout = setTimeout(() => {
+      // Só reseta se estiver vazio após o usuário parar de digitar
+      setSignature(value.trim() || DEFAULT_SIGNATURE);
+    }, 800); // 800ms sem digitar
+  });
+}
+
+if (resetSignatureButton) {
+  resetSignatureButton.addEventListener("click", () => {
+    setSignature(DEFAULT_SIGNATURE);
+  });
+}
+
+  // ─────────────────────────────────────────────
+  // 🖥️ Screen Size Check / Verificação de Tela
+  // ─────────────────────────────────────────────
+
+  function checkScreenWidth() {
+    const existing = document.getElementById("min-width-overlay");
+
+    if (window.innerWidth < 620 || window.innerHeight < 700) {
+      if (!existing) {
+        document.body.dataset.prevOverflow = document.body.style.overflow || "";
+        document.body.style.overflow = "hidden";
+
+        const overlay = document.createElement("div");
+        overlay.id = "min-width-overlay";
+        Object.assign(overlay.style, {
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)", // Safari
+          color: "#fff",
+          fontFamily: "sans-serif",
+          textAlign: "center",
+          padding: "20px",
+          boxSizing: "border-box",
+          zIndex: "999999",
+        });
+        overlay.innerHTML = `
+        <h1>${t("screenTooSmallTitle")}</h1>
+        <p>${t("screenTooSmallText")}</p>
+      `;
+        document.body.appendChild(overlay);
+      }
+    } else if (existing) {
+      existing.remove();
+      document.body.style.overflow = document.body.dataset.prevOverflow || "";
+      delete document.body.dataset.prevOverflow;
+    }
   }
 
-  const savedSignature = localStorage.getItem("signature");
-  if (savedSignature) {
-    setSignature(savedSignature);
+  window.addEventListener("load", checkScreenWidth);
+  window.onload = function () {
+    checkScreenWidth();
+  };
+  window.addEventListener("resize", checkScreenWidth);
+
+  // ─────────────────────────────────────────────
+  // 🖼 Background image + blur controls
+  // Adds a full-page background image element and settings
+  // ─────────────────────────────────────────────
+
+  function toggleBg(enable) {
+    const pageBg = document.getElementById("page-bg");
+    if (!pageBg) return;
+    if (enable) pageBg.classList.add("active");
+    else pageBg.classList.remove("active");
+  }
+
+  function initBackgroundFeature() {
+    const checkbox = document.getElementById("bg-image-checkbox");
+    const fileInput = document.getElementById("bg-image-file");
+    const range = document.getElementById("bg-blur-range");
+    const valueSpan = document.getElementById("bg-blur-value");
+    const pageBgImg = document.getElementById("page-bg-img");
+
+    if (!checkbox) return; // nothing to do if UI not present
+
+    // Load saved values
+    const savedEnabled = localStorage.getItem("bgEnabled") === "true";
+    const savedImg = localStorage.getItem("bgImageData") || "";
+    const savedBlur = parseInt(localStorage.getItem("bgBlur") || "10", 10);
+
+    checkbox.checked = savedEnabled;
+    if (savedImg && pageBgImg) pageBgImg.src = savedImg;
+    if (range) {
+      range.value = savedBlur;
+      if (valueSpan) valueSpan.textContent = String(savedBlur);
+      document.documentElement.style.setProperty("--bg-blur", savedBlur + "px");
+    }
+
+    // Ensure UI reflects current enabled state
+    setTimeout(() => toggleBg(savedEnabled), 10);
+
+    checkbox.addEventListener("change", (e) => {
+      const v = e.target.checked;
+      localStorage.setItem("bgEnabled", String(v));
+      toggleBg(v);
+    });
+
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (pageBgImg) pageBgImg.src = reader.result;
+          try {
+            localStorage.setItem("bgImageData", reader.result);
+          } catch (err) {
+            if (getDevMode())
+              console.warn("Could not persist background image:", err);
+          }
+          // Auto-enable background when a new image is selected
+          try {
+            if (checkbox) {
+              checkbox.checked = true;
+              localStorage.setItem("bgEnabled", "true");
+              toggleBg(true);
+            }
+          } catch (err) {
+            if (getDevMode()) console.warn("Error enabling background:", err);
+          }
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+
+    if (range) {
+      range.addEventListener("input", (e) => {
+        const r = e.target.value;
+        if (valueSpan) valueSpan.textContent = r;
+        document.documentElement.style.setProperty("--bg-blur", r + "px");
+        localStorage.setItem("bgBlur", String(r));
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initBackgroundFeature);
   } else {
-    setSignature("LUIZzz");
+    initBackgroundFeature();
   }
 
-  if (signatureInput) {
-    signatureInput.addEventListener("input", (event) => {
-      setSignature(event.target.value);
+  function fixLanguage() {
+    const upload = document.getElementById("load-button");
+    const clear = document.getElementById("clear");
+    const execute = document.getElementById("execute");
+    const dowload = document.getElementById("download-file");
+    upload.textContent = t("upload");
+    clear.textContent = t("clear");
+    execute.textContent = t("execute");
+    dowload.textContent = t("download");
+  }
+
+  fixLanguage();
+
+  const devModeCheckbox = document.getElementById("dev-mode-checkbox");
+  devModeCheckbox.checked = getDevMode();
+
+  // Ao mudar o checkbox
+  devModeCheckbox.addEventListener("change", function () {
+    const newValue = this.checked;
+    setDevMode(newValue);
+    console.log("Dev Mode atualizado:", getDevMode());
+  });
+
+  function saveCheckboxState() {
+    localStorage.setItem("autoBackground", String(autoCheckbox.checked));
+  }
+
+  function loadCheckboxState() {
+    const savedAuto = localStorage.getItem("autoBackground");
+
+    if (savedAuto !== null) {
+      autoCheckbox.checked = savedAuto === "true";
+      autoBackground = autoCheckbox.checked;
+    }
+
+    if (devModeCheckbox) devModeCheckbox.checked = getDevMode();
+  }
+
+  loadCheckboxState();
+
+  function setBorderColor(color) {
+    if (!color) return;
+    document.documentElement.style.setProperty("--border-orange", color);
+    localStorage.setItem("borderColor", color);
+    if (borderColorInput) borderColorInput.value = color;
+  }
+
+  function setAccentColor(color) {
+    if (!color) return;
+    document.documentElement.style.setProperty("--accent-color", color);
+    localStorage.setItem("accentColor", color);
+    if (accentColorInput) accentColorInput.value = color;
+  }
+
+  const savedBorderColor = localStorage.getItem("borderColor");
+  if (savedBorderColor) {
+    setBorderColor(savedBorderColor);
+  } else {
+    setBorderColor("#ff8a3d");
+  }
+
+  const savedAccentColor = localStorage.getItem("accentColor");
+  if (savedAccentColor) {
+    setAccentColor(savedAccentColor);
+  } else {
+    setAccentColor("#ff6700");
+  }
+
+  if (borderColorInput) {
+    borderColorInput.addEventListener("input", (event) => {
+      setBorderColor(event.target.value);
     });
   }
 
-  if (resetSignatureButton) {
-    resetSignatureButton.addEventListener("click", () => {
-      setSignature("LUIZzz");
+  if (accentColorInput) {
+    accentColorInput.addEventListener("input", (event) => {
+      setAccentColor(event.target.value);
     });
   }
 
+  if (resetBorderColorButton) {
+    resetBorderColorButton.addEventListener("click", () => {
+      setBorderColor("#ff8a3d");
+    });
+  }
+
+  if (resetAccentColorButton) {
+    resetAccentColorButton.addEventListener("click", () => {
+      setAccentColor("#ff6700");
+    });
+  }
 }

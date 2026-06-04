@@ -11,7 +11,7 @@ const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 
 export const language = navigator.language || navigator.userLanguage;
-export const version = "9.2.0"; // Current version / versão atual
+export const version = "04.06.26"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
 // 🌐 DEV MODE UTILITIES

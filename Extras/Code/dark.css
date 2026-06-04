@@ -236,7 +236,7 @@ body {
   border-radius: 20px;
   box-shadow: 0 18px 46px rgba(255, 103, 0, 0.28);
   color: #f5f5f5;
-  font-family: monospace;
+  font-family: "Zen Dots", sans-serif;
   font-size: 14px;
   line-height: 1.5;
   opacity: 0;
@@ -340,8 +340,8 @@ img {
   padding: 3px;
   transition:
     background-color 0.5s ease-in-out,
-    0.2s ease-in-out,
-    width 0.2s ease-out;
+    0.2s ease-in-out;
+  overflow-y: auto;
 }
 
 /* Esconde o checkbox padrão */
@@ -805,6 +805,11 @@ p {
 
 #system-prompt-editor {
   width: 50%;
+  background-color: black;
+  border: 2px solid var(--border-orange);
+  color: var(--accent-color);
+  padding: 5px;
+  border-radius: 10px;
 }
 
 #signature {
