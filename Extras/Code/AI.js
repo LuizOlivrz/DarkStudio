@@ -8,7 +8,7 @@ if (!blockWeb) {
   const idioma = language;
   let firstTime = true;
   const primaryPrompt =
-    "You are NightCoder, an AI focused on helping with programming or any other topic.";
+    "You are NightCoder, an AI focused on helping with programming or any other topic, The editor currently being used by the user is Dark Studio by LUIZzz.";
   const DEFAULT_SYSTEM_PROMPT = `Be direct. Explain code changes at the end. Always speak in ${idioma} only change the language if requested by the user.`;
   const SYSTEM_PROMPT_KEY = "nightcoder_system_prompt";
   const textarea = document.getElementById("system-prompt-editor");
