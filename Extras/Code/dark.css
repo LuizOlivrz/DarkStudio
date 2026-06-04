@@ -190,15 +190,15 @@ body {
 
 #code-language {
   position: fixed;
-  bottom: -70px;
+  bottom: -45px;
   right: 75px;
   background-color: rgba(9, 9, 9, 0.88);
   border: 2px solid var(--border-orange);
   border-radius: 999px;
-  width: 120vh;
+  width: 60%;
   text-align: center;
   color: var(--accent-color);
-  padding: 14px 18px;
+  padding: 4px 18px;
   animation: float 3s ease-in-out infinite;
   transition: width 0.5s ease, bottom 0.5s ease-in-out,
     border-radius 1s ease-in-out, opacity 0.5s ease-in-out,
@@ -209,7 +209,7 @@ body {
 }
 
 #code-language:hover {
-  bottom: -30px;
+  bottom: -10px;
   width: 60% !important;
   border-radius: 10px;
   animation: none;
@@ -291,6 +291,13 @@ img {
 
 #social-links svg {
   width: 30px;
+  height: auto;
+  fill: var(--accent-color);
+  transition: fill 0.3s ease;
+}
+
+#Config-SVG {
+  width: 40px;
   height: auto;
   fill: var(--accent-color);
   transition: fill 0.3s ease;
@@ -778,4 +785,15 @@ p {
 
 #system-prompt-editor {
   width: 50%;
+}
+
+#signature {
+  position: fixed;
+  bottom: -5px;
+  left: 350px;
+  transform: translateX(-50%);
+  color: var(--accent-color);
+  font-family: 'Cherry Bomb One', cursive;
+  font-size: 32px;
+  index: 4;
 }
