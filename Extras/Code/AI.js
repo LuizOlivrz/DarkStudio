@@ -1,7 +1,7 @@
 import { blockWeb, getDevMode, language } from "./config.js";
 
 if (!blockWeb) {
-  const API_KEY = "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";
+  const API_KEY = "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";
   const MODEL = "openai/gpt-oss-120b";
   const STORAGE_KEY = "nightcoder_chat";
   const MAX_MESSAGES = 10;
