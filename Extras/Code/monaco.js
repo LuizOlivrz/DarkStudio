@@ -339,7 +339,7 @@ ${selectedCode}
 Pedido do usuário:
 ${promptUser}
 
-Responda SOMENTE com o código corrigido.
+Responda SOMENTE com o código corrigido. sem explicações, sem nada além do código.
 `;
 
     sendToAI(prompt);
