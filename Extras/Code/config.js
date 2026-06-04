@@ -11,7 +11,7 @@ const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 
 export const language = navigator.language || navigator.userLanguage;
-export const version = "9.1.0"; // Current version / versão atual
+export const version = "9.2.0"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
 // 🌐 DEV MODE UTILITIES
@@ -50,6 +50,7 @@ if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
  */
 export async function loadLanguage(langCode) {
   try {
+    if (getDevMode()) console.log(`🌐 Carregando idioma / Loading language: ${langCode}`);
     const res = await fetch(`Extras/languages/${langCode}.json`);
     if (!res.ok) throw new Error("Language not found");
 
