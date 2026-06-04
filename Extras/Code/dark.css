@@ -700,7 +700,7 @@ p {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 7vh !important;
+  bottom: 20vh !important;
 
   display: grid;
   grid-template-rows: 1fr;
@@ -790,7 +790,7 @@ p {
 #signature {
   position: fixed;
   bottom: -5px;
-  left: 350px;
+  left: 450px;
   transform: translateX(-50%);
   color: var(--accent-color);
   font-family: 'Cherry Bomb One', cursive;

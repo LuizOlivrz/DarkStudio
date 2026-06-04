@@ -38,6 +38,9 @@ if (!blockWeb) {
   const configMenu = document.getElementById("config");
   const options = document.getElementById("options");
   const chat = document.getElementById("chat");
+  const signatureInput = document.getElementById("signature-input");
+  const resetSignatureButton = document.getElementById("reset-signature");
+  const signatureElement = document.getElementById("signature");
   const WebsiteContainer = document.getElementById("Website-Container");
   const dynamicPanel = document.getElementById("dynamic-panel");
   const dynamicPanelText = document.getElementById("dynamic-panel-text");
@@ -745,4 +748,33 @@ if (!blockWeb) {
       btn.blur(); // remove o foco
     });
   });
+
+
+  function setSignature(text) {
+    if (!text) text = "LUIZzz";
+    text = text.substring(0, 22);
+    if (signatureInput) signatureInput.value = text;
+    if (signatureElement) signatureElement.textContent = text;
+    localStorage.setItem("signature", text);
+  }
+
+  const savedSignature = localStorage.getItem("signature");
+  if (savedSignature) {
+    setSignature(savedSignature);
+  } else {
+    setSignature("LUIZzz");
+  }
+
+  if (signatureInput) {
+    signatureInput.addEventListener("input", (event) => {
+      setSignature(event.target.value);
+    });
+  }
+
+  if (resetSignatureButton) {
+    resetSignatureButton.addEventListener("click", () => {
+      setSignature("LUIZzz");
+    });
+  }
+
 }
