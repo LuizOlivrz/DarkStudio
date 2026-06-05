@@ -68,6 +68,33 @@
         <div id="Editor-Input" style="width: 100%; height: 100%"></div>
       </div>
 
+      <!-- ====== MINDMAP CONTAINER / CONTAINER DO MAPA MENTAL ====== -->
+      <div
+        id="mindmap-container"
+        style="
+          display: none;
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+          background: #090909;
+        "
+      >
+        <svg
+          id="mindmap-svg"
+          style="
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: visible;
+          "
+        ></svg>
+        <div
+          id="mindmap-nodes"
+          style="position: absolute; top: 0; left: 0; right: 0; bottom: 0"
+        ></div>
+      </div>
+
       <!-- ====== OPTIONS PANEL / PAINEL DE OPÇÕES ====== -->
       <div id="options">
         <button id="save-button" style="display: none" title="Save"></button>
@@ -95,6 +122,28 @@
           onclick="newIframe()"
         >
           Iframe
+        </button>
+        <button id="mindmap-button" title="Mapa Mental">Mapa Mental</button>
+        <button
+          id="mindmap-add-files"
+          title="Adicionar arquivos ao mapa"
+          style="display: none"
+        >
+          Adicionar (Mapa)
+        </button>
+        <button
+          id="mindmap-connect"
+          title="Conectar nós do mapa"
+          style="display: none"
+        >
+          Conectar (Mapa)
+        </button>
+        <button
+          id="mindmap-clear"
+          title="Limpar mapa mental"
+          style="display: none"
+        >
+          Limpar Mapa
         </button>
 
         <!-- ====== SOCIAL LINKS / REDES SOCIAIS ====== -->
@@ -319,6 +368,7 @@
       <!-- ====== MAIN SCRIPTS / SCRIPTS PRINCIPAIS ====== -->
       <script src="Extras/Code/config.js" type="module"></script>
       <script src="Core/plugin-engine.js" type="module"></script>
+      <script src="Extras/Code/mindmap.js" type="module"></script>
     </div>
   </body>
 </html>
