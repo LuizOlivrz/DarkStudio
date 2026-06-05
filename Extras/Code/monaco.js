@@ -66,8 +66,7 @@ if (!blockWeb) {
 
     await new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src =
-        "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js";
+      script.src = "./Extras/Monaco/vs/loader.js";
       script.onload = resolve;
       script.onerror = reject;
       document.head.appendChild(script);
@@ -82,10 +81,12 @@ if (!blockWeb) {
   async function initMonaco() {
     await loadMonacoLoader();
     require.config({
-      paths: {
-        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs",
-      },
-    });
+  paths: {
+    vs: "./Extras/Monaco/vs",
+  },
+});
+
+    console.log("✅ Monaco Local");
 
     initialTheme = theme;
 
@@ -251,8 +252,6 @@ if (!blockWeb) {
       saveCheckboxState();
     });
   }
-
-  
 
   // Salvando o estado do checkbox com localStorage:
   function saveCheckboxState() {
