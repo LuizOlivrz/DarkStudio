@@ -205,7 +205,23 @@ function handleConnectClick(id, el) {
     return;
   }
   // create connection
-  connections.push({ from: connectSource, to: id });
+  // verificar se a conexão já existe
+  const existingIndex = connections.findIndex(
+    (c) =>
+      (c.from === connectSource && c.to === id) ||
+      (c.from === id && c.to === connectSource),
+  );
+
+  if (existingIndex !== -1) {
+    // remove conexão existente
+    connections.splice(existingIndex, 1);
+  } else {
+    // cria nova conexão
+    connections.push({
+      from: connectSource,
+      to: id,
+    });
+  }
   const prev = document.querySelector(`.mm-node[data-id="${connectSource}"]`);
   if (prev) prev.classList.remove("selected");
   connectSource = null;
