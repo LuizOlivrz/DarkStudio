@@ -853,3 +853,16 @@ p {
     scrollbar-width: thin;
     scrollbar-color: var(--accent-color) transparent;
 }
+
+#social-medias {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+#social-medias svg {
+  width: 38px;
+  height: auto;
+  fill: var(--accent-color);
+  transition: fill 0.3s ease;
+}
