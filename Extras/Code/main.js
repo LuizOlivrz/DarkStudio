@@ -294,36 +294,36 @@ if (!blockWeb) {
   function mapWeatherCode(code) {
     switch (code) {
       case 0:
-        return "Céu limpo";
+        return t("weatherClear");
       case 1:
       case 2:
-        return "Parcialmente nublado";
+        return t("weatherPartlyCloudy");
       case 3:
-        return "Nublado";
+        return t("weatherCloudy");
       case 45:
       case 48:
-        return "Neblina";
+        return t("weatherFog");
       case 51:
       case 53:
       case 55:
-        return "Chuvisco";
+        return t("weatherDrizzle");
       case 61:
       case 63:
       case 65:
       case 80:
       case 81:
       case 82:
-        return "Chuva";
+        return t("weatherRain");
       case 71:
       case 73:
       case 75:
-        return "Neve";
+        return t("weatherSnow");
       case 95:
       case 96:
       case 99:
-        return "Tempestade";
+        return t("weatherStorm");
       default:
-        return "Clima";
+        return t("weatherDefault");
     }
   }
 
@@ -982,13 +982,21 @@ if (!blockWeb) {
 
   function fixLanguage() {
     const upload = document.getElementById("load-button");
+    const mindMap = document.getElementById("mindmap-button");
     const clear = document.getElementById("clear");
     const execute = document.getElementById("execute");
     const dowload = document.getElementById("download-file");
+    const mindMapClear = document.getElementById("mindmap-clear");
+    const mindMapConnect = document.getElementById("mindmap-connect");
+    const mindMapAdd = document.getElementById("mindmap-add-files");
     upload.textContent = t("upload");
     clear.textContent = t("clear");
     execute.textContent = t("execute");
     dowload.textContent = t("download");
+    mindMap.textContent = t("mindMap");
+    mindMapClear.textContent = t("mindMapClear");
+    mindMapConnect.textContent = t("mindMapConnect");
+    mindMapAdd.textContent = t("mindMapAdd");
   }
 
   fixLanguage();
