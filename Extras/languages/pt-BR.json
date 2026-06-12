@@ -27,5 +27,9 @@
   "execute": "Executar código",
   "download": "Baixar código",
   "mathResult": "Matemática:",
-  "mathError": "Erro na expressão matemática."
+  "mathError": "Erro na expressão matemática.",
+  "Spotifysong": "Link (Spotify - Música)",
+  "SpotifyAlbumLink": "Link (Spotify - Álbum)",
+  "SpotifyPlaylistLink": "Link (Spotify - Playlist)",
+  "SpotifyArtistLink": "Link (Spotify - Artista)"
 }

@@ -361,35 +361,64 @@ if (!blockWeb) {
 
       if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//.test(u))
         return "Link (YouTube)";
+
       if (/^(https?:\/\/)?(www\.)?github\.com\//.test(u))
         return "Link (GitHub)";
+
+      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?track\//i.test(u))
+        return t("Spotifysong");
+
+      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?album\//i.test(u))
+        return t("SpotifyAlbumLink");
+
+      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?playlist\//i.test(u))
+        return t("SpotifyPlaylistLink");
+
+      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?artist\//i.test(u))
+        return t("SpotifyArtistLink");
+
+      if (/^(https?:\/\/)?(open\.spotify\.com|spotify\.link)/.test(u))
+        return "Link (Spotify)";
+
       if (/^(https?:\/\/)?drive\.google\.com\//.test(u))
         return "Link (Google Drive)";
+
       if (/^(https?:\/\/)?pastebin\.com\//.test(u)) return "Link (Pastebin)";
+
       if (/^(https?:\/\/)?(chatgpt\.com|openai\.com)\//.test(u))
         return "Link (ChatGPT/OpenAI)";
+
       if (/^(https?:\/\/)?(www\.)?facebook\.com\//.test(u))
         return "Link (Facebook)";
+
       if (/^(https?:\/\/)?(www\.)?instagram\.com\//.test(u))
         return "Link (Instagram)";
+
       if (/^(https?:\/\/)?(twitter\.com|x\.com)\//.test(u))
         return "Link (Twitter/X)";
+
       if (/^(https?:\/\/)?(www\.)?tiktok\.com\//.test(u))
         return "Link (TikTok)";
+
       if (/^(https?:\/\/)?(www\.)?reddit\.com\//.test(u))
         return "Link (Reddit)";
+
       if (/^(https?:\/\/)?(discord\.com|discord\.gg)\//.test(u))
         return "Link (Discord)";
+
       if (
         /^(https?:\/\/)?(steamcommunity\.com|store\.steampowered\.com)\//.test(
           u,
         )
       )
         return "Link (Steam)";
+
       if (/^(https?:\/\/)?docs\.google\.com\//.test(u))
         return "Link (Google Docs)";
+
       if (/^(https?:\/\/)?(www\.)?whatsapp\.com\//.test(u))
         return "Link (WhatsApp)";
+
       if (/^(https?:\/\/)?(t\.me|telegram\.org)\//.test(u))
         return "Link (Telegram)";
 
