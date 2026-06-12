@@ -6,9 +6,12 @@ const STORAGE_KEY = "darkstudio_mindmap_v1";
 
 let nodes = [];
 let previousDisplays = {};
+let deleteTimer = null;
+let deleteCandidate = null;
 let connections = [];
 let connectMode = false;
 let connectSource = null;
+let currentEditingNode = null;
 const container = document.getElementById("mindmap-container");
 
 const parentRect = container.getBoundingClientRect();
@@ -146,6 +149,34 @@ function createNodeElement(node) {
     if (nodeObj) {
       nodeObj.x = rect.left - parentRect.left;
       nodeObj.y = rect.top - parentRect.top;
+      const trash = document.getElementById("mindmap-delete-zone");
+
+      if (trash) {
+        const trashRect = trash.getBoundingClientRect();
+        const nodeRect = el.getBoundingClientRect();
+
+        const touching =
+          nodeRect.left < trashRect.right &&
+          nodeRect.right > trashRect.left &&
+          nodeRect.top < trashRect.bottom &&
+          nodeRect.bottom > trashRect.top;
+
+        if (touching) {
+          deleteNode(node.id);
+
+          hideDeleteZone();
+
+          return;
+        }
+      }
+
+      hideDeleteZone();
+
+      clearTimeout(deleteTimer);
+
+      deleteTimer = null;
+
+      deleteCandidate = null;
       saveState();
       updateConnections();
     }
@@ -166,6 +197,27 @@ function createNodeElement(node) {
     ny = Math.max(0, Math.min(ny, maxY));
     el.style.left = nx + "px";
     el.style.top = ny + "px";
+    const TOP_BAR_LIMIT = 80;
+
+    if (ny < TOP_BAR_LIMIT) {
+      deleteCandidate = node.id;
+
+      if (!deleteTimer) {
+        deleteTimer = setTimeout(() => {
+          showDeleteZone();
+
+          deleteTimer = null;
+        }, 500);
+      }
+    } else {
+      clearTimeout(deleteTimer);
+
+      deleteTimer = null;
+
+      deleteCandidate = null;
+
+      hideDeleteZone();
+    }
     updateConnections();
   });
 
@@ -289,6 +341,47 @@ function openNodeInEditor(node) {
         }
       }
     } else {
+      // salvar alterações do editor no nó atual
+
+      // salva o nó anterior
+      // salva o nó anterior
+      if (
+        currentEditingNode &&
+        window.editor &&
+        typeof window.editor.getValue === "function"
+      ) {
+        const content = window.editor.getValue();
+
+        // salva conteúdo
+        currentEditingNode.content = content;
+
+        // pega primeira linha
+        const firstLine = content.split("\n")[0].trim();
+
+        // se existir, renomeia o nó antigo
+        if (firstLine) {
+          currentEditingNode.name = firstLine.substring(0, 40);
+
+          // atualiza visualmente o nó
+          const nameEl = document.querySelector(
+            `.mm-node[data-id="${currentEditingNode.id}"] .name`,
+          );
+
+          if (nameEl) {
+            nameEl.textContent = currentEditingNode.name;
+          }
+        }
+
+        saveState();
+      }
+
+      // só depois troca para o novo nó
+      currentEditingNode = node;
+
+      if (window.editor) {
+        window.editor.setValue(node.content || "");
+      }
+
       if (window.editor && typeof window.editor.setValue === "function") {
         if (typeof node.content === "string")
           window.editor.setValue(node.content || "");
@@ -351,7 +444,15 @@ function updateConnections() {
 function addNodeFromFile(name, content, px = 120, py = 120, type = "text") {
   const id = String(Date.now()) + Math.random().toString(36).slice(2, 8);
   const parent = document.getElementById("mindmap-nodes");
-  const node = { id, name, content, x: px, y: py, type };
+  const node = {
+    id,
+    name,
+    content,
+    filePath: name, // ou id do arquivo
+    x: px,
+    y: py,
+    type,
+  };
   nodes.push(node);
   const el = createNodeElement(node);
   parent.appendChild(el);
@@ -362,9 +463,15 @@ function addNodeFromFile(name, content, px = 120, py = 120, type = "text") {
 function clearMap() {
   nodes = [];
   connections = [];
+
+  currentEditingNode = null;
+
   const parent = document.getElementById("mindmap-nodes");
+
   parent.innerHTML = "";
+
   updateConnections();
+
   saveState();
 }
 
@@ -467,6 +574,7 @@ function wireUI() {
 
     if (opening) {
       // abrir mapa
+      syncCurrentEditorToMap();
       mind.style.display = "block";
 
       if (editor) {
@@ -529,6 +637,69 @@ function wireUI() {
   });
 }
 
+function syncCurrentEditorToMap() {
+  if (!window.editor) return;
+
+  const content = window.editor.getValue();
+
+  if (!content.trim()) return;
+
+  if (!currentEditingNode) {
+    const content = window.editor.getValue();
+
+    const existingNode = nodes.find(
+      (n) => n.type === "text" && n.content === content,
+    );
+
+    if (existingNode) {
+      currentEditingNode = existingNode;
+    }
+  }
+
+  // se não existir mais no array, invalida
+  if (
+    currentEditingNode &&
+    !nodes.find((n) => n.id === currentEditingNode.id)
+  ) {
+    currentEditingNode = null;
+  }
+
+  if (currentEditingNode) {
+    currentEditingNode.content = content;
+
+    const firstLine = content.split("\n")[0].trim();
+
+    if (firstLine) {
+      currentEditingNode.name = firstLine.substring(0, 40);
+    }
+
+    saveState();
+    return;
+  }
+
+  // Não existe? então cria
+  const node = {
+    id: String(Date.now()),
+    name: "Novo Documento",
+    content,
+    x: 200,
+    y: 200,
+    type: "text",
+  };
+
+  nodes.push(node);
+
+  const parent = document.getElementById("mindmap-nodes");
+
+  if (parent) {
+    parent.appendChild(createNodeElement(node));
+  }
+
+  currentEditingNode = node;
+
+  saveState();
+}
+
 function initMindmap() {
   createStyle();
   loadState();
@@ -542,3 +713,54 @@ if (document.readyState === "loading") {
 }
 
 export {};
+
+function showDeleteZone() {
+  let zone = document.getElementById("mindmap-delete-zone");
+  if (nodes.length <= 1) return;
+
+  if (zone) return zone;
+
+  zone = document.createElement("div");
+
+  zone.id = "mindmap-delete-zone";
+
+  zone.innerHTML = "🗑️";
+
+  Object.assign(zone.style, {
+    position: "fixed",
+    top: "10px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "10px",
+    height: "auto",
+    borderRadius: "70%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "22px",
+    zIndex: "999999",
+  });
+
+  document.body.appendChild(zone);
+
+  return zone;
+}
+
+function hideDeleteZone() {
+  document.getElementById("mindmap-delete-zone")?.remove();
+}
+
+function deleteNode(nodeId) {
+  nodes = nodes.filter((n) => n.id !== nodeId);
+
+  connections = connections.filter((c) => c.from !== nodeId && c.to !== nodeId);
+
+  if (currentEditingNode && currentEditingNode.id === nodeId) {
+    currentEditingNode = null;
+  }
+
+  document.querySelector(`.mm-node[data-id="${nodeId}"]`)?.remove();
+
+  saveState();
+  updateConnections();
+}
