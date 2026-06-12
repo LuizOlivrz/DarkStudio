@@ -25,5 +25,7 @@
   "clear": "Limpar editor",
   "settings": "Configurações",
   "execute": "Executar código",
-  "download": "Baixar código"
+  "download": "Baixar código",
+  "mathResult": "Matemática:",
+  "mathError": "Erro na expressão matemática."
 }

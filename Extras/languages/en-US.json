@@ -25,5 +25,7 @@
   "clear": "Clear editor",
   "settings": "Settings",
   "execute": "Execute code",
-  "download": "Download code"
+  "download": "Download code",
+  "mathResult": "Math:",
+  "mathError": "Error in math expression."
 }
