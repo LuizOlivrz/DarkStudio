@@ -518,6 +518,24 @@ if (!blockWeb) {
     if (/^@echo\s+off|set\s+\w+=|pause/i.test(cleanCode))
       return "Batch (BAT/CMD)";
 
+    const normalized = cleanCode.replace(/\s+/g, "");
+
+    const isMathExpression =
+      /^[0-9+\-*/%().,]+$/.test(normalized) && /[+\-*/%]/.test(normalized);
+
+    if (isMathExpression) {
+      try {
+        const expression = normalized.replace(/(\d),(\d)/g, "$1.$2");
+
+        const result = Function(`"use strict"; return (${expression})`)();
+
+        return `${t("mathResult")} ${result.toLocaleString("pt-BR")}`;
+      } catch (e) {
+        console.error(e);
+        return `${t("mathError")}`;
+      }
+    }
+
     if (/^[a-zA-ZÀ-ú0-9\s.,!?'"()-]+$/.test(cleanCode)) return t("text");
 
     return t("startWriting");
@@ -753,45 +771,45 @@ if (!blockWeb) {
   });
 
   function setSignature(text) {
-  text = text.substring(0, 22);
+    text = text.substring(0, 22);
 
-  if (signatureInput) signatureInput.value = text;
-  if (signatureElement) signatureElement.textContent = text;
+    if (signatureInput) signatureInput.value = text;
+    if (signatureElement) signatureElement.textContent = text;
 
-  localStorage.setItem("signature", text);
-}
+    localStorage.setItem("signature", text);
+  }
 
-const DEFAULT_SIGNATURE = "LUIZzz";
+  const DEFAULT_SIGNATURE = "LUIZzz";
 
-const savedSignature = localStorage.getItem("signature");
-setSignature(savedSignature || DEFAULT_SIGNATURE);
+  const savedSignature = localStorage.getItem("signature");
+  setSignature(savedSignature || DEFAULT_SIGNATURE);
 
-let signatureTimeout;
+  let signatureTimeout;
 
-if (signatureInput) {
-  signatureInput.addEventListener("input", (event) => {
-    const value = event.target.value;
+  if (signatureInput) {
+    signatureInput.addEventListener("input", (event) => {
+      const value = event.target.value;
 
-    // Atualiza apenas a visualização em tempo real
-    if (signatureElement) {
-      signatureElement.textContent =
-        value.substring(0, 22) || DEFAULT_SIGNATURE;
-    }
+      // Atualiza apenas a visualização em tempo real
+      if (signatureElement) {
+        signatureElement.textContent =
+          value.substring(0, 22) || DEFAULT_SIGNATURE;
+      }
 
-    clearTimeout(signatureTimeout);
+      clearTimeout(signatureTimeout);
 
-    signatureTimeout = setTimeout(() => {
-      // Só reseta se estiver vazio após o usuário parar de digitar
-      setSignature(value.trim() || DEFAULT_SIGNATURE);
-    }, 800); // 800ms sem digitar
-  });
-}
+      signatureTimeout = setTimeout(() => {
+        // Só reseta se estiver vazio após o usuário parar de digitar
+        setSignature(value.trim() || DEFAULT_SIGNATURE);
+      }, 800); // 800ms sem digitar
+    });
+  }
 
-if (resetSignatureButton) {
-  resetSignatureButton.addEventListener("click", () => {
-    setSignature(DEFAULT_SIGNATURE);
-  });
-}
+  if (resetSignatureButton) {
+    resetSignatureButton.addEventListener("click", () => {
+      setSignature(DEFAULT_SIGNATURE);
+    });
+  }
 
   // ─────────────────────────────────────────────
   // 🖥️ Screen Size Check / Verificação de Tela
