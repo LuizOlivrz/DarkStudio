@@ -31,5 +31,18 @@
   "Spotifysong": "Link (Spotify - Música)",
   "SpotifyAlbumLink": "Link (Spotify - Álbum)",
   "SpotifyPlaylistLink": "Link (Spotify - Playlist)",
-  "SpotifyArtistLink": "Link (Spotify - Artista)"
+  "SpotifyArtistLink": "Link (Spotify - Artista)",
+  "mindMap": "Mapa Mental",
+  "mindMapClear": "Limpar Mapa",
+  "mindMapConnect": "Conectar",
+  "mindMapAdd": "Adicionar",
+  "weatherClear": "Céu limpo",
+  "weatherPartlyCloudy": "Parcialmente nublado",
+  "weatherCloudy": "Nublado",
+  "weatherFog": "Neblina",
+  "weatherDrizzle": "Chuvisco",
+  "weatherRain": "Chuva",
+  "weatherSnow": "Neve",
+  "weatherStorm": "Tempestade",
+  "weatherDefault": "Clima"
 }
