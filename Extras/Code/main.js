@@ -1,4 +1,3 @@
-// ─────────────────────────────────────────────
 // 🌑 DarkStudio — Main Script / Script Principal
 // ─────────────────────────────────────────────
 
@@ -95,7 +94,7 @@ if (!blockWeb) {
 
     const code = window.editor.getValue();
     const language = detectLanguage(code);
-
+    
     const display = document.querySelector("#code-language h4");
     display.textContent = language;
 
@@ -140,6 +139,7 @@ if (!blockWeb) {
   function updateUI() {
     const code = window.editor.getValue().trim();
     const language = detectLanguage(code);
+    updateMediaPlayer(code);
     const isEmpty = code === "";
 
     languageDisplay.textContent = language;
@@ -570,6 +570,89 @@ if (!blockWeb) {
     return t("startWriting");
   }
 
+  function updateMediaPlayer(code) {
+
+    const player = document.getElementById("mini-player");
+    const iframe = document.getElementById("youtube-iframe");
+
+    if (!player || !iframe) return;
+
+    const text = code.trim();
+
+    let src = "";
+    let spotifyHeight = 152;
+
+    // -------------------------
+    // YouTube
+    // -------------------------
+
+    let match =
+        text.match(/youtu\.be\/([^?&]+)/) ||
+        text.match(/[?&]v=([^&]+)/) ||
+        text.match(/shorts\/([^?&]+)/) ||
+        text.match(/live\/([^?&]+)/);
+
+    if (match) {
+
+        src =
+            `https://www.youtube.com/embed/${match[1]}?autoplay=0&mute=1`;
+
+        player.classList.remove("spotify");
+
+        player.style.width = "320px";
+        player.style.aspectRatio = "16/9";
+
+        iframe.style.height = "100%";
+
+    }
+
+    // -------------------------
+    // Spotify
+    // -------------------------
+
+    else {
+
+        match = text.match(
+            /spotify\.com\/(?:intl-[^/]+\/)?(track|album|playlist|artist)\/([A-Za-z0-9]+)/
+        );
+
+        if (match) {
+
+            const type = match[1];
+            const id = match[2];
+
+            src = `https://open.spotify.com/embed/${type}/${id}`;
+
+            player.classList.add("spotify");
+
+            player.style.width = "300px";
+            player.style.aspectRatio = "auto";
+
+            spotifyHeight =
+                type === "track"
+                    ? 152
+                    : 352;
+
+            iframe.style.height = spotifyHeight + "px";
+        }
+    }
+
+    if (src) {
+
+        if (iframe.src !== src)
+            iframe.src = src;
+
+        player.classList.add("visible");
+
+    } else {
+
+        iframe.src = "";
+        player.classList.remove("visible");
+        player.classList.remove("spotify");
+
+    }
+}
+
   // ─────────────────────────────────────────────
   // 💾 File Download / Download de Arquivo
   // ─────────────────────────────────────────────
@@ -817,20 +900,17 @@ if (!blockWeb) {
 
   if (signatureInput) {
     signatureInput.addEventListener("input", (event) => {
-      const value = event.target.value;
+      const value = event.target.value.substring(0, 22);
 
-      // Atualiza apenas a visualização em tempo real
       if (signatureElement) {
-        signatureElement.textContent =
-          value.substring(0, 22) || DEFAULT_SIGNATURE;
+        signatureElement.textContent = value || DEFAULT_SIGNATURE;
       }
+    });
 
-      clearTimeout(signatureTimeout);
+    signatureInput.addEventListener("blur", () => {
+      const value = signatureInput.value.trim();
 
-      signatureTimeout = setTimeout(() => {
-        // Só reseta se estiver vazio após o usuário parar de digitar
-        setSignature(value.trim() || DEFAULT_SIGNATURE);
-      }, 800); // 800ms sem digitar
+      setSignature(value || DEFAULT_SIGNATURE);
     });
   }
 

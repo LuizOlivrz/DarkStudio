@@ -803,7 +803,7 @@ p {
   color: var(--accent-color);
 }
 
-#system-prompt-editor {
+textarea, input[type="text"] {
   width: 50%;
   background-color: black;
   border: 2px solid var(--border-orange);
@@ -881,4 +881,45 @@ p {
 
   overflow: hidden;
   position: relative;
+}
+
+#mini-player {
+    position:fixed;
+    top: 9px;
+    right: 9px;
+
+    width:320px;
+    aspect-ratio:16/9;
+
+    border-radius:12px;
+    overflow:hidden;
+
+    opacity:0;
+    transform:translateY(-10px);
+    pointer-events:none;
+
+    transition:.25s;
+
+    z-index:0;
+}
+
+#mini-player.visible{
+    opacity:1;
+    transform:none;
+    pointer-events:auto;
+}
+
+#mini-player iframe{
+    width:100%;
+    height:100%;
+    border:none;
+}
+
+#mini-player.spotify{
+    width:600px;
+    aspect-ratio:auto;
+}
+
+#mini-player.spotify iframe{
+    height:152px;
 }
