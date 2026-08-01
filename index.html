@@ -68,6 +68,22 @@
         <div id="Editor-Input" style="width: 100%; height: 100%"></div>
       </div>
 
+      <div id="mini-player">
+        <iframe
+          id="youtube-iframe"
+          allow="
+            accelerometer;
+            autoplay;
+            clipboard-write;
+            encrypted-media;
+            gyroscope;
+            picture-in-picture;
+          "
+          allowfullscreen
+        >
+        </iframe>
+      </div>
+
       <!-- ====== MINDMAP CONTAINER / CONTAINER DO MAPA MENTAL ====== -->
       <div
         id="mindmap-container"
@@ -221,8 +237,8 @@
           | Debug mode (shows additional information). </label
         ><br /><br />
         <h3>Signature</h3>
-        <label for="signature-input">Your signature (max 22 chars):</label>
-        <input type="text" id="signature-input" value="LUIZzz" maxlength="22" />
+        <label for="signature-input">Your signature (max 22 chars):</label><br>
+        <input type="text" id="signature-input" value="LUIZzz" maxlength="22" /><br>
         <button type="button" id="reset-signature">Reset</button>
         <br /><br /><br />
 
@@ -355,7 +371,32 @@
         </div>
       </div>
 
-      <h1 id="signature">LUIZzz</h1>
+      <h1
+        id="signature"
+        onclick="
+          // mostra/oculta as áreas
+          document.getElementById('config').style.opacity = '1';
+          document.getElementById('config').style.pointerEvents = 'auto';
+          document.getElementById('Editor').style.opacity = '0';
+          document.getElementById('Editor').style.pointerEvents = 'none';
+          configValue = true;
+
+          // ---------- foco + scroll ----------
+          const target = document.getElementById('signature-input');
+          if (target) {
+            // rola suavemente até o elemento (centraliza na tela)
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // dá foco ao elemento sem gerar novo scroll
+            setTimeout(() => {
+              target.focus();
+              target.selectionStart = target.selectionEnd = target.value.length;
+            }, 300);
+          }
+        "
+      >
+        LUIZzz
+      </h1>
 
       <!-- ====== FILE INPUT (HIDDEN) / INPUT DE ARQUIVOS INVISÍVEL ====== -->
       <input
