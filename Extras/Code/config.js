@@ -14,6 +14,22 @@ export const language = navigator.language || navigator.userLanguage;
 export const version = "01.08.26"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
+// ▶️ CODE EXECUTOR SETTINGS
+// Controle de execução de código
+// ─────────────────────────────────────────────
+
+export const EXECUTOR_CONFIG = {
+  JavaScript: true,
+  HTML: true,
+
+  // Abre o código em ambiente isolado
+  isolated: true,
+
+  // Impede o código executado de acessar o documento/página do DarkStudio
+  isolateOrigin: true,
+};
+
+// ─────────────────────────────────────────────
 // 🌐 DEV MODE UTILITIES
 // Utilitários do Modo Desenvolvedor
 // ─────────────────────────────────────────────
@@ -50,7 +66,8 @@ if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
  */
 export async function loadLanguage(langCode) {
   try {
-    if (getDevMode()) console.log(`🌐 Carregando idioma / Loading language: ${langCode}`);
+    if (getDevMode())
+      console.log(`🌐 Carregando idioma / Loading language: ${langCode}`);
     const res = await fetch(`Extras/languages/${langCode}.json`);
     if (!res.ok) throw new Error("Language not found");
 
@@ -92,7 +109,7 @@ await loadLanguage(language);
 // Detecção de Dispositivo
 // ─────────────────────────────────────────────
 
-if (!block) detectDevice();
+detectDevice();
 
 /**
  * Detect mobile or desktop
@@ -104,8 +121,6 @@ function detectDevice() {
   );
 
   device = isMobile ? "Mobile" : "Desktop";
-
-  if (getDevMode()) console.log("📱 Dispositivo / Device:", device);
 }
 
 /**
@@ -134,14 +149,24 @@ export const blockWeb = block;
  */
 async function js(name) {
   const path = `Extras/Code/${name}.js`;
-
   const ok = await checkFile(path, `${name}.js`);
-  if (!ok) return;
 
-  const script = document.createElement("script");
-  script.src = path;
-  script.type = "module";
-  document.body.appendChild(script);
+  if (!ok) return false;
+
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+
+    script.src = path;
+    script.type = "module";
+
+    script.onload = () => resolve(true);
+    script.onerror = () => {
+      bootLogs.push(`❌ ${name}.js`);
+      resolve(false);
+    };
+
+    document.body.appendChild(script);
+  });
 }
 
 /**
@@ -150,10 +175,14 @@ async function js(name) {
  */
 function loadJS(name) {
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => js(name));
-  } else {
-    js(name);
+    return new Promise((resolve) => {
+      document.addEventListener("DOMContentLoaded", () => resolve(js(name)), {
+        once: true,
+      });
+    });
   }
+
+  return js(name);
 }
 
 /**
@@ -169,13 +198,19 @@ export function loadExternalScript(url) {
     }
 
     const script = document.createElement("script");
+
     script.src = url;
     script.defer = true;
+
     script.onload = () => {
-      if (getDevMode()) console.log("📦 Script externo:", url);
+      bootLogs.push("✅ Color Thief");
       resolve();
     };
-    script.onerror = () => reject(`Erro ao carregar ${url}`);
+
+    script.onerror = () => {
+      bootLogs.push("❌ Color Thief");
+      reject(`Erro ao carregar ${url}`);
+    };
 
     document.head.appendChild(script);
   });
@@ -190,41 +225,70 @@ export async function loadCSS(name) {
   const path = `Extras/Code/${name}`;
 
   if (!name.endsWith(".css")) {
-    console.warn(`❌ ${name} — não é CSS`);
-    return;
+    bootLogs.push(`❌ ${name}`);
+    return false;
   }
 
-  if (document.querySelector(`link[href="${path}"]`)) return;
+  if (document.querySelector(`link[href="${path}"]`)) {
+    return true;
+  }
 
   const ok = await checkFile(path, name);
-  if (!ok) return;
 
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = path;
-  document.head.appendChild(link);
+  if (!ok) return false;
 
-  setTimeout(() => {
-    const container = document.getElementById("Website-Container");
-    if (container) container.style.opacity = "1";
-  }, 1000);
+  return new Promise((resolve) => {
+    const link = document.createElement("link");
+
+    link.rel = "stylesheet";
+    link.href = path;
+
+    link.onload = () => {
+      const container = document.getElementById("Website-Container");
+
+      if (container) {
+        container.style.opacity = "1";
+      }
+
+      resolve(true);
+    };
+
+    link.onerror = () => {
+      bootLogs.push(`❌ ${name}`);
+      resolve(false);
+    };
+
+    document.head.appendChild(link);
+  });
 }
+
+const bootLogs = [];
 
 async function checkFile(path, label) {
   try {
     const res = await fetch(path, { method: "HEAD" });
 
     if (res.ok) {
-      console.log(`✅ ${label} — ${path}`);
+      bootLogs.push(`✅ ${label}`);
       return true;
-    } else {
-      console.warn(`❌ ${label} — ${path}`);
-      return false;
     }
+
+    bootLogs.push(`❌ ${label}`);
+    return false;
   } catch {
-    console.warn(`❌ ${label} — erro ao acessar ${path}`);
+    bootLogs.push(`❌ ${label}`);
     return false;
   }
+}
+
+function flushBootLogs() {
+  if (!getDevMode()) return;
+
+  console.log(
+    `🌑 DarkStudio | Device: ${device} | Language: ${currentLang} | ${bootLogs.join(" • ")}`,
+  );
+
+  bootLogs.length = 0;
 }
 
 // ─────────────────────────────────────────────
@@ -247,8 +311,6 @@ export function loadFavicon(href) {
   }
 
   favicon.href = href;
-
-  if (getDevMode()) console.log("⭐ Favicon:", href);
 }
 
 function applyFavicon(e) {
@@ -262,22 +324,23 @@ function applyFavicon(e) {
 
 if (!block) {
   (async () => {
-    loadJS("monaco");
-    loadJS("main");
-    loadJS("AI");
+    await Promise.all([
+      loadJS("monaco"),
+      loadJS("main"),
+      loadJS("AI"),
 
-    await loadExternalScript(
-      "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
-    );
+      loadExternalScript(
+        "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
+      ),
+    ]);
 
-    if (device !== "Mobile") {
-      loadCSS("dark.css");
-    } else {
-      loadCSS("mobile.css");
-    }
+    await loadCSS(device !== "Mobile" ? "dark.css" : "mobile.css");
 
     applyFavicon(mediaQuery);
+
     mediaQuery.addEventListener("change", applyFavicon);
+
+    flushBootLogs();
   })();
 }
 

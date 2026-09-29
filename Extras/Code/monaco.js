@@ -3,7 +3,6 @@
 // ─────────────────────────────────────────────
 import { getDevMode, blockWeb } from "./config.js";
 import { chatOpenValue, ChatVerification } from "./main.js";
-import { loadPlugins } from "/core/plugin-engine.js";
 
 let chatOpen = chatOpenValue();
 
@@ -61,16 +60,86 @@ if (!blockWeb) {
     theme = this.value;
   });
 
-  async function loadMonacoLoader() {
-    if (window.require) return; // já carregado
+  // ─────────────────────────────────────────────
+  // Carregamento do monaco (Editor né bro)
+  // ─────────────────────────────────────────────
 
-    await new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = "./Extras/Monaco/vs/loader.js";
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
+  const MONACO_LOCAL = "./Extras/Monaco/vs/loader.js";
+
+  const MONACO_WEB =
+    "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js";
+
+  const MONACO_WEB_PATH =
+    "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs";
+
+  let monacoSource = "local";
+
+  function testMonacoWeb(timeout = 1800) {
+    return new Promise((resolve) => {
+      const controller = new AbortController();
+
+      const timer = setTimeout(() => {
+        controller.abort();
+        resolve(false);
+      }, timeout);
+
+      fetch(MONACO_WEB, {
+        method: "GET",
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .then((response) => {
+          clearTimeout(timer);
+          resolve(response.ok);
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          resolve(false);
+        });
     });
+  }
+
+  async function loadMonacoLoader() {
+    if (window.require) return;
+
+    let loaderURL = MONACO_LOCAL;
+
+    if (navigator.onLine) {
+      const webAvailable = await testMonacoWeb();
+
+      if (webAvailable) {
+        loaderURL = MONACO_WEB;
+        monacoSource = "web";
+      }
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+
+        script.src = loaderURL;
+        script.onload = resolve;
+        script.onerror = reject;
+
+        document.head.appendChild(script);
+      });
+    } catch {
+      if (loaderURL !== MONACO_LOCAL) {
+        monacoSource = "local";
+
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+
+          script.src = MONACO_LOCAL;
+          script.onload = resolve;
+          script.onerror = reject;
+
+          document.head.appendChild(script);
+        });
+      } else {
+        throw new Error("Não foi possível carregar o Monaco.");
+      }
+    }
   }
   await loadMonacoLoader();
 
@@ -80,13 +149,14 @@ if (!blockWeb) {
 
   async function initMonaco() {
     await loadMonacoLoader();
-    require.config({
-  paths: {
-    vs: "./Extras/Monaco/vs",
-  },
-});
 
-    console.log("✅ Monaco Local");
+    require.config({
+      paths: {
+        vs: monacoSource === "web" ? MONACO_WEB_PATH : "./Extras/Monaco/vs",
+      },
+    });
+
+    console.log(monacoSource === "web" ? "🌐 Monaco Web" : "📦 Monaco Local");
 
     initialTheme = theme;
 
@@ -116,8 +186,6 @@ if (!blockWeb) {
           minimap: { enabled: false },
         },
       );
-
-      //loadPlugins(window.editor);
 
       // ─────────────────────────────────────────────
       // 💾 Auto Save / Salvamento Automático
