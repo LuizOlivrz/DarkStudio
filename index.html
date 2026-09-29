@@ -13,6 +13,15 @@
   <meta name="keywords" content="DarkStudio, Editor, DS" />
   <meta name="author" content="Luiz (CDP)" />
   <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://dark-studio-code.netlify.app/">
+
+  <!-- Aparencia por compartilhamento -->
+
+  <meta property="og:title" content="DarkStudio">
+  <meta property="og:description" content="Editor de código web para HTML, CSS e JavaScript.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://seusite.com/">
+  <meta property="og:image" content="https://seusite.com/assets/darkstudio.png">
 
   <!-- ====== APPEARANCE & ICONS / APARÊNCIA E ÍCONES ====== -->
   <meta id="theme-color" name="theme-color" content="#111" />
@@ -46,6 +55,10 @@
     <!-- ====== CODE EDITOR / EDITOR DE CÓDIGO ====== -->
     <div id="Editor" translate="no">
       <div id="Editor-Input" style="width: 100%; height: 100%"></div>
+    </div>
+
+    <div id="executor-panel">
+      <div id="executor-output"></div>
     </div>
 
     <div id="mini-player">
@@ -282,7 +295,6 @@
 
     <!-- ====== MAIN SCRIPTS / SCRIPTS PRINCIPAIS ====== -->
     <script src="Extras/Code/config.js" type="module"></script>
-    <script src="Core/plugin-engine.js" type="module"></script>
     <script src="Extras/Code/mindmap.js" type="module"></script>
   </div>
 </body>

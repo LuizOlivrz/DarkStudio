@@ -20,7 +20,14 @@ export function ChatVerification() {
 // 🚫 Bloqueia acesso em dispositivos móveis
 // ─────────────────────────────────────────────
 
-import { blockWeb, setDevMode, getDevMode, t, getDevice } from "./config.js";
+import {
+  blockWeb,
+  setDevMode,
+  getDevMode,
+  t,
+  getDevice,
+  EXECUTOR_CONFIG,
+} from "./config.js";
 
 if (!blockWeb) {
   // ─────────────────────────────────────────────
@@ -38,6 +45,8 @@ if (!blockWeb) {
   const downloadButton = document.getElementById("download-file");
   const clearButton = document.getElementById("clear");
   const editor = document.getElementById("Editor");
+  const executorPanel = document.getElementById("executor-panel");
+  const executorOutput = document.getElementById("executor-output");
   const configMenu = document.getElementById("config");
   const options = document.getElementById("options");
   const chat = document.getElementById("chat");
@@ -89,22 +98,24 @@ if (!blockWeb) {
   // 🔄 Auto Language Detection / Detecção Automática
   // ─────────────────────────────────────────────
 
-  setInterval(() => {
+  function updateLanguageDisplay(language) {
     if (!window.editor) return;
 
-    const code = window.editor.getValue();
-    const language = detectLanguage(code);
-    
+    const model = window.editor.getModel();
+    if (!model) return;
+
     const display = document.querySelector("#code-language h4");
-    display.textContent = language;
+
+    if (display && display.textContent !== language) {
+      display.textContent = language;
+    }
 
     const monacoLang = modeMap[language];
-    const currentLang = window.editor.getModel().getLanguageId();
 
-    if (monacoLang && monacoLang !== currentLang) {
-      monaco.editor.setModelLanguage(window.editor.getModel(), monacoLang);
+    if (monacoLang && model.getLanguageId() !== monacoLang) {
+      monaco.editor.setModelLanguage(model, monacoLang);
     }
-  }, 1000);
+  }
 
   // ─────────────────────────────────────────────
   // ⚙️ Editor Initialization / Inicialização do Editor
@@ -112,42 +123,74 @@ if (!blockWeb) {
 
   function initEditorEvents() {
     if (!window.editor) {
-      setTimeout(initEditorEvents, 500); // tenta novamente até o editor carregar
+      setTimeout(initEditorEvents, 500);
       return;
     }
 
     // 1️⃣ Carrega código salvo do localStorage
     const savedCode = localStorage.getItem("codigoSalvo");
-    if (savedCode) window.editor.setValue(savedCode);
 
-    // 2️⃣ Detecta linguagem inicial e configura botões
+    if (savedCode) {
+      window.editor.setValue(savedCode);
+    }
+
+    // 2️⃣ Detecta linguagem inicial e configura interface
     updateUI();
+    updateLanguageDisplay(detectLanguage(window.editor.getValue()));
 
-    // 3️⃣ Atualiza a interface sempre que o usuário digitar
+    // 3️⃣ Atualiza a interface quando o usuário digitar
     window.editor.onDidChangeModelContent(() => {
-      updateUI();
+      scheduleCodeAnalysis();
       handleTypingActivity();
     });
 
     initDynamicPanel();
   }
 
+  let languageTimer = null;
+
+  function scheduleCodeAnalysis() {
+    clearTimeout(languageTimer);
+
+    languageTimer = setTimeout(() => {
+      if (!window.editor) return;
+
+      const code = window.editor.getValue().trim();
+      const language = detectLanguage(code);
+
+      updateUI(code, language);
+      updateLanguageDisplay(language);
+    }, 180);
+  }
+
   /**
    * Atualiza os botões e linguagem com base no código atual
    * Updates the buttons and language display based on current code
    */
-  function updateUI() {
-    const code = window.editor.getValue().trim();
-    const language = detectLanguage(code);
-    updateMediaPlayer(code);
-    const isEmpty = code === "";
+  function updateUI(code, language) {
+    // Se não foram fornecidos, obtém do editor
+    if (code === undefined) {
+      code = window.editor ? window.editor.getValue() : "";
+    }
+
+    if (language === undefined) {
+      language = detectLanguage(code);
+    }
+
+    const isEmpty = code.trim() === "";
 
     languageDisplay.textContent = language;
+
     executeButton.style.display =
       language === "HTML" || language === "JavaScript" ? "block" : "none";
+
     iframeButton.style.display = language === "HTML" ? "block" : "none";
+
     downloadButton.style.display = isEmpty ? "none" : "inline-block";
+
     clearButton.style.display = isEmpty ? "none" : "inline-block";
+
+    updateMediaPlayer(code);
   }
 
   initEditorEvents();
@@ -571,13 +614,12 @@ if (!blockWeb) {
   }
 
   function updateMediaPlayer(code) {
-
     const player = document.getElementById("mini-player");
     const iframe = document.getElementById("youtube-iframe");
 
     if (!player || !iframe) return;
 
-    const text = code.trim();
+    const text = typeof code === "string" ? code.trim() : "";
 
     let src = "";
     let spotifyHeight = 152;
@@ -587,71 +629,54 @@ if (!blockWeb) {
     // -------------------------
 
     let match =
-        text.match(/youtu\.be\/([^?&]+)/) ||
-        text.match(/[?&]v=([^&]+)/) ||
-        text.match(/shorts\/([^?&]+)/) ||
-        text.match(/live\/([^?&]+)/);
+      text.match(/youtu\.be\/([^?&]+)/) ||
+      text.match(/[?&]v=([^&]+)/) ||
+      text.match(/shorts\/([^?&]+)/) ||
+      text.match(/live\/([^?&]+)/);
 
     if (match) {
+      src = `https://www.youtube.com/embed/${match[1]}?autoplay=0&mute=1`;
 
-        src =
-            `https://www.youtube.com/embed/${match[1]}?autoplay=0&mute=1`;
+      player.classList.remove("spotify");
 
-        player.classList.remove("spotify");
+      player.style.width = "320px";
+      player.style.aspectRatio = "16/9";
 
-        player.style.width = "320px";
-        player.style.aspectRatio = "16/9";
-
-        iframe.style.height = "100%";
-
+      iframe.style.height = "100%";
     }
 
     // -------------------------
     // Spotify
     // -------------------------
-
     else {
+      const spotify = getSpotifyInfo(text);
 
-        match = text.match(
-            /spotify\.com\/(?:intl-[^/]+\/)?(track|album|playlist|artist)\/([A-Za-z0-9]+)/
-        );
+      if (spotify) {
+        src = `https://open.spotify.com/embed/${spotify.type}/${spotify.id}`;
 
-        if (match) {
+        updateSpotifyTheme(spotify);
 
-            const type = match[1];
-            const id = match[2];
+        player.classList.add("spotify");
 
-            src = `https://open.spotify.com/embed/${type}/${id}`;
+        player.style.width = "300px";
+        player.style.aspectRatio = "auto";
 
-            player.classList.add("spotify");
+        spotifyHeight = spotify.type === "track" ? 152 : 352;
 
-            player.style.width = "300px";
-            player.style.aspectRatio = "auto";
-
-            spotifyHeight =
-                type === "track"
-                    ? 152
-                    : 352;
-
-            iframe.style.height = spotifyHeight + "px";
-        }
+        iframe.style.height = spotifyHeight + "px";
+      }
     }
 
     if (src) {
+      if (iframe.src !== src) iframe.src = src;
 
-        if (iframe.src !== src)
-            iframe.src = src;
-
-        player.classList.add("visible");
-
+      player.classList.add("visible");
     } else {
-
-        iframe.src = "";
-        player.classList.remove("visible");
-        player.classList.remove("spotify");
-
+      iframe.src = "";
+      player.classList.remove("visible");
+      player.classList.remove("spotify");
     }
-}
+  }
 
   // ─────────────────────────────────────────────
   // 💾 File Download / Download de Arquivo
@@ -703,60 +728,374 @@ if (!blockWeb) {
   // ▶️ Execute Code / Executar Código
   // ─────────────────────────────────────────────
 
+  let executorActive = false;
+
   function execute() {
+    // =====================================================
+    // VOLTAR PARA O EDITOR
+    // =====================================================
+
+    if (executorActive) {
+      executorActive = false;
+
+      if (executorPanel) {
+        executorPanel.classList.remove("executor-visible");
+      }
+
+      if (editor) {
+        editor.classList.remove("editor-hidden");
+      }
+
+      executeButton.textContent = t("execute");
+
+      setTimeout(() => {
+        if (!executorActive && executorOutput) {
+          executorOutput.innerHTML = "";
+        }
+
+        if (!executorActive && executorPanel) {
+          executorPanel.style.display = "none";
+        }
+      }, 300);
+
+      return;
+    }
+
+    // =====================================================
+    // OBTER CÓDIGO
+    // =====================================================
+
+    if (!window.editor) {
+      console.error("DarkStudio: Monaco não encontrado.");
+      return;
+    }
+
     const code = window.editor.getValue();
     const language = detectLanguage(code);
 
-    if (language === "HTML") {
-      const newWindow = window.open();
-      const safeHTML = sanitizeHTML(code);
-      newWindow.document.write(safeHTML);
-      newWindow.document.close();
-    } else if (language === "JavaScript") {
-      alert(t("JSBlocked"));
+    if (!code.trim()) {
+      alert(t("codeEmpty"));
       return;
-      const safeCode = code.replace(/<\/script>/gi, "<\\/script>");
-      const newTab = window.open();
-      newTab.document.write(`
-      <!doctype html>
-      <html>
-      <head>
-        <meta charset="utf-8"/>
-        <title>Terminal JS — DarkStudio</title>
-        <style>
-          body{background:#071012;color:#00ff88;font-family:monospace;padding:12px;margin:0}
-          #output{white-space:pre-wrap;overflow:auto;height:calc(100vh - 40px)}
-          .error{color:#ff6b6b}
-        </style>
-      </head>
-      <body>
-        <div id="output"></div>
-        <script>
-          const out = document.getElementById('output');
-          const log = console.log, err = console.error;
-          console.log = (...a)=>{ log(...a); out.textContent += a.join(' ')+'\\n'; };
-          console.error = (...a)=>{ err(...a); out.innerHTML += '<span class="error">'+a.join(' ')+'</span>\\n'; };
-          try { ${safeCode} } catch(e){ console.error('Erro:', e); }
-        <\\/script>
-      </body>
-      </html>
-    `);
-    } else {
-      alert(t("Errorhtmljs"));
     }
 
-    function sanitizeHTML(html) {
-      return (
-        html
-          // remove scripts externos
-          .replace(/<script[^>]*src[^>]*><\/script>/gi, "")
-          // remove qualquer script inline
-          .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-          // remove links de CSS
-          .replace(/<link[^>]*>/gi, "")
-      );
+    // =====================================================
+    // JAVASCRIPT
+    // =====================================================
+
+    if (language === "JavaScript") {
+      if (!EXECUTOR_CONFIG.JavaScript) {
+        alert(t("JSBlocked"));
+        return;
+      }
+
+      showExecutor();
+
+      executeIsolatedJavaScript(code);
+
+      return;
     }
+
+    // =====================================================
+    // HTML
+    // =====================================================
+
+    if (language === "HTML") {
+      if (!EXECUTOR_CONFIG.HTML) {
+        alert(t("Errorhtmljs"));
+        return;
+      }
+
+      showExecutor();
+
+      executeIsolatedHTML(code);
+
+      return;
+    }
+
+    alert(t("Errorhtmljs"));
   }
+
+  // ─────────────────────────────────────────────
+  // MOSTRA O EXECUTOR NA CÉLULA DO EDITOR
+  // ─────────────────────────────────────────────
+
+  function showExecutor() {
+    if (!executorPanel || !executorOutput) {
+      console.error(
+        "DarkStudio Executor: #executor-panel ou #executor-output não encontrado.",
+      );
+
+      return;
+    }
+
+    executorActive = true;
+
+    // limpa execução anterior
+    executorOutput.innerHTML = "";
+
+    // mostra o painel antes da animação
+    executorPanel.style.display = "block";
+
+    // força o navegador a reconhecer o display antes da animação
+    requestAnimationFrame(() => {
+      if (editor) {
+        editor.classList.add("editor-hidden");
+      }
+
+      executorPanel.classList.add("executor-visible");
+    });
+
+    executeButton.textContent = "Voltar ao Editor";
+  }
+
+  // ─────────────────────────────────────────────
+  // CRIA IFRAME SANDBOX
+  // ─────────────────────────────────────────────
+
+  function createIsolatedFrame() {
+    const iframe = document.createElement("iframe");
+
+    iframe.setAttribute("sandbox", "allow-scripts");
+
+    iframe.setAttribute("title", "DarkStudio Executor");
+
+    iframe.setAttribute("frameborder", "0");
+
+    executorOutput.appendChild(iframe);
+
+    return iframe;
+  }
+
+  // ─────────────────────────────────────────────
+  // EXECUTOR JAVASCRIPT
+  // ─────────────────────────────────────────────
+
+  function executeIsolatedJavaScript(code) {
+    const iframe = createIsolatedFrame();
+
+    const safeCode = code.replace(/<\/script>/gi, "<\\/script>");
+
+    iframe.srcdoc = `
+<!doctype html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1"
+/>
+
+<style>
+
+html,
+body {
+
+  margin: 0;
+  padding: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: #071012;
+
+  color: #00ff88;
+
+  font-family: monospace;
+
+}
+
+#output {
+
+  width: 100%;
+  height: 100%;
+
+  box-sizing: border-box;
+
+  padding: 16px;
+
+  overflow: auto;
+
+  white-space: pre-wrap;
+
+}
+
+.error {
+
+  color: #ff6b6b;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="output"></div>
+
+<script>
+
+(() => {
+
+  const output =
+    document.getElementById("output");
+
+
+  function stringify(value) {
+
+    if (typeof value === "string") {
+      return value;
+    }
+
+    try {
+
+      return JSON.stringify(
+        value,
+        null,
+        2
+      );
+
+    } catch {
+
+      return String(value);
+
+    }
+
+  }
+
+
+  const originalLog =
+    console.log;
+
+  const originalWarn =
+    console.warn;
+
+  const originalError =
+    console.error;
+
+
+  console.log = (...args) => {
+
+    originalLog(...args);
+
+    output.textContent +=
+      args.map(stringify).join(" ")
+      + "\\n";
+
+  };
+
+
+  console.warn = (...args) => {
+
+    originalWarn(...args);
+
+    output.textContent +=
+      "⚠️ "
+      + args.map(stringify).join(" ")
+      + "\\n";
+
+  };
+
+
+  console.error = (...args) => {
+
+    originalError(...args);
+
+    const line =
+      document.createElement("div");
+
+    line.className = "error";
+
+    line.textContent =
+      "❌ "
+      + args.map(stringify).join(" ");
+
+    output.appendChild(line);
+
+  };
+
+
+  window.onerror =
+    (message, source, line, column, error) => {
+
+      console.error(
+        error?.stack || message
+      );
+
+      return true;
+
+    };
+
+
+  window.onunhandledrejection =
+    (event) => {
+
+      console.error(
+        event.reason
+      );
+
+    };
+
+
+  try {
+
+    ${safeCode}
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+
+})();
+
+<\/script>
+
+</body>
+
+</html>
+`;
+  }
+
+  // ─────────────────────────────────────────────
+  // EXECUTOR HTML
+  // ─────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────
+  // EXECUTOR HTML
+  // ─────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────
+  // EXECUTOR HTML
+  // ─────────────────────────────────────────────
+
+  function executeIsolatedHTML(code) {
+    const iframe = createIsolatedFrame();
+
+    iframe.srcdoc = `
+
+<style>
+/* =====================================================
+   DARKSTUDIO DEFAULT HTML STYLE
+
+   Apenas o padrão inicial.
+   O CSS do usuário pode sobrescrever tudo.
+   ===================================================== */
+
+   html {
+   color: orange;
+   }
+</style>
+${code}
+
+`;
+  }
+
+  // ─────────────────────────────────────────────
 
   window.execute = execute;
 
@@ -1157,6 +1496,89 @@ if (!blockWeb) {
   if (resetAccentColorButton) {
     resetAccentColorButton.addEventListener("click", () => {
       setAccentColor("#ff6700");
+    });
+  }
+
+  function getSpotifyInfo(url) {
+    const match = url.match(
+      /spotify\.com\/(?:intl-[^/]+\/)?(track|album|playlist|artist)\/([A-Za-z0-9]+)/,
+    );
+
+    if (!match) return null;
+
+    return {
+      type: match[1],
+      id: match[2],
+    };
+  }
+
+  async function updateSpotifyTheme(spotify) {
+    try {
+      // Obtém informações da música pelo oEmbed
+      const oembed = await fetch(
+        `https://open.spotify.com/oembed?url=https://open.spotify.com/${spotify.type}/${spotify.id}`,
+      );
+
+      if (!oembed.ok) throw new Error("Spotify oEmbed falhou.");
+
+      const meta = await oembed.json();
+
+      const title = meta.title;
+
+      // Pesquisa no iTunes
+      const response = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(title)}&entity=song&limit=1`,
+      );
+
+      if (!response.ok) throw new Error("iTunes Search falhou.");
+
+      const data = await response.json();
+
+      if (!data.results?.length) {
+        throw new Error("Música não encontrada.");
+      }
+
+      // pega a capa em resolução maior
+      const cover = data.results[0].artworkUrl100.replace(
+        /100x100[^/]*/,
+        "600x600bb",
+      );
+
+      console.log("Capa encontrada:", cover);
+      await applyThemeFromImage(cover);
+    } catch (err) {
+      console.error("Erro ao atualizar tema:", err);
+    }
+  }
+
+  async function applyThemeFromImage(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+
+      img.crossOrigin = "anonymous";
+      img.referrerPolicy = "no-referrer";
+
+      img.onload = () => {
+        try {
+          const colorThief = new ColorThief();
+
+          const color = colorThief.getColor(img);
+
+          document.documentElement.style.setProperty(
+            "--accent-color",
+            `rgb(${color.join(",")})`,
+          );
+
+          resolve(true);
+        } catch (err) {
+          console.error(err);
+          resolve(false);
+        }
+      };
+
+      img.onerror = () => resolve(false);
+
+      img.src = url;
     });
   }
 }

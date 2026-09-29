@@ -35,33 +35,39 @@ if (!blockWeb) {
   }
 
   function loadChatFromStorage() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) firstTime = true;
-
+    const saved = localStorage.getItem(STORAGE_KEY); // Primeiro acesso: não existe histórico
+    // Não é erro e não precisa gerar warning no console.
+    if (!saved) {
+      firstTime = true;
+      return;
+    }
     try {
       const parsed = JSON.parse(saved);
-
-      parsed.forEach((msg) => {
+      // Proteção contra dados inválidos ou formato antigo.
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        firstTime = true;
+        return;
+      }
+      const messages = document.getElementById("messages");
+      for (const msg of parsed) {
+        if (!msg || !msg.role || typeof msg.content !== "string") continue;
         chatHistory.push(msg);
-
         const divClass = msg.role === "user" ? "user" : "ai";
         const content =
           msg.role === "assistant"
             ? renderMessage(msg.content)
             : escapeHTML(msg.content);
-
-        document.getElementById("messages").innerHTML +=
-          `<div class='${divClass}'>${content}</div>`;
-        firstTime = false;
-      });
-    } catch (e) {
-      console.warn(
-        "Falha ao restaurar chat:",
-        e,
-        "Será considerado a 1 vez do usuario",
-      );
-      firstTime = true;
+        messages.insertAdjacentHTML(
+          "beforeend",
+          `<div class="${divClass}">${content}</div>`,
+        );
+      }
+      firstTime = false;
+    } catch (error) {
+      // Só avisa quando realmente existe um histórico corrompido.
+      console.warn("⚠️ Histórico do chat inválido — iniciando novo chat.");
       localStorage.removeItem(STORAGE_KEY);
+      firstTime = true;
     }
   }
 

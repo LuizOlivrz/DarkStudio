@@ -48,7 +48,7 @@ body {
   transition:
     background 0.5s ease-in-out,
     color 0.5s ease-in-out,
-    opacity 0.2s ease-in-out,
+    opacity 0.2s ease-in-out;
 }
 
 #Editor-Input {
@@ -803,7 +803,8 @@ p {
   color: var(--accent-color);
 }
 
-textarea, input[type="text"] {
+textarea,
+input[type="text"] {
   width: 50%;
   background-color: black;
   border: 2px solid var(--border-orange);
@@ -827,31 +828,31 @@ textarea, input[type="text"] {
 
 /* Chrome, Edge, Opera */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-corner {
-    background: transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--accent-color);
-    border-radius: 999px;
+  background: var(--accent-color);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-color);
+  background: var(--accent-color);
 }
 
 /* Firefox */
 * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent-color) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) transparent;
 }
 
 #social-medias {
@@ -884,42 +885,127 @@ textarea, input[type="text"] {
 }
 
 #mini-player {
-    position:fixed;
-    top: 9px;
-    right: 9px;
+  position: fixed;
+  top: 9px;
+  right: 9px;
 
-    width:320px;
-    aspect-ratio:16/9;
+  width: 320px;
+  aspect-ratio: 16/9;
 
-    border-radius:12px;
-    overflow:hidden;
+  border-radius: 12px;
+  overflow: hidden;
 
-    opacity:0;
-    transform:translateY(-10px);
-    pointer-events:none;
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
 
-    transition:.25s;
+  transition: 0.25s;
 
-    z-index:0;
+  z-index: 0;
 }
 
-#mini-player.visible{
-    opacity:1;
-    transform:none;
-    pointer-events:auto;
+#mini-player.visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
-#mini-player iframe{
-    width:100%;
-    height:100%;
-    border:none;
+#mini-player iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
-#mini-player.spotify{
-    width:600px;
-    aspect-ratio:auto;
+#mini-player.spotify {
+  width: 600px;
+  aspect-ratio: auto;
 }
 
-#mini-player.spotify iframe{
-    height:152px;
+#mini-player.spotify iframe {
+  height: 152px;
+}
+
+/* =========================================================
+   DARKSTUDIO EXECUTOR
+   Ocupa exatamente a mesma célula do Editor
+   ========================================================= */
+
+#executor-panel {
+  grid-column: 2;
+  grid-row: 1;
+
+  width: 100%;
+  height: 92.2vh;
+
+  min-width: 300px;
+
+  box-sizing: border-box;
+
+  background: #090909;
+
+  border: 2px solid var(--border-orange);
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  display: none;
+
+  opacity: 0;
+  transform: translateY(10px);
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+
+  position: relative;
+
+  z-index: 10;
+}
+
+#executor-panel.executor-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#executor-output {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+}
+
+#executor-output iframe {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+
+  margin: 0;
+  padding: 0;
+
+  color: white;
+  background: #090909;
+}
+
+/* =========================================================
+   EDITOR DURANTE EXECUÇÃO
+   ========================================================= */
+
+#Editor {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+#Editor.editor-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+
+  pointer-events: none;
 }
