@@ -24,6 +24,8 @@ let currentEditingNode = null;
 let connectMode = false;
 let connectSource = null;
 let activeDrag = null;
+let activePan = null;
+let workspacePan = { x: 0, y: 0 };
 let folderClickTimer = null;
 let previousDisplays = {};
 
@@ -121,9 +123,15 @@ function centerPosition(offset = 0) {
   const rect = mind?.getBoundingClientRect();
 
   return {
-    x: Math.max(12, (rect?.width || 800) / 2 - 90 + offset),
-    y: Math.max(80, (rect?.height || 600) / 2 - 25 + offset),
+    x: Math.max(12, (rect?.width || 800) / 2 - 90 + offset - workspacePan.x),
+    y: Math.max(80, (rect?.height || 600) / 2 - 25 + offset - workspacePan.y),
   };
+}
+
+function applyWorkspacePan() {
+  const transform = `translate(${workspacePan.x}px, ${workspacePan.y}px)`;
+  if (nodeLayer) nodeLayer.style.transform = transform;
+  if (svg) svg.style.transform = transform;
 }
 
 // ============================================================
@@ -138,6 +146,7 @@ function saveState() {
         nodes,
         connections,
         workspaceName,
+        workspacePan,
       }),
     );
   } catch (error) {
@@ -170,7 +179,7 @@ async function persistStateToIndexedDB() {
     const db = await openWorkspaceDB();
     await new Promise((resolve, reject) => {
       const transaction = db.transaction("workspace", "readwrite");
-      transaction.objectStore("workspace").put({ nodes, connections, workspaceName }, "current");
+      transaction.objectStore("workspace").put({ nodes, connections, workspaceName, workspacePan }, "current");
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
@@ -190,6 +199,9 @@ async function restoreStateFromIndexedDB() {
       request.onerror = () => reject(request.error);
     });
     if (!saved || !Array.isArray(saved.nodes)) return;
+    if (Number.isFinite(saved.workspacePan?.x) && Number.isFinite(saved.workspacePan?.y)) {
+      workspacePan = { x: saved.workspacePan.x, y: saved.workspacePan.y };
+    }
     nodes = saved.nodes;
     connections = Array.isArray(saved.connections) ? saved.connections : [];
     workspaceName = typeof saved.workspaceName === "string" && saved.workspaceName
@@ -227,6 +239,10 @@ function loadState() {
     }
 
     const data = JSON.parse(raw);
+
+    if (Number.isFinite(data.workspacePan?.x) && Number.isFinite(data.workspacePan?.y)) {
+      workspacePan = { x: data.workspacePan.x, y: data.workspacePan.y };
+    }
 
     nodes = Array.isArray(data.nodes) ? data.nodes : [];
     connections = Array.isArray(data.connections) ? data.connections : [];
@@ -346,7 +362,7 @@ function injectStyles() {
     }
 
     .mm-node.selected {
-      outline: 2px solid var(--accent-color,#ff781f);
+      outline: 2px solid var(--accent-color,#683AB7);
     }
 
     .mm-node.mm-folder {
@@ -363,8 +379,8 @@ function injectStyles() {
     }
 
     .mm-node.current-file {
-      border-color: #ff8738;
-      box-shadow: 0 0 0 1px #ff8738;
+      border-color: #683AB7;
+      box-shadow: 0 0 0 1px #683AB7;
     }
 
     .mm-node .mm-icon {
@@ -402,7 +418,7 @@ function injectStyles() {
       padding: 6px;
       display: grid;
       gap: 4px;
-      border: 1px solid rgba(255,135,56,.65);
+      border: 1px solid rgba(var(--accent-rgb, 104, 58, 183),.65);
       border-radius: 10px;
       background: rgba(16,16,16,.98);
       box-shadow: 0 12px 32px #0009;
@@ -422,7 +438,7 @@ function injectStyles() {
     }
 
     #mindmap-add-menu button:hover {
-      background: rgba(255,120,31,.16);
+      background: rgba(var(--accent-rgb, 104, 58, 183),.16);
     }
 
     #workspace-name {
@@ -524,7 +540,7 @@ function showNameDialog(initialName = "", title = "Nome") {
       maxWidth: "360px",
       padding: "22px",
       borderRadius: "13px",
-      border: "1px solid rgba(255,135,56,.6)",
+      border: "1px solid rgba(var(--accent-rgb, 104, 58, 183),.6)",
       background: "#151515",
       color: "#fff",
       boxShadow: "0 20px 60px #0009",
@@ -579,7 +595,7 @@ function showNameDialog(initialName = "", title = "Nome") {
         padding: "9px 13px",
         borderRadius: "7px",
         border: "1px solid #444",
-        background: button === confirm ? "#ff781f" : "#242424",
+        background: button === confirm ? "#683AB7" : "#242424",
         color: "#fff",
         cursor: "pointer",
       });
@@ -977,21 +993,8 @@ function onPointerMove(event) {
   const drag = activeDrag;
   const rect = mind.getBoundingClientRect();
 
-  const x = Math.max(
-    0,
-    Math.min(
-      rect.width - drag.element.offsetWidth,
-      event.clientX - rect.left - drag.offsetX,
-    ),
-  );
-
-  const y = Math.max(
-    0,
-    Math.min(
-      rect.height - drag.element.offsetHeight,
-      event.clientY - rect.top - drag.offsetY,
-    ),
-  );
+  const x = event.clientX - rect.left - drag.offsetX - workspacePan.x;
+  const y = event.clientY - rect.top - drag.offsetY - workspacePan.y;
 
   if (
     Math.abs(event.clientX - drag.startX) +
@@ -1110,6 +1113,38 @@ function onPointerUp(event) {
   saveState();
   updateFolderVisibility();
   updateConnections();
+}
+
+function beginWorkspacePan(event) {
+  if (event.button !== 0 || connectMode || activeDrag || event.target.closest(".mm-node, button, input, select, textarea, a")) return;
+  if (event.target !== nodeLayer && event.target !== mind) return;
+  event.preventDefault();
+  activePan = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, x: workspacePan.x, y: workspacePan.y };
+  mind.setPointerCapture?.(event.pointerId);
+  mind.style.cursor = "grabbing";
+  document.body.style.userSelect = "none";
+  document.addEventListener("pointermove", onWorkspacePanMove, { passive: false });
+  document.addEventListener("pointerup", endWorkspacePan);
+  document.addEventListener("pointercancel", endWorkspacePan);
+}
+
+function onWorkspacePanMove(event) {
+  if (!activePan || event.pointerId !== activePan.pointerId) return;
+  event.preventDefault();
+  workspacePan = { x: activePan.x + event.clientX - activePan.startX, y: activePan.y + event.clientY - activePan.startY };
+  applyWorkspacePan();
+  updateConnections();
+}
+
+function endWorkspacePan(event) {
+  if (!activePan || (event?.pointerId != null && event.pointerId !== activePan.pointerId)) return;
+  document.removeEventListener("pointermove", onWorkspacePanMove);
+  document.removeEventListener("pointerup", endWorkspacePan);
+  document.removeEventListener("pointercancel", endWorkspacePan);
+  document.body.style.userSelect = "";
+  mind.style.cursor = "";
+  activePan = null;
+  saveState();
 }
 
 function attachNodeToFolder(node, folder) {
@@ -1394,6 +1429,41 @@ function normalizeProjectPath(path) {
   return parts.join("/");
 }
 
+function resolveProjectFile(reference, fromNode = currentEditingNode) {
+  const raw = String(reference || "").trim();
+  if (!raw || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(raw)) return null;
+
+  let path = raw.split(/[?#]/, 1)[0];
+  try { path = decodeURIComponent(path); } catch { /* Keep malformed escapes as a literal path. */ }
+  path = path.replace(/\\/g, "/");
+  if (!path) return null;
+
+  const sourcePath = getWorkspacePath(fromNode);
+  const sourceDirectory = sourcePath.includes("/")
+    ? sourcePath.slice(0, sourcePath.lastIndexOf("/"))
+    : "";
+  const targetPath = normalizeProjectPath(path.startsWith("/")
+    ? path
+    : `${sourceDirectory ? `${sourceDirectory}/` : ""}${path}`);
+
+  let match = nodes.find((node) => node.type !== "folder" && normalizeProjectPath(node.filePath || node.name) === targetPath);
+  if (!match) {
+    const lowerPath = targetPath.toLowerCase();
+    match = nodes.find((node) => node.type !== "folder" && normalizeProjectPath(node.filePath || node.name).toLowerCase() === lowerPath);
+  }
+
+  return match ? normalizeProjectPath(match.filePath || match.name) : null;
+}
+
+window.darkStudioResolveProjectReference = (reference) => resolveProjectFile(reference);
+window.darkStudioOpenProjectFile = (path) => {
+  const normalized = normalizeProjectPath(path);
+  const node = nodes.find((item) => item.type !== "folder" && normalizeProjectPath(item.filePath || item.name) === normalized);
+  if (!node) return false;
+  openNodeInEditor(node);
+  return true;
+};
+
 function previewMime(path) {
   const ext = path.split(".").pop().toLowerCase();
   return ({ html: "text/html", htm: "text/html", css: "text/css", js: "text/javascript", mjs: "text/javascript", json: "application/json", svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", ico: "image/x-icon", woff: "font/woff", woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf", mp4: "video/mp4", webm: "video/webm", mp3: "audio/mpeg", wav: "audio/wav" })[ext] || "text/plain";
@@ -1409,37 +1479,53 @@ function createProjectPreview(node) {
   const generatedUrls = new Set();
   for (const [path, item] of files) {
     const mime = previewMime(path);
-    const blob = item.content.startsWith("data:")
+    const content = String(item.content ?? "");
+    const blob = content.startsWith("data:") || /\.css$/i.test(path)
       ? null
-      : new Blob([item.content], { type: mime });
-    const resourceUrl = blob ? URL.createObjectURL(blob) : item.content;
+      : new Blob([content], { type: mime });
+    const resourceUrl = blob ? URL.createObjectURL(blob) : (content.startsWith("data:") ? content : "");
     urls.set(path, resourceUrl);
     if (resourceUrl.startsWith("blob:")) generatedUrls.add(resourceUrl);
   }
 
-  const resolve = (reference, fromPath) => {
+  const resolvePath = (reference, fromPath) => {
     const raw = String(reference || "").trim();
-    if (!raw || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(raw)) return raw;
+    if (!raw || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(raw)) return null;
     const clean = raw.split(/[?#]/, 1)[0];
     let decoded;
     try { decoded = decodeURIComponent(clean); } catch { decoded = clean; }
     const parent = fromPath.includes("/") ? fromPath.slice(0, fromPath.lastIndexOf("/")) : "";
-    const target = normalizeProjectPath(decoded.startsWith("/") ? decoded : `${parent ? `${parent}/` : ""}${decoded}`);
+    return normalizeProjectPath(decoded.startsWith("/") ? decoded : `${parent ? `${parent}/` : ""}${decoded}`);
+  };
+  const resolve = (reference, fromPath) => {
+    const raw = String(reference || "").trim();
+    if (!raw || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(raw)) return raw;
+    const target = resolvePath(raw, fromPath);
     return urls.get(target) || raw;
   };
-  const rewriteCss = (css, path) => css
-    .replace(/url\(\s*(['"]?)(.*?)\1\s*\)/gi, (all, quote, ref) => `url("${resolve(ref, path)}")`)
-    .replace(/@import\s+(['"])(.*?)\1/gi, (all, quote, ref) => `@import "${resolve(ref, path)}"`);
+  const rewriteCss = (css, path) => css.replace(
+    /url\(\s*(['"]?)(.*?)\1\s*\)/gi,
+    (all, quote, ref) => `url("${resolve(ref, path)}")`,
+  );
 
-  // Blob URLs for CSS need their own relative dependencies rewritten too.
-  for (const [path, item] of files) {
-    if (/\.css$/i.test(path) && !item.content.startsWith("data:")) {
-      const old = urls.get(path);
-      const cssUrl = URL.createObjectURL(new Blob([rewriteCss(item.content, path)], { type: "text/css" }));
-      generatedUrls.add(cssUrl);
-      urls.set(path, cssUrl);
-    }
-  }
+  const inlineCss = (css, path, importStack = new Set()) => {
+    if (importStack.has(path)) return "";
+    const nextStack = new Set(importStack).add(path);
+    const withImports = String(css || "").replace(
+      /@import\s+(?:url\(\s*)?(?:(['"])(.*?)\1|([^'"\s);]+))\s*\)?\s*([^;]*);/gi,
+      (all, quote, quotedPath, unquotedPath, media = "") => {
+        const reference = quotedPath || unquotedPath || "";
+        const target = resolvePath(reference, path);
+        const imported = files.get(target);
+        if (!imported || !/\.css$/i.test(target) || nextStack.has(target)) {
+          return all.replace(reference, resolve(reference, path));
+        }
+        const contents = inlineCss(imported.content, target, nextStack);
+        return media.trim() ? `@media ${media.trim()} {\n${contents}\n}` : contents;
+      },
+    );
+    return rewriteCss(withImports, path).replace(/<\/style/gi, "\\3C /style");
+  };
 
   // Rewrite relative ES module imports to the matching imported resource URL.
   // This supports common static module graphs without requiring a project server.
@@ -1474,10 +1560,22 @@ function createProjectPreview(node) {
 
   let html = String(index.content || "");
   html = html.replace(/<base\b[^>]*>/gi, "");
+  // Inline project stylesheets so the opaque sandboxed srcdoc can render them
+  // without relying on cross-origin blob stylesheet requests.
+  html = html.replace(/<link\b[^>]*>/gi, (tag) => {
+    const rel = tag.match(/\brel\s*=\s*(["'])(.*?)\1/i)?.[2] || "";
+    const hrefMatch = tag.match(/\bhref\s*=\s*(["'])(.*?)\1/i);
+    if (!/\bstylesheet\b/i.test(rel) || !hrefMatch) return tag;
+    const target = resolvePath(hrefMatch[2], index.filePath);
+    const stylesheet = files.get(target);
+    if (!stylesheet || !/\.css$/i.test(target)) return tag;
+    const media = tag.match(/\bmedia\s*=\s*(["'])(.*?)\1/i)?.[2];
+    return `<style${media ? ` media="${media.replace(/["&<>]/g, "")}"` : ""}>${inlineCss(stylesheet.content, target)}</style>`;
+  });
   html = html.replace(/(<(?:script|link|img|source|video|audio|track|iframe|input)\b[^>]*?\b(?:src|href|poster)\s*=\s*)(["'])(.*?)\2/gi,
     (all, prefix, quote, ref) => `${prefix}${quote}${resolve(ref, index.filePath)}${quote}`);
   html = html.replace(/\bsrcset\s*=\s*(["'])(.*?)\1/gi, (all, quote, value) => `srcset=${quote}${value.split(",").map((part) => { const [url, ...descriptor] = part.trim().split(/\s+/); return [resolve(url, index.filePath), ...descriptor].join(" "); }).join(", ")}${quote}`);
-  html = html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (all, css) => all.replace(css, rewriteCss(css, index.filePath)));
+  html = html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (all, css) => all.replace(css, inlineCss(css, index.filePath)));
   html = html.replace(/\bstyle\s*=\s*(["'])(.*?)\1/gi, (all, quote, css) => `style=${quote}${rewriteCss(css, index.filePath)}${quote}`);
   return { html, revoke: () => generatedUrls.forEach((url) => URL.revokeObjectURL(url)) };
 }
@@ -1840,6 +1938,8 @@ function clearMap() {
   currentEditingNode = null;
   connectSource = null;
   connectMode = false;
+  workspacePan = { x: 0, y: 0 };
+  applyWorkspacePan();
 
   saveState();
   renderNodes();
@@ -1893,6 +1993,8 @@ function wireUI() {
   const addButton = document.getElementById("mindmap-add-files");
   const connectButton = document.getElementById("mindmap-connect");
   const clearButton = document.getElementById("mindmap-clear");
+
+  mind?.addEventListener("pointerdown", beginWorkspacePan);
 
   if (mapButton) {
     mapButton.addEventListener("click", () => {
@@ -1969,6 +2071,7 @@ async function initMindmap() {
   injectStyles();
   loadState();
   await restoreStateFromIndexedDB();
+  applyWorkspacePan();
   setupFileInputs();
   wireUI();
   renderNodes();

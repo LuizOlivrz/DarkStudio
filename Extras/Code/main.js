@@ -61,6 +61,8 @@ if (!blockWeb) {
   let configValue = false;
   let panelIndex = 0;
   let panelRotationTimer = null;
+  let dynamicPanelChangeTimer = null;
+  let dynamicPanelChangeId = 0;
   let typingTimer = null;
   let isTyping = false;
   let weatherKey = "loadingWeather";
@@ -266,16 +268,45 @@ if (!blockWeb) {
       return;
     }
 
+    if (dynamicPanelChangeTimer) clearTimeout(dynamicPanelChangeTimer);
+    const changeId = ++dynamicPanelChangeId;
+    const compact = window.matchMedia?.("(max-width: 700px)").matches;
+    const minWidth = compact ? 104 : 120;
+    const maxWidth = Math.max(minWidth, Math.min(compact ? 240 : 320, window.innerWidth * .42));
+    const currentWidth = dynamicPanel.getBoundingClientRect().width || minWidth;
+
     dynamicPanel.classList.add("visible", "is-changing");
     dynamicPanelText.classList.remove("visible");
+    dynamicPanel.style.flexBasis = `${currentWidth}px`;
+    dynamicPanelText.textContent = text;
 
-    window.setTimeout(() => {
-      dynamicPanelText.textContent = text;
-      requestAnimationFrame(() => {
+    const measure = document.createElement("span");
+    const textStyle = getComputedStyle(dynamicPanelText);
+    Object.assign(measure.style, {
+      position: "fixed", visibility: "hidden", width: "max-content", maxWidth: "none",
+      whiteSpace: "nowrap", font: textStyle.font, letterSpacing: textStyle.letterSpacing,
+    });
+    measure.textContent = text;
+    dynamicPanel.appendChild(measure);
+    const panelStyle = getComputedStyle(dynamicPanel);
+    const extraWidth = [panelStyle.paddingLeft, panelStyle.paddingRight, panelStyle.borderLeftWidth, panelStyle.borderRightWidth]
+      .reduce((total, value) => total + (Number.parseFloat(value) || 0), 0);
+    const contentWidth = measure.getBoundingClientRect().width + extraWidth;
+    measure.remove();
+    const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth));
+
+    dynamicPanel.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      if (changeId !== dynamicPanelChangeId) return;
+      dynamicPanel.style.flexBasis = `${targetWidth}px`;
+      dynamicPanelChangeTimer = window.setTimeout(() => {
+        if (changeId !== dynamicPanelChangeId) return;
         dynamicPanelText.classList.add("visible");
-        window.setTimeout(() => dynamicPanel.classList.remove("is-changing"), 180);
-      });
-    }, 180);
+        dynamicPanel.style.flexBasis = "";
+        dynamicPanel.classList.remove("is-changing");
+        dynamicPanelChangeTimer = null;
+      }, 190);
+    });
   }
 
   function updateDynamicPanel() {
@@ -395,9 +426,39 @@ if (!blockWeb) {
     if (!dynamicPanel || !dynamicPanelText) return;
     const panelHidden = localStorage.getItem("darkstudio-hide-dynamic-panel") === "true";
     if (dynamicPanelCheckbox) dynamicPanelCheckbox.checked = panelHidden;
-    dynamicPanel.hidden = panelHidden;
+    let visibilityTimer = null;
+    let visibilityAnimationEnd = null;
+    const setDynamicPanelVisibility = (hidden, animate = true) => {
+      if (visibilityTimer) clearTimeout(visibilityTimer);
+      if (visibilityAnimationEnd) dynamicPanel.removeEventListener("animationend", visibilityAnimationEnd);
+      dynamicPanel.classList.remove("is-hiding", "is-showing");
+      dynamicPanel.hidden = false;
+
+      if (!animate) {
+        dynamicPanel.hidden = hidden;
+        dynamicPanel.setAttribute("aria-hidden", String(hidden));
+        return;
+      }
+
+      dynamicPanel.setAttribute("aria-hidden", String(hidden));
+      visibilityAnimationEnd = (event) => {
+        if (event.target !== dynamicPanel) return;
+        dynamicPanel.removeEventListener("animationend", visibilityAnimationEnd);
+        visibilityAnimationEnd = null;
+        dynamicPanel.classList.remove("is-hiding", "is-showing");
+        dynamicPanel.hidden = hidden;
+        visibilityTimer = null;
+      };
+      dynamicPanel.addEventListener("animationend", visibilityAnimationEnd);
+      dynamicPanel.classList.add(hidden ? "is-hiding" : "is-showing");
+      visibilityTimer = window.setTimeout(() => {
+        visibilityAnimationEnd?.({ target: dynamicPanel });
+      }, 500);
+    };
+
+    setDynamicPanelVisibility(panelHidden, false);
     dynamicPanelCheckbox?.addEventListener("change", () => {
-      dynamicPanel.hidden = dynamicPanelCheckbox.checked;
+      setDynamicPanelVisibility(dynamicPanelCheckbox.checked);
       localStorage.setItem("darkstudio-hide-dynamic-panel", String(dynamicPanelCheckbox.checked));
     });
     document.addEventListener("fullscreenchange", () => {
@@ -1172,7 +1233,7 @@ body {
    ===================================================== */
 
    html {
-   color: orange;
+   color: #683AB7;
    }
 </style>
 ${code}
@@ -1648,6 +1709,7 @@ ${code}
   function setBorderColor(color) {
     if (!color) return;
     document.documentElement.style.setProperty("--border-orange", color);
+    document.documentElement.style.setProperty("--orange", color);
     localStorage.setItem("borderColor", color);
     if (borderColorInput) borderColorInput.value = color;
   }
@@ -1655,22 +1717,29 @@ ${code}
   function setAccentColor(color) {
     if (!color) return;
     document.documentElement.style.setProperty("--accent-color", color);
+    const rgb = color.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    if (rgb) {
+      document.documentElement.style.setProperty(
+        "--accent-rgb",
+        `${parseInt(rgb[1], 16)}, ${parseInt(rgb[2], 16)}, ${parseInt(rgb[3], 16)}`,
+      );
+    }
     localStorage.setItem("accentColor", color);
     if (accentColorInput) accentColorInput.value = color;
   }
 
   const savedBorderColor = localStorage.getItem("borderColor");
-  if (savedBorderColor) {
+  if (savedBorderColor && savedBorderColor.toLowerCase() !== "#ff8a3d") {
     setBorderColor(savedBorderColor);
   } else {
-    setBorderColor("#ff8a3d");
+    setBorderColor("#683AB7");
   }
 
   const savedAccentColor = localStorage.getItem("accentColor");
-  if (savedAccentColor) {
+  if (savedAccentColor && savedAccentColor.toLowerCase() !== "#ff6700") {
     setAccentColor(savedAccentColor);
   } else {
-    setAccentColor("#ff6700");
+    setAccentColor("#683AB7");
   }
 
   if (borderColorInput) {
@@ -1687,13 +1756,13 @@ ${code}
 
   if (resetBorderColorButton) {
     resetBorderColorButton.addEventListener("click", () => {
-      setBorderColor("#ff8a3d");
+      setBorderColor("#683AB7");
     });
   }
 
   if (resetAccentColorButton) {
     resetAccentColorButton.addEventListener("click", () => {
-      setAccentColor("#ff6700");
+      setAccentColor("#683AB7");
     });
   }
 
