@@ -2,7 +2,6 @@
 // ─────────────────────────────────────────────
 
 let chatOpen = false;
-
 export function chatOpenValue(value) {
   chatOpen = value;
 }
@@ -27,6 +26,8 @@ import {
   t,
   getDevice,
   EXECUTOR_CONFIG,
+  loadLanguage,
+  getCurrentLanguage,
 } from "./config.js";
 
 if (!blockWeb) {
@@ -48,7 +49,6 @@ if (!blockWeb) {
   const executorPanel = document.getElementById("executor-panel");
   const executorOutput = document.getElementById("executor-output");
   const configMenu = document.getElementById("config");
-  const options = document.getElementById("options");
   const chat = document.getElementById("chat");
   const signatureInput = document.getElementById("signature-input");
   const resetSignatureButton = document.getElementById("reset-signature");
@@ -56,13 +56,15 @@ if (!blockWeb) {
   const WebsiteContainer = document.getElementById("Website-Container");
   const dynamicPanel = document.getElementById("dynamic-panel");
   const dynamicPanelText = document.getElementById("dynamic-panel-text");
+  const dynamicPanelCheckbox = document.getElementById("dynamic-panel-checkbox");
   const pageOpenedAt = Date.now();
   let configValue = false;
   let panelIndex = 0;
   let panelRotationTimer = null;
   let typingTimer = null;
   let isTyping = false;
-  let weatherText = "☁️ Carregando clima...";
+  let weatherKey = "loadingWeather";
+  let weatherTemperature = null;
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -70,7 +72,6 @@ if (!blockWeb) {
 
   const modeMap = {
     JavaScript: "javascript",
-    "VeloScript - pqpcara": "javascript",
     Python: "python",
     Java: "java",
     HTML: "html",
@@ -89,6 +90,8 @@ if (!blockWeb) {
     Markdown: "markdown",
     Git: "plaintext",
     Texto: "plaintext",
+    [t("text")]: "plaintext",
+    [t("gitText")]: "plaintext",
     Rust: "rust",
     "Comece a escrever seu código e veja a linguagem aqui!": "plaintext",
     "Start writing your code and see the language here!": "plaintext",
@@ -110,7 +113,11 @@ if (!blockWeb) {
       display.textContent = language;
     }
 
-    const monacoLang = modeMap[language];
+    const monacoLang =
+      modeMap[language] ||
+      ([t("text"), t("gitText"), t("startWriting")].includes(language)
+        ? "plaintext"
+        : null);
 
     if (monacoLang && model.getLanguageId() !== monacoLang) {
       monaco.editor.setModelLanguage(model, monacoLang);
@@ -215,7 +222,7 @@ if (!blockWeb) {
   }
 
   function getClockText() {
-    return `🕒 ${new Date().toLocaleTimeString("pt-BR", {
+    return `🕒 ${new Date().toLocaleTimeString(getCurrentLanguage(), {
       hour12: false,
       hour: "2-digit",
       minute: "2-digit",
@@ -223,22 +230,31 @@ if (!blockWeb) {
   }
 
   function getWeatherText() {
-    return weatherText;
+    const temperature = Number.isFinite(weatherTemperature)
+      ? ` — ${weatherTemperature}°C`
+      : "";
+    return `☁️ ${t(weatherKey)}${temperature}`;
   }
 
   function getUptimeText() {
-    return `⏱️ Aberto há ${formatUptime(Date.now() - pageOpenedAt)}`;
+    return `⏱️ ${t("openFor")} ${formatUptime(Date.now() - pageOpenedAt)}`;
   }
 
   function getPanelText() {
-    switch (panelIndex) {
-      case 0:
-        return getClockText();
-      case 1:
-        return getWeatherText();
-      default:
-        return getUptimeText();
-    }
+    const panels = getAvailablePanels();
+    return panels[panelIndex % panels.length]();
+  }
+
+  function isAppFullscreen() {
+    const displayModeFullscreen = window.matchMedia?.("(display-mode: fullscreen)").matches;
+    const screenFullscreen = window.screen &&
+      window.outerWidth >= window.screen.availWidth &&
+      window.outerHeight >= window.screen.availHeight;
+    return Boolean(document.fullscreenElement || displayModeFullscreen || screenFullscreen);
+  }
+
+  function getAvailablePanels() {
+    return [...(isAppFullscreen() ? [getClockText] : []), getWeatherText, getUptimeText];
   }
 
   function setPanelText(text) {
@@ -250,18 +266,21 @@ if (!blockWeb) {
       return;
     }
 
-    dynamicPanel.classList.add("visible");
+    dynamicPanel.classList.add("visible", "is-changing");
     dynamicPanelText.classList.remove("visible");
 
     window.setTimeout(() => {
       dynamicPanelText.textContent = text;
-      dynamicPanelText.classList.add("visible");
-    }, 250);
+      requestAnimationFrame(() => {
+        dynamicPanelText.classList.add("visible");
+        window.setTimeout(() => dynamicPanel.classList.remove("is-changing"), 180);
+      });
+    }, 180);
   }
 
   function updateDynamicPanel() {
     if (isTyping) {
-      setPanelText("# NightCoder pode te ajudar - Ctrl+I");
+      setPanelText(t("typingHelp"));
       return;
     }
 
@@ -270,7 +289,7 @@ if (!blockWeb) {
 
   function cycleDynamicPanel() {
     if (isTyping) return;
-    panelIndex = (panelIndex + 1) % 3;
+    panelIndex = (panelIndex + 1) % getAvailablePanels().length;
     updateDynamicPanel();
   }
 
@@ -300,7 +319,7 @@ if (!blockWeb) {
 
   async function fetchWeather() {
     if (!navigator.geolocation) {
-      weatherText = "☁️ Clima desconhecido";
+      weatherKey = "weatherDefault";
       updateDynamicPanel();
       return;
     }
@@ -322,13 +341,15 @@ if (!blockWeb) {
       if (data && data.current_weather) {
         const weatherCode = data.current_weather.weathercode;
         const temp = Math.round(data.current_weather.temperature);
-        const label = mapWeatherCode(weatherCode);
-        weatherText = `☁️ ${label} — ${temp}°C`;
+        weatherKey = mapWeatherCode(weatherCode);
+        weatherTemperature = temp;
       } else {
-        weatherText = "☁️ Clima indisponível";
+        weatherKey = "weatherDefault";
+        weatherTemperature = null;
       }
     } catch {
-      weatherText = "☁️ Clima indisponível";
+      weatherKey = "weatherDefault";
+      weatherTemperature = null;
     }
 
     if (!isTyping) updateDynamicPanel();
@@ -337,41 +358,56 @@ if (!blockWeb) {
   function mapWeatherCode(code) {
     switch (code) {
       case 0:
-        return t("weatherClear");
+        return "weatherClear";
       case 1:
       case 2:
-        return t("weatherPartlyCloudy");
+        return "weatherPartlyCloudy";
       case 3:
-        return t("weatherCloudy");
+        return "weatherCloudy";
       case 45:
       case 48:
-        return t("weatherFog");
+        return "weatherFog";
       case 51:
       case 53:
       case 55:
-        return t("weatherDrizzle");
+        return "weatherDrizzle";
       case 61:
       case 63:
       case 65:
       case 80:
       case 81:
       case 82:
-        return t("weatherRain");
+        return "weatherRain";
       case 71:
       case 73:
       case 75:
-        return t("weatherSnow");
+        return "weatherSnow";
       case 95:
       case 96:
       case 99:
-        return t("weatherStorm");
+        return "weatherStorm";
       default:
-        return t("weatherDefault");
+        return "weatherDefault";
     }
   }
 
   function initDynamicPanel() {
     if (!dynamicPanel || !dynamicPanelText) return;
+    const panelHidden = localStorage.getItem("darkstudio-hide-dynamic-panel") === "true";
+    if (dynamicPanelCheckbox) dynamicPanelCheckbox.checked = panelHidden;
+    dynamicPanel.hidden = panelHidden;
+    dynamicPanelCheckbox?.addEventListener("change", () => {
+      dynamicPanel.hidden = dynamicPanelCheckbox.checked;
+      localStorage.setItem("darkstudio-hide-dynamic-panel", String(dynamicPanelCheckbox.checked));
+    });
+    document.addEventListener("fullscreenchange", () => {
+      panelIndex = 0;
+      updateDynamicPanel();
+    });
+    window.addEventListener("resize", () => {
+      panelIndex %= getAvailablePanels().length;
+      updateDynamicPanel();
+    });
     updateDynamicPanel();
     startPanelRotation();
     fetchWeather();
@@ -496,15 +532,26 @@ if (!blockWeb) {
 
     if (isMarkdown) return "Markdown";
 
-    // 🟣 VeloScript detection
-    const isVeloScript =
-      /#![\s\S]*?VeloScript[\s\S]*?!#/i.test(code) ||
-      /\bfunc\s+\w+\s*\(/.test(cleanCode) ||
-      (/\bvar\s+\w+\s*=/.test(cleanCode) &&
-        /\bconsole\s*\(/.test(cleanCode) &&
-        !/\bconsole\.(log|warn|error)\s*\(/.test(cleanCode));
+    // HTML tem prioridade sobre JavaScript e CSS
+    const hasHtmlStructure =
+      /<!doctype\s+html\b/i.test(cleanCode) ||
+      /<html(?:\s[^>]*)?>/i.test(cleanCode) ||
+      /<head(?:\s[^>]*)?>/i.test(cleanCode) ||
+      /<body(?:\s[^>]*)?>/i.test(cleanCode);
 
-    if (isVeloScript) return "VeloScript - pqpcara";
+    if (hasHtmlStructure) {
+      return "HTML";
+    }
+
+    // Fragmentos HTML sem documento completo
+    const hasHtmlElements =
+      /<(div|main|section|header|footer|nav|article|form|button|script|style|h[1-6])\b[^>]*>/i.test(
+        cleanCode,
+      );
+
+    if (hasHtmlElements) {
+      return "HTML";
+    }
 
     // 👇 SÓ DEPOIS disso vem o JS
     const isJavaScript =
@@ -615,68 +662,94 @@ if (!blockWeb) {
 
   function updateMediaPlayer(code) {
     const player = document.getElementById("mini-player");
-    const iframe = document.getElementById("youtube-iframe");
-
-    if (!player || !iframe) return;
+    const list = document.getElementById("mini-player-list");
+    const toggle = document.getElementById("mini-player-toggle");
+    if (!player || !list) return;
 
     const text = typeof code === "string" ? code.trim() : "";
-
-    let src = "";
-    let spotifyHeight = 152;
-
-    // -------------------------
-    // YouTube
-    // -------------------------
-
-    let match =
-      text.match(/youtu\.be\/([^?&]+)/) ||
-      text.match(/[?&]v=([^&]+)/) ||
-      text.match(/shorts\/([^?&]+)/) ||
-      text.match(/live\/([^?&]+)/);
-
-    if (match) {
-      src = `https://www.youtube.com/embed/${match[1]}?autoplay=0&mute=1`;
-
-      player.classList.remove("spotify");
-
-      player.style.width = "320px";
-      player.style.aspectRatio = "16/9";
-
-      iframe.style.height = "100%";
-    }
-
-    // -------------------------
-    // Spotify
-    // -------------------------
-    else {
-      const spotify = getSpotifyInfo(text);
-
-      if (spotify) {
-        src = `https://open.spotify.com/embed/${spotify.type}/${spotify.id}`;
-
-        updateSpotifyTheme(spotify);
-
-        player.classList.add("spotify");
-
-        player.style.width = "300px";
-        player.style.aspectRatio = "auto";
-
-        spotifyHeight = spotify.type === "track" ? 152 : 352;
-
-        iframe.style.height = spotifyHeight + "px";
+    const urls = text.match(/https?:\/\/[^\s<>"']+/gi) || [];
+    const embeds = [];
+    const seen = new Set();
+    for (const rawUrl of urls) {
+      const cleanedUrl = rawUrl.replace(/[),.;!?]+$/, "");
+      try {
+        const url = new URL(cleanedUrl);
+        const host = url.hostname.toLowerCase();
+        let videoId = "";
+        if (host === "youtu.be") {
+          videoId = url.pathname.split("/").filter(Boolean)[0] || "";
+        } else if (
+          [
+            "youtube.com",
+            "www.youtube.com",
+            "m.youtube.com",
+            "music.youtube.com",
+          ].includes(host)
+        ) {
+          if (url.pathname === "/watch") {
+            videoId = url.searchParams.get("v") || "";
+          } else {
+            const match = url.pathname.match(/^\/(shorts|live|embed)\/([^/]+)/);
+            if (match) videoId = match[2];
+          }
+        }
+        if (/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+          const src = `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1`;
+          if (!seen.has(src)) embeds.push({ type: "youtube", src, height: 180 });
+          seen.add(src);
+        } else {
+          const spotify = getSpotifyInfo(cleanedUrl);
+          if (spotify) {
+            const src = `https://open.spotify.com/embed/${spotify.type}/${spotify.id}`;
+            if (!seen.has(src)) embeds.push({ type: "spotify", src, height: spotify.type === "track" ? 152 : 352, spotify });
+            seen.add(src);
+          }
+        }
+      } catch {
+        // Skip malformed URLs and continue with the remaining links.
       }
     }
-
-    if (src) {
-      if (iframe.src !== src) iframe.src = src;
-
-      player.classList.add("visible");
-    } else {
-      iframe.src = "";
-      player.classList.remove("visible");
-      player.classList.remove("spotify");
-    }
+    list.replaceChildren(...embeds.map((embed, index) => {
+      const item = document.createElement("div");
+      item.className = `mini-player-item ${embed.type}`;
+      const iframe = document.createElement("iframe");
+      iframe.src = embed.src;
+      iframe.title = `${embed.type === "youtube" ? "YouTube" : "Spotify"} player ${index + 1}`;
+      iframe.loading = "lazy";
+      iframe.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      iframe.style.height = `${embed.height}px`;
+      item.appendChild(iframe);
+      if (embed.spotify) updateSpotifyTheme(embed.spotify);
+      return item;
+    }));
+    player.classList.toggle("visible", embeds.length > 0);
+    if (toggle) toggle.hidden = embeds.length === 0;
   }
+
+  document.getElementById("mini-player-toggle")?.addEventListener("click", (event) => {
+    const toggle = event.currentTarget;
+    const player = document.getElementById("mini-player");
+    const collapsed = !player.classList.contains("collapsed");
+    setMiniPlayersCollapsed(player, toggle, collapsed);
+  });
+
+  function setMiniPlayersCollapsed(player, toggle, collapsed) {
+    if (!player || !toggle) return;
+    player.classList.toggle("collapsed", collapsed);
+    toggle.setAttribute("aria-pressed", String(collapsed));
+    toggle.dataset.i18nTitle = collapsed ? "showMiniPlayers" : "hideMiniPlayers";
+    toggle.dataset.i18nAriaLabel = toggle.dataset.i18nTitle;
+    toggle.textContent = collapsed ? "▶" : "▾";
+    toggle.title = t(toggle.dataset.i18nTitle);
+    toggle.setAttribute("aria-label", toggle.title);
+  }
+
+  document.getElementById("mini-player")?.addEventListener("click", (event) => {
+    const player = event.currentTarget;
+    if (!player.classList.contains("collapsed") || event.target !== player) return;
+    setMiniPlayersCollapsed(player, document.getElementById("mini-player-toggle"), false);
+  });
 
   // ─────────────────────────────────────────────
   // 💾 File Download / Download de Arquivo
@@ -693,7 +766,6 @@ if (!blockWeb) {
 
     const extensionMap = {
       JavaScript: "js",
-      "VeloScript - pqpcara": "velo",
       Python: "py",
       Java: "java",
       HTML: "html",
@@ -767,6 +839,19 @@ if (!blockWeb) {
 
     if (!window.editor) {
       console.error("DarkStudio: Monaco não encontrado.");
+      return;
+    }
+
+    // Imported project files are previewed inside the existing sandboxed
+    // executor. This keeps relative assets available without eval or access
+    // to the DarkStudio page context.
+    const projectPreview = window.getMindmapProjectPreview?.();
+    if (projectPreview) {
+      showExecutor();
+      const iframe = createIsolatedFrame();
+      iframe.title = "Prévia do projeto importado";
+      iframe.srcdoc = projectPreview.html;
+      iframe.addEventListener("load", () => setTimeout(projectPreview.revoke, 60000), { once: true });
       return;
     }
 
@@ -845,7 +930,7 @@ if (!blockWeb) {
       executorPanel.classList.add("executor-visible");
     });
 
-    executeButton.textContent = "Voltar ao Editor";
+    executeButton.textContent = t("returnToEditor");
   }
 
   // ─────────────────────────────────────────────
@@ -1104,22 +1189,91 @@ ${code}
   // ─────────────────────────────────────────────
 
   function config() {
-    if (configValue) {
-      configMenu.style.opacity = "0";
-      configMenu.style.pointerEvents = "none";
-      editor.style.opacity = "1";
-      editor.style.pointerEvents = "auto";
-      configValue = false;
-    } else {
-      configMenu.style.opacity = "1";
-      configMenu.style.pointerEvents = "auto";
-      editor.style.opacity = "0";
-      editor.style.pointerEvents = "none";
-      configValue = true;
-    }
+    configValue = !WebsiteContainer.classList.contains("settings-active");
+    WebsiteContainer.classList.toggle("settings-active", configValue);
+    configMenu.scrollTop = 0;
+    requestAnimationFrame(() => window.editor?.layout());
   }
 
   window.config = config;
+
+  function setupPanelResizers() {
+    const storedNumber = (key, fallback, minimum, maximum) => {
+      const value = Number(localStorage.getItem(key));
+      return Number.isFinite(value) && value >= minimum && value <= maximum ? value : fallback;
+    };
+    const isCompact = window.innerWidth <= 700;
+    const optionMinimum = isCompact ? 116 : 148;
+    const optionDefault = isCompact ? 126 : 160;
+    const chatDefault = window.innerWidth <= 700 ? 240 : 350;
+    const chatMax = Math.max(180, Math.min(720, window.innerWidth * .58));
+    const optionsMax = Math.max(optionMinimum, Math.min(360, window.innerWidth * .42));
+    const optionsWidth = storedNumber("darkstudio-options-width", Math.min(optionDefault, optionsMax), optionMinimum, optionsMax);
+    const chatWidth = storedNumber("darkstudio-chat-width", Math.min(chatDefault, chatMax), 180, chatMax);
+    WebsiteContainer.style.setProperty("--options-width", `${optionsWidth}px`);
+    WebsiteContainer.style.setProperty("--chat-width", `${chatWidth}px`);
+
+    const constraints = {
+      "options-resize-handle": {
+        key: "darkstudio-options-width", variable: "--options-width", axis: "x", direction: 1,
+        min: optionMinimum, max: () => Math.max(optionMinimum, Math.min(360, WebsiteContainer.clientWidth * .42)), initial: optionDefault, unit: "px",
+      },
+      "chat-resize-handle": {
+        key: "darkstudio-chat-width", variable: "--chat-width", axis: "x", direction: -1,
+        min: 180, max: () => Math.min(720, WebsiteContainer.clientWidth * .58), initial: chatDefault, unit: "px",
+      },
+    };
+
+    for (const [id, config] of Object.entries(constraints)) {
+      const handle = document.getElementById(id);
+      if (!handle) continue;
+      const current = () => {
+        const raw = getComputedStyle(WebsiteContainer).getPropertyValue(config.variable).trim();
+        const value = Number.parseFloat(raw);
+        return Number.isFinite(value) ? value : config.initial;
+      };
+      const apply = (value) => {
+        const maximum = typeof config.max === "function" ? config.max() : (config.max ?? 98);
+        const clamped = Math.min(maximum, Math.max(config.min, value));
+        WebsiteContainer.style.setProperty(config.variable, `${clamped}${config.unit}`);
+        localStorage.setItem(config.key, String(clamped));
+        requestAnimationFrame(() => window.editor?.layout());
+      };
+      handle.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        handle.setPointerCapture?.(event.pointerId);
+        const startValue = current();
+        const startPoint = config.axis === "x" ? event.clientX : event.clientY;
+        const move = (nextEvent) => {
+          const delta = (config.axis === "x" ? nextEvent.clientX : nextEvent.clientY) - startPoint;
+          const scaledDelta = config.unit === "dvh" ? (delta / window.innerHeight) * 100 : delta;
+          apply(startValue + scaledDelta * config.direction);
+        };
+        const stop = () => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", stop);
+          window.removeEventListener("pointercancel", stop);
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", stop, { once: true });
+        window.addEventListener("pointercancel", stop, { once: true });
+      });
+      handle.addEventListener("keydown", (event) => {
+        const keys = config.axis === "x" ? ["ArrowLeft", "ArrowRight"] : ["ArrowUp", "ArrowDown"];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        const delta = event.key === keys[1] ? 12 : -12;
+        apply(current() + delta * config.direction);
+      });
+      window.addEventListener("resize", () => {
+        const maximum = typeof config.max === "function" ? config.max() : (config.max ?? 98);
+        if (current() > maximum) apply(maximum);
+      });
+    }
+  }
+
+  setupPanelResizers();
 
   // ─────────────────────────────────────────────
   // ⚙️ Shortcuts / Atalhos
@@ -1167,7 +1321,7 @@ ${code}
       } else {
         input.focus();
 
-        chat.style.display = "block";
+        chat.style.display = "flex";
         chat.style.pointerEvents = "auto";
 
         WebsiteContainer.classList.remove("no-chat");
@@ -1408,15 +1562,59 @@ ${code}
     const mindMapClear = document.getElementById("mindmap-clear");
     const mindMapConnect = document.getElementById("mindmap-connect");
     const mindMapAdd = document.getElementById("mindmap-add-files");
-    upload.textContent = t("upload");
-    clear.textContent = t("clear");
-    execute.textContent = t("execute");
-    dowload.textContent = t("download");
-    mindMap.textContent = t("mindMap");
-    mindMapClear.textContent = t("mindMapClear");
-    mindMapConnect.textContent = t("mindMapConnect");
-    mindMapAdd.textContent = t("mindMapAdd");
+    const setLabel = (element, key) => {
+      if (!element) return;
+      const content = element.querySelector("[data-i18n]") || element;
+      content.textContent = t(key);
+    };
+    setLabel(upload, "upload");
+    setLabel(clear, "clear");
+    setLabel(execute, "execute");
+    setLabel(dowload, "download");
+    setLabel(mindMap, "mindMap");
+    setLabel(mindMapClear, "mindMapClear");
+    setLabel(mindMapConnect, "mindMapConnect");
+    setLabel(mindMapAdd, "mindMapAdd");
+
+    document.querySelectorAll("[data-i18n]").forEach((element) => {
+      element.textContent = t(element.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+      element.placeholder = t(element.dataset.i18nPlaceholder);
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+      element.title = t(element.dataset.i18nTitle);
+    });
+    document.querySelectorAll("[data-i18n-alt]").forEach((element) => {
+      element.alt = t(element.dataset.i18nAlt);
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+      element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+    });
+    document.querySelectorAll("[data-i18n-content]").forEach((element) => {
+      element.content = t(element.dataset.i18nContent);
+    });
+
+    const languageSelect = document.getElementById("language-select");
+    if (languageSelect) languageSelect.value = getCurrentLanguage();
+    document.documentElement.lang = getCurrentLanguage();
   }
+
+  window.applyDarkStudioTranslations = fixLanguage;
+
+  const languageSelect = document.getElementById("language-select");
+  languageSelect?.addEventListener("change", async () => {
+    await loadLanguage(languageSelect.value);
+    localStorage.setItem("darkstudio-language", getCurrentLanguage());
+    fixLanguage();
+    updateDynamicPanel();
+    handleNetworkChange();
+    if (window.editor) {
+      const currentCode = window.editor.getValue();
+      updateLanguageDisplay(detectLanguage(currentCode));
+    }
+    window.dispatchEvent(new Event("darkstudio:languagechange"));
+  });
 
   fixLanguage();
 

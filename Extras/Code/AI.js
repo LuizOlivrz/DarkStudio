@@ -1,28 +1,38 @@
-import { blockWeb, getDevMode, language } from "./config.js";
+import { blockWeb, getDevMode, language, t } from "./config.js";
 
 if (!blockWeb) {
   const API_KEY = "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";
   const MODEL = "openai/gpt-oss-120b";
   const STORAGE_KEY = "nightcoder_chat";
   const MAX_MESSAGES = 10;
-  const idioma = language;
   let firstTime = true;
   const primaryPrompt =
     "You are NightCoder, an AI focused on helping with programming or any other topic, The editor currently being used by the user is Dark Studio by LUIZzz.";
-  const DEFAULT_SYSTEM_PROMPT = `Be direct. Explain code changes at the end. Always speak in ${idioma} only change the language if requested by the user.`;
+  const getDefaultSystemPrompt = () => {
+    const responseLanguage = {
+      "en-US": "English",
+      "pt-BR": "Brazilian Portuguese",
+      ru: "Russian",
+    }[language] || language;
+    return `Be direct. Explain code changes at the end. Always reply in ${responseLanguage} unless the user requests another language.`;
+  };
   const SYSTEM_PROMPT_KEY = "nightcoder_system_prompt";
   const textarea = document.getElementById("system-prompt-editor");
-
-  const savedSystemPrompt =
-    primaryPrompt + localStorage.getItem(SYSTEM_PROMPT_KEY) ||
-    DEFAULT_SYSTEM_PROMPT;
-
+  const customSystemPrompt = localStorage.getItem(SYSTEM_PROMPT_KEY);
+  const savedSystemPrompt = customSystemPrompt
+    ? `${primaryPrompt} ${customSystemPrompt}`
+    : `${primaryPrompt} ${getDefaultSystemPrompt()}`;
   const chatHistory = [
     {
       role: "system",
       content: savedSystemPrompt,
     },
   ];
+
+  window.addEventListener("darkstudio:languagechange", () => {
+    if (localStorage.getItem(SYSTEM_PROMPT_KEY)) return;
+    chatHistory[0].content = `${primaryPrompt} ${getDefaultSystemPrompt()}`;
+  });
 
   function saveChatToStorage() {
     // remove system antes de salvar
@@ -263,28 +273,29 @@ if (!blockWeb) {
     if (!textarea) return;
 
     textarea.value =
-      localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT;
+      localStorage.getItem(SYSTEM_PROMPT_KEY) || getDefaultSystemPrompt();
   }
 
   function saveSystemPrompt() {
     if (!textarea) return;
 
-    const value = textarea.value.trim() || DEFAULT_SYSTEM_PROMPT;
+    const value = textarea.value.trim() || getDefaultSystemPrompt();
 
     localStorage.setItem(SYSTEM_PROMPT_KEY, value);
 
     // Atualiza o system prompt em memória
     chatHistory[0].content = value;
 
-    if (getDevMode() === "true") alert("NightCoder behavior updated.");
+    if (getDevMode() === "true") alert(t("promptSaved"));
   }
 
   window.saveSystemPrompt = saveSystemPrompt;
   loadSystemPromptEditor();
 
   function deleteSystemPrompt() {
-    textarea.value = DEFAULT_SYSTEM_PROMPT;
-    saveSystemPrompt();
+    localStorage.removeItem(SYSTEM_PROMPT_KEY);
+    textarea.value = getDefaultSystemPrompt();
+    chatHistory[0].content = `${primaryPrompt} ${getDefaultSystemPrompt()}`;
   }
 
   window.deleteSystemPrompt = deleteSystemPrompt;

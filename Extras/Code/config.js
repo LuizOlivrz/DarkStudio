@@ -9,9 +9,8 @@ let block = false; // Block access flag / flag de bloqueio
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
-
-export const language = navigator.language || navigator.userLanguage;
-export const version = "01.08.26"; // Current version / versão atual
+export let language = "en-US";
+export const version = "16.10.26"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
 // ▶️ CODE EXECUTOR SETTINGS
@@ -73,6 +72,8 @@ export async function loadLanguage(langCode) {
 
     i18n = await res.json();
     currentLang = langCode;
+    language = currentLang;
+    document.documentElement.lang = currentLang;
   } catch {
     console.warn(
       `🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`,
@@ -81,6 +82,8 @@ export async function loadLanguage(langCode) {
     const fallback = await fetch("Extras/languages/en-US.json");
     i18n = await fallback.json();
     currentLang = "en-US";
+    language = currentLang;
+    document.documentElement.lang = currentLang;
   }
 }
 
@@ -93,6 +96,8 @@ export function t(key) {
   return i18n[key] ?? key;
 }
 
+window.darkStudioTranslate = t;
+
 /**
  * Get current language
  * Retorna o idioma atual
@@ -101,8 +106,19 @@ export function getCurrentLanguage() {
   return currentLang;
 }
 
-// Auto-load browser language
-await loadLanguage(language);
+// Honor an explicit Settings choice; otherwise use the browser language.
+const supportedLanguages = ["en-US", "pt-BR", "ru"];
+const savedLanguage = localStorage.getItem("darkstudio-language");
+const browserLanguage = (navigator.languages?.length ? navigator.languages : [navigator.language || "en-US"])
+  .map((locale) => String(locale).toLowerCase());
+const detectedLanguage = browserLanguage.some((locale) => locale.startsWith("pt"))
+  ? "pt-BR"
+  : browserLanguage.some((locale) => locale.startsWith("ru"))
+    ? "ru"
+    : "en-US";
+await loadLanguage(supportedLanguages.includes(savedLanguage) ? savedLanguage : detectedLanguage);
+language = currentLang;
+document.documentElement.lang = currentLang;
 
 // ─────────────────────────────────────────────
 // 📱 DEVICE DETECTION
