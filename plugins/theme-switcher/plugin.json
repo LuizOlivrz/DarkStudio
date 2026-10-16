@@ -1,8 +1,0 @@
-{
-  "name": "Theme Switcher",
-  "id": "ds.theme.switcher",
-  "version": "1.0.0",
-  "main": "index.js",
-  "description": "Alterna o tema do editor",
-  "author": "Luiz"
-}
