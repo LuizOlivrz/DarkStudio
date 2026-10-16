@@ -145,7 +145,6 @@ if (!blockWeb) {
 
     // 2️⃣ Detecta linguagem inicial e configura interface
     updateUI();
-    updateLanguageDisplay(detectLanguage(window.editor.getValue()));
 
     // 3️⃣ Atualiza a interface quando o usuário digitar
     window.editor.onDidChangeModelContent(() => {
@@ -168,7 +167,6 @@ if (!blockWeb) {
       const language = detectLanguage(code);
 
       updateUI(code, language);
-      updateLanguageDisplay(language);
     }, 180);
   }
 
@@ -188,7 +186,7 @@ if (!blockWeb) {
 
     const isEmpty = code.trim() === "";
 
-    languageDisplay.textContent = language;
+    updateLanguageDisplay(language);
 
     executeButton.style.display =
       language === "HTML" || language === "JavaScript" ? "block" : "none";
@@ -248,11 +246,10 @@ if (!blockWeb) {
   }
 
   function isAppFullscreen() {
-    const displayModeFullscreen = window.matchMedia?.("(display-mode: fullscreen)").matches;
-    const screenFullscreen = window.screen &&
-      window.outerWidth >= window.screen.availWidth &&
-      window.outerHeight >= window.screen.availHeight;
-    return Boolean(document.fullscreenElement || displayModeFullscreen || screenFullscreen);
+    return Boolean(
+      document.fullscreenElement ||
+      window.matchMedia?.("(display-mode: fullscreen)").matches,
+    );
   }
 
   function getAvailablePanels() {
@@ -1250,6 +1247,9 @@ ${code}
   // ─────────────────────────────────────────────
 
   function config() {
+    document.getElementById("Website-Container")?.classList.remove("extensions-active");
+    const extensionsPanel = document.getElementById("extensions-panel");
+    if (extensionsPanel) extensionsPanel.hidden = true;
     configValue = !WebsiteContainer.classList.contains("settings-active");
     WebsiteContainer.classList.toggle("settings-active", configValue);
     configMenu.scrollTop = 0;

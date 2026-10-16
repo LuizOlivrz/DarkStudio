@@ -96,6 +96,7 @@
         Clear
       </button>
 
+      <button id="extensions-button" type="button" data-i18n="extensions">Extensions</button>
       <button id="mindmap-button" title="Project workspace" data-i18n-title="mindMapTitle">Mind Map</button>
       <div id="options-resize-handle" class="panel-resize-handle resize-width" role="separator" aria-label="Resize options width" data-i18n-aria-label="resizeOptions" aria-orientation="vertical" tabindex="0"></div>
     </div>
@@ -251,6 +252,16 @@
           <p>Para ensinar seus alunos</p>
         </div> -->
     </div>
+
+    <section id="extensions-panel" aria-labelledby="extensions-heading" hidden>
+      <h1 id="extensions-heading" data-i18n="extensions">Extensions</h1>
+      <p data-i18n="extensionsIntro">Install isolated extensions that can inspect and customize the DarkStudio interface, without access to editor contents.</p>
+      <button id="extensions-import-button" type="button" data-i18n="installExtension">Install extension</button>
+      <input id="extensions-file-input" type="file" accept=".dsx.json,application/json,.json" hidden />
+      <p id="extensions-empty" data-i18n="noExtensions">No extensions installed.</p>
+      <div id="extensions-list" aria-live="polite"></div>
+      <a href="Extras/Extensions/API.md" target="_blank" rel="noopener" data-i18n="extensionsDocs">Extension API and commands</a>
+    </section>
 
     <div id="chat" style="display: none">
       <div id="chat-resize-handle" class="panel-resize-handle resize-width" role="separator" aria-label="Resize AI chat width" data-i18n-aria-label="resizeChat" aria-orientation="vertical" tabindex="0"></div>

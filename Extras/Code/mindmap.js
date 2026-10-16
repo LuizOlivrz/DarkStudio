@@ -1738,6 +1738,9 @@ function openNodeInEditor(node) {
 }
 
 function showEditor() {
+  document.getElementById("Website-Container")?.classList.remove("extensions-active");
+  const extensionsPanel = document.getElementById("extensions-panel");
+  if (extensionsPanel) extensionsPanel.hidden = true;
   if (mind) mind.style.display = "none";
 
   const editor = document.getElementById("Editor");
@@ -1768,6 +1771,9 @@ function showEditor() {
 }
 
 function showMap() {
+  document.getElementById("Website-Container")?.classList.remove("extensions-active");
+  const extensionsPanel = document.getElementById("extensions-panel");
+  if (extensionsPanel) extensionsPanel.hidden = true;
   syncCurrentEditorToMap();
 
   const editor = document.getElementById("Editor");

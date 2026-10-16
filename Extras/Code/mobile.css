@@ -1412,6 +1412,65 @@ body {
 
 }
 
+#extensions-panel {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 14px;
+  color: var(--text);
+  background: rgba(12, 12, 12, .96);
+}
+
+#extensions-panel[hidden] { display: none !important; }
+
+#Website-Container.extensions-active #Editor,
+#Website-Container.extensions-active #mindmap-container,
+#Website-Container.extensions-active #config {
+  display: none !important;
+}
+
+#Website-Container.extensions-active #extensions-panel:not([hidden]) {
+  display: block;
+}
+
+#extensions-panel h1 { color: var(--accent-color); }
+#extensions-panel > p { max-width: 70ch; line-height: 1.6; }
+#extensions-panel > button,
+.ds-extension-card button {
+  width: auto;
+  min-width: 104px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-orange);
+  border-radius: 8px;
+  color: var(--text);
+  background: #171717;
+  cursor: pointer;
+}
+
+#extensions-list { display: grid; gap: 10px; margin-block: 18px; }
+.ds-extension-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(var(--accent-rgb, 104, 58, 183), .35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .025);
+}
+.ds-extension-card h2 { margin: 0 0 5px; font-size: 16px; }
+.ds-extension-card p { margin: 0; color: #aaa; font-size: 13px; }
+.ds-extension-card button:hover,
+#extensions-panel > button:hover { border-color: var(--accent-color); }
+#extensions-panel a { color: var(--accent-color); }
+
+@media (max-width: 700px) {
+  .ds-extension-card { grid-template-columns: 1fr; }
+}
+
 /* Keep the adjustable options track active when the AI chat is closed. */
 #Website-Container.no-chat {
   grid-template-columns: var(--options-width, 126px) minmax(0, 1fr);
