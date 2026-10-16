@@ -7,6 +7,15 @@ let currentLang = "en-US"; // Current language / idioma atual
 let languageLoadSequence = 0;
 let device = "Detectando";
 let block = false; // Block access flag / flag de bloqueio
+let blockReasonKey = "blockedMobile";
+const OFFICIAL_ORIGIN_UNLOCK_KEY = "darkstudio-official-origin-unlocked";
+const OFFICIAL_ORIGIN_PASSWORD_HASH =
+  "fdeee64735ecac5bcf069172e2dbe5dc89e7214d648eb968a4fff90bc8e1e873";
+const OFFICIAL_ORIGINS = new Set([
+  "https://dark-studio-code.netlify.app",
+  "https://dark-studio-code.com",
+  "https://dscode.dev",
+]);
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
@@ -186,6 +195,12 @@ document.documentElement.lang = currentLang;
 // ─────────────────────────────────────────────
 
 detectDevice();
+if (!OFFICIAL_ORIGINS.has(window.location.origin)) {
+  if (sessionStorage.getItem(OFFICIAL_ORIGIN_UNLOCK_KEY) !== "true") {
+    block = true;
+    blockReasonKey = "blockedOrigin";
+  }
+}
 
 /**
  * Detect mobile or desktop
@@ -411,6 +426,7 @@ if (!block) {
     ]);
 
     await loadCSS(device !== "Mobile" ? "dark.css" : "mobile.css");
+    await loadJS("extensions");
 
     applyFavicon(mediaQuery);
 
@@ -432,10 +448,49 @@ else {
       <h5>By: CDP 💚</h5>
       <div style="margin-top:20px;font-size:12px;">
         <strong>${t("reason")}:</strong><br/>
-        ${t("blockedMobile").replaceAll("\n", "<br/>")}
+        ${t(blockReasonKey).replaceAll("\n", "<br/>")}
       </div>
+      ${blockReasonKey === "blockedOrigin" ? `
+        <form id="origin-unlock-form" style="display:flex;flex-direction:column;gap:10px;width:min(320px,100%);margin-top:24px;">
+          <label for="origin-unlock-password">${t("originPasswordLabel")}</label>
+          <input id="origin-unlock-password" type="password" autocomplete="current-password" required style="box-sizing:border-box;width:100%;padding:10px;border:1px solid #fff;border-radius:6px;">
+          <button type="submit" style="padding:10px;border:0;border-radius:6px;cursor:pointer;">${t("originPasswordSubmit")}</button>
+          <p id="origin-unlock-error" role="status" aria-live="polite" style="margin:0;"></p>
+        </form>
+      ` : ""}
     </div>
   `;
 
   document.title = "DarkStudio :(";
+
+  const unlockForm = document.getElementById("origin-unlock-form");
+  unlockForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const input = document.getElementById("origin-unlock-password");
+    const errorMessage = document.getElementById("origin-unlock-error");
+    const submitButton = unlockForm.querySelector("button[type='submit']");
+    if (!(input instanceof HTMLInputElement) || !errorMessage || !submitButton) return;
+
+    submitButton.disabled = true;
+    errorMessage.textContent = "";
+    try {
+      const bytes = new TextEncoder().encode(input.value);
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      const passwordHash = Array.from(new Uint8Array(digest), (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join("");
+      if (passwordHash !== OFFICIAL_ORIGIN_PASSWORD_HASH) {
+        errorMessage.textContent = t("originPasswordInvalid");
+        return;
+      }
+
+      sessionStorage.setItem(OFFICIAL_ORIGIN_UNLOCK_KEY, "true");
+      window.location.reload();
+    } catch (error) {
+      console.error("DarkStudio: could not validate the local unlock password.", error);
+      errorMessage.textContent = t("originPasswordUnavailable");
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
 }
