@@ -33,12 +33,52 @@ if (!blockWeb) {
   function detectThemeByDate() {
     const today = new Date();
     const month = today.getMonth() + 1; // Janeiro = 0
-    const day = today.getDate();
+    const year = today.getFullYear();
 
-    if (month === 10 && day >= 20 && day <= 31) return "halloween"; // 🎃 Halloween
-    if (month === 12 && day >= 10 && day <= 31) return "christmas"; // 🎄 Natal
-    if (month === 3 && day >= 15 && day <= 31) return "easter"; // 🐣 Páscoa
+    if (month === 10) return "halloween"; // 🎃 O mês inteiro de Halloween
+    if (month === 12) return "christmas"; // 🎄 O mês inteiro de Natal
+
+    // Computus Gregorian: use the actual Easter month, then apply it for that entire month.
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const correction = Math.floor((a + 11 * h + 22 * l) / 451);
+    const easterMonth = Math.floor((h + l - 7 * correction + 114) / 31);
+    if (month === easterMonth) return "easter"; // 🐣 O mês da Páscoa
     return "dark"; // 🌑 Tema padrão
+  }
+
+  function applySeasonalPalette(themeName) {
+    const festivePalette = autoTheme ? {
+      halloween: { border: "#FF8A3D", accent: "#FF781F" },
+      christmas: { border: "#FFFFFF", accent: "#D62828" },
+      easter: { border: "#E6A8D7", accent: "#71A85A" },
+    }[themeName] : null;
+    const savedBorder = localStorage.getItem("borderColor");
+    const savedAccent = localStorage.getItem("accentColor");
+    const normalPalette = {
+      border: !savedBorder || savedBorder.toLowerCase() === "#ff8a3d" ? "#683AB7" : savedBorder,
+      accent: !savedAccent || savedAccent.toLowerCase() === "#ff6700" ? "#683AB7" : savedAccent,
+    };
+    const palette = festivePalette || normalPalette;
+    const root = document.documentElement;
+    root.style.setProperty("--border-orange", palette.border);
+    root.style.setProperty("--orange", palette.border);
+    root.style.setProperty("--accent-color", palette.accent);
+    const rgb = palette.accent.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    if (rgb) root.style.setProperty("--accent-rgb", `${parseInt(rgb[1], 16)}, ${parseInt(rgb[2], 16)}, ${parseInt(rgb[3], 16)}`);
+    const borderInput = document.getElementById("border-color-input");
+    const accentInput = document.getElementById("accent-color-input");
+    if (borderInput) borderInput.value = palette.border;
+    if (accentInput) accentInput.value = palette.accent;
   }
 
   // ─────────────────────────────────────────────
@@ -70,6 +110,98 @@ if (!blockWeb) {
     "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs";
 
   let monacoSource = "local";
+  let projectLinkSupportInstalled = false;
+
+  function installProjectLinkSupport(monaco, codeEditor) {
+    if (projectLinkSupportInstalled || !monaco?.languages || !monaco?.editor) return;
+    projectLinkSupportInstalled = true;
+
+    const patterns = [
+      /\b(?:href|src|poster)\s*=\s*(["'])(.*?)\1/gi,
+      /url\(\s*(["']?)(.*?)\1\s*\)/gi,
+      /@import\s+(?:url\(\s*)?(?:(["'])(.*?)\1|([^'"\s);]+))\s*\)?/gi,
+      /\b(?:from\s*|import\s*(?:\(\s*)?|require\s*\(\s*)(["'])(\.{1,2}\/[^"']+)\1/gi,
+    ];
+
+    const resolveAtPosition = (model, position) => {
+      if (!position || typeof window.darkStudioResolveProjectReference !== "function") return null;
+      const source = model.getValue();
+      const offset = model.getOffsetAt(position);
+      for (const pattern of patterns) {
+        pattern.lastIndex = 0;
+        let match;
+        while ((match = pattern.exec(source))) {
+          const reference = match[2] || match[3] || "";
+          if (!reference) continue;
+          const start = match.index + match[0].lastIndexOf(reference);
+          const end = start + reference.length;
+          if (offset < start || offset > end) continue;
+          const path = window.darkStudioResolveProjectReference(reference);
+          if (path) return path;
+        }
+      }
+      return null;
+    };
+
+    monaco.languages.registerLinkProvider(
+      ["html", "javascript", "typescript", "css", "scss", "less", "json"],
+      {
+        provideLinks(model) {
+          const resolveReference = window.darkStudioResolveProjectReference;
+          if (typeof resolveReference !== "function") return { links: [] };
+
+          const source = model.getValue();
+          const links = [];
+          const seen = new Set();
+          for (const pattern of patterns) {
+            pattern.lastIndex = 0;
+            let match;
+            while ((match = pattern.exec(source))) {
+              const reference = match[2] || match[3] || "";
+              const target = resolveReference(reference);
+              if (!target) continue;
+              const valueOffset = match.index + match[0].lastIndexOf(reference);
+              const start = model.getPositionAt(valueOffset);
+              const end = model.getPositionAt(valueOffset + reference.length);
+              const key = `${start.lineNumber}:${start.column}:${end.column}:${target}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              const encodedPath = target.split("/").map((part) => encodeURIComponent(part)).join("/");
+              links.push({
+                range: new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column),
+                url: `darkstudio-project://open/${encodedPath}`,
+                tooltip: `Open ${target}`,
+              });
+            }
+          }
+          return { links };
+        },
+      },
+    );
+
+    // The editor's built-in link gesture can vary with its loader/build. Handle
+    // Ctrl/Cmd+click directly as well, while leaving external links untouched.
+    codeEditor?.onMouseDown((event) => {
+      const browserEvent = event.event?.browserEvent;
+      if (!browserEvent || !(browserEvent.ctrlKey || browserEvent.metaKey)) return;
+      const model = codeEditor.getModel();
+      const targetPath = model && resolveAtPosition(model, event.target?.position);
+      if (!targetPath) return;
+      browserEvent.preventDefault();
+      browserEvent.stopPropagation();
+      window.darkStudioOpenProjectFile?.(targetPath);
+    });
+
+    monaco.editor.registerLinkOpener({
+      open(resource) {
+        if (resource.scheme !== "darkstudio-project" || resource.authority !== "open") return false;
+        const path = String(resource.path || "").replace(/^\//, "").split("/").map((part) => {
+          try { return decodeURIComponent(part); } catch { return part; }
+        }).join("/");
+        return Boolean(window.darkStudioOpenProjectFile?.(path));
+      },
+    });
+  }
 
   function testMonacoWeb(timeout = 1800) {
     return new Promise((resolve) => {
@@ -181,8 +313,11 @@ if (!blockWeb) {
           automaticLayout: true,
           fontSize,
           minimap: { enabled: false },
+          links: true,
         },
       );
+
+      installProjectLinkSupport(monaco, window.editor);
 
       // ─────────────────────────────────────────────
       // 💾 Auto Save / Salvamento Automático
@@ -286,6 +421,7 @@ if (!blockWeb) {
 
       monaco.editor.defineTheme(themeName, theme);
       monaco.editor.setTheme(themeName);
+      applySeasonalPalette(themeName);
     } catch (error) {
       console.error("❌ Erro ao carregar o tema / Error loading theme:", error);
     }

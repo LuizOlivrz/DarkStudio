@@ -72,7 +72,7 @@ body {
   position: absolute;
   bottom: 3.5vh;
   left: 5px;
-  box-shadow: 0 0 28px rgba(255, 103, 0, 0.18);
+  box-shadow: 0 0 28px rgba(var(--accent-rgb, 104, 58, 183), 0.18);
   display: flex;
   border: 2px solid var(--border-orange);
   gap: 10px;
@@ -134,10 +134,10 @@ body {
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 22px rgba(255, 103, 0, 0.14);
+    box-shadow: 0 0 22px rgba(var(--accent-rgb, 104, 58, 183), 0.14);
   }
   50% {
-    box-shadow: 0 0 36px rgba(255, 103, 0, 0.22);
+    box-shadow: 0 0 36px rgba(var(--accent-rgb, 104, 58, 183), 0.22);
   }
 }
 
@@ -157,7 +157,7 @@ body {
     border-radius 0.5s ease-in-out, opacity 0.5s ease-in-out,
     background 0.5s ease-in-out, color 0.5s ease-in-out,
     box-shadow 0.5s ease-in-out;
-  box-shadow: 0 0 30px rgba(255, 103, 0, 0.2);
+  box-shadow: 0 0 30px rgba(var(--accent-rgb, 104, 58, 183), 0.2);
   z-index: 4;
 }
 
@@ -178,7 +178,7 @@ body {
   background: rgba(12, 12, 12, 0.95);
   border: 2px solid var(--border-orange);
   border-radius: 20px;
-  box-shadow: 0 16px 38px rgba(255, 103, 0, 0.25);
+  box-shadow: 0 16px 38px rgba(var(--accent-rgb, 104, 58, 183), 0.25);
   color: #f5f5f5;
   font-family: monospace;
   font-size: 13px;
@@ -283,15 +283,15 @@ input[type="checkbox"] {
   vertical-align: middle;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: rgba(255, 103, 0, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 103, 0, 0.18);
+  background: rgba(var(--accent-rgb, 104, 58, 183), 0.08);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb, 104, 58, 183), 0.18);
 }
 
 /* Quando estiver ativo (checked) */
 input[type="checkbox"]:checked {
   border-color: var(--accent-color);
   background-color: var(--accent-color);
-  box-shadow: 0 0 0 6px rgba(255, 103, 0, 0.16);
+  box-shadow: 0 0 0 6px rgba(var(--accent-rgb, 104, 58, 183), 0.16);
 }
 
 label {
@@ -327,12 +327,12 @@ select {
 
 #system-prompt-editor:focus {
   border-color: var(--accent-color);
-  box-shadow: 0 0 20px rgba(255, 103, 0, 0.2);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb, 104, 58, 183), 0.2);
   outline: none;
 }
 
 #system-prompt-editor::placeholder {
-  color: rgba(255, 103, 0, 0.6);
+  color: rgba(var(--accent-rgb, 104, 58, 183), 0.6);
 }
 
 #auto-back-complete {
@@ -349,8 +349,10 @@ p {
   --bg: #080808;
   --green: #18ff72;
   --purple: #a44bff;
-  --orange: #ff8a3d;
-  --border-orange: #ff8a3d;
+  --orange: #683AB7;
+  --border-orange: #683AB7;
+  --accent-color: #683AB7;
+  --accent-rgb: 104, 58, 183;
   --text: #e6e6e6;
 }
 
@@ -377,7 +379,7 @@ p {
   user-select: text;
   z-index: 3;
 
-  box-shadow: 0 0 38px rgba(255, 103, 0, 0.22);
+  box-shadow: 0 0 38px rgba(var(--accent-rgb, 104, 58, 183), 0.22);
   animation: fadeIn 0.3s ease;
 }
 
@@ -426,7 +428,7 @@ p {
 /* --- ESTILOS DAS MENSAGENS --- */
 .user {
   align-self: flex-end;
-  background: rgba(255, 103, 0, 0.18);
+  background: rgba(var(--accent-rgb, 104, 58, 183), 0.18);
   color: #fff;
   padding: 1vh 1.2vh;
   border-radius: 16px 16px 6px 16px;
@@ -733,6 +735,16 @@ body {
   z-index: 40;
   touch-action: none;
   user-select: none;
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+
+#options:hover > #options-resize-handle,
+#options:focus-within > #options-resize-handle,
+#chat:hover > #chat-resize-handle,
+#chat:focus-within > #chat-resize-handle,
+.panel-resize-handle:focus-visible {
+  opacity: 1;
 }
 
 .panel-resize-handle::after {
@@ -1090,7 +1102,7 @@ body {
   border: 2px solid var(--border-orange);
   border-radius: 18px;
   background: rgba(9, 9, 9, .94);
-  box-shadow: 0 8px 28px rgba(255, 103, 0, .2);
+  box-shadow: 0 8px 28px rgba(var(--accent-rgb, 104, 58, 183), .2);
   cursor: pointer;
   pointer-events: auto;
   order: 2;
@@ -1101,8 +1113,12 @@ body {
 #workspace-footer #config-toggle:hover,
 #workspace-footer #config-toggle:focus-visible {
   border-radius: 10px;
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+#workspace-footer #config-toggle:focus-visible {
+  border-color: #fff;
 }
 
 #workspace-footer #Config-SVG {
@@ -1191,7 +1207,7 @@ body {
   border-bottom: 0;
   border-radius: 7px 7px 0 0;
   background: rgba(9, 9, 9, .94);
-  box-shadow: 0 -4px 14px rgba(255, 103, 0, .16);
+  box-shadow: 0 -4px 14px rgba(var(--accent-rgb, 104, 58, 183), .16);
   pointer-events: auto;
   cursor: pointer;
 }
@@ -1320,7 +1336,11 @@ body {
 }
 
 #workspace-footer #dynamic-panel.is-changing {
-  flex-basis: min(320px, 42vw);
+  box-shadow: 0 0 28px rgba(var(--accent-rgb, 104, 58, 183), .3);
+}
+
+#workspace-footer #code-language {
+  transition: flex-basis .17s cubic-bezier(.2, .8, .2, 1), width .17s cubic-bezier(.2, .8, .2, 1);
 }
 
 #workspace-footer #dynamic-panel-text {
@@ -1339,6 +1359,32 @@ body {
 
 #workspace-footer #config-toggle {
   transform: translateY(-8px);
+}
+
+#workspace-footer #dynamic-panel.is-hiding {
+  animation: dynamic-panel-hide .38s cubic-bezier(.22, .75, .32, 1) forwards;
+}
+
+#workspace-footer #dynamic-panel.is-showing {
+  animation: dynamic-panel-show .38s cubic-bezier(.22, .75, .32, 1) both;
+}
+
+@keyframes dynamic-panel-hide {
+  0% { opacity: 1; transform: translateY(-6px); }
+  22% { opacity: 1; transform: translateY(-13px); }
+  42% { opacity: 1; transform: translateY(-6px); }
+  100% { opacity: 0; transform: translateY(calc(100% + 16px)); }
+}
+
+@keyframes dynamic-panel-show {
+  0% { opacity: 0; transform: translateY(calc(100% + 16px)); }
+  58% { opacity: 1; transform: translateY(-6px); }
+  78% { opacity: 1; transform: translateY(-13px); }
+  100% { opacity: 1; transform: translateY(-6px); }
+}
+
+#bg-blur-range {
+  accent-color: var(--accent-color);
 }
 
 @media (max-width: 700px) {
@@ -1364,9 +1410,6 @@ body {
     flex-basis: max-content;
   }
 
-  #workspace-footer #dynamic-panel.is-changing {
-    flex-basis: min(240px, 42vw);
-  }
 }
 
 /* Keep the adjustable options track active when the AI chat is closed. */

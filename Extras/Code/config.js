@@ -4,6 +4,7 @@
 
 let i18n = {}; // Loaded language dictionary / dicionário carregado
 let currentLang = "en-US"; // Current language / idioma atual
+let languageLoadSequence = 0;
 let device = "Detectando";
 let block = false; // Block access flag / flag de bloqueio
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -64,23 +65,33 @@ if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
  * @param {string} langCode - ex: pt-BR, en-US
  */
 export async function loadLanguage(langCode) {
+  const requestSequence = ++languageLoadSequence;
   try {
     if (getDevMode())
       console.log(`🌐 Carregando idioma / Loading language: ${langCode}`);
     const res = await fetch(`Extras/languages/${langCode}.json`);
     if (!res.ok) throw new Error("Language not found");
 
-    i18n = await res.json();
+    const dictionary = await res.json();
+    if (!dictionary || typeof dictionary !== "object" || Array.isArray(dictionary)) {
+      throw new Error("Invalid language catalog");
+    }
+    if (requestSequence !== languageLoadSequence) return currentLang;
+
+    i18n = dictionary;
     currentLang = langCode;
     language = currentLang;
     document.documentElement.lang = currentLang;
   } catch {
+    if (requestSequence !== languageLoadSequence) return currentLang;
     console.warn(
       `🌐 Idioma "${langCode}" não encontrado. Fallback para inglês.`,
     );
 
     const fallback = await fetch("Extras/languages/en-US.json");
-    i18n = await fallback.json();
+    const fallbackDictionary = await fallback.json();
+    if (requestSequence !== languageLoadSequence) return currentLang;
+    i18n = fallbackDictionary;
     currentLang = "en-US";
     language = currentLang;
     document.documentElement.lang = currentLang;
@@ -106,16 +117,65 @@ export function getCurrentLanguage() {
   return currentLang;
 }
 
-// Honor an explicit Settings choice; otherwise use the browser language.
-const supportedLanguages = ["en-US", "pt-BR", "ru"];
+export async function getAvailableLanguages() {
+  let languageCodes = ["en-US", "pt-BR", "ru"];
+  try {
+    const response = await fetch("Extras/languages/index.json", { cache: "no-store" });
+    if (response.ok) {
+      const manifest = await response.json();
+      if (Array.isArray(manifest.languages)) {
+        languageCodes = manifest.languages
+          .map((entry) => typeof entry === "string" ? entry : entry?.code)
+          .filter((code) => typeof code === "string" && /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(code));
+      }
+    }
+  } catch {
+    // Fall back to known candidates; individual JSON checks below still filter missing files.
+  }
+
+  const catalogs = await Promise.all(languageCodes.map(async (code) => {
+    try {
+      const response = await fetch(`Extras/languages/${code}.json`, { cache: "no-store" });
+      if (!response.ok) return null;
+      const catalog = await response.json();
+      if (!catalog || typeof catalog !== "object" || Array.isArray(catalog)) return null;
+      const languageName = typeof catalog.languageName === "string" ? catalog.languageName.trim() : "";
+      return languageName ? { code, name: languageName } : null;
+    } catch {
+      return null;
+    }
+  }));
+
+  return catalogs.filter(Boolean);
+}
+
+async function populateLanguageSelector(languages) {
+  const selector = document.getElementById("language-select");
+  if (!selector || !languages.length) return;
+  selector.replaceChildren(...languages.map(({ code, name }) => {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = name;
+    return option;
+  }));
+}
+
+// Honor an explicit Settings choice; otherwise use a language available on disk.
+const availableLanguages = await getAvailableLanguages();
+await populateLanguageSelector(availableLanguages);
+const supportedLanguages = availableLanguages.map(({ code }) => code);
 const savedLanguage = localStorage.getItem("darkstudio-language");
 const browserLanguage = (navigator.languages?.length ? navigator.languages : [navigator.language || "en-US"])
   .map((locale) => String(locale).toLowerCase());
-const detectedLanguage = browserLanguage.some((locale) => locale.startsWith("pt"))
-  ? "pt-BR"
-  : browserLanguage.some((locale) => locale.startsWith("ru"))
-    ? "ru"
-    : "en-US";
+const exactBrowserLanguage = browserLanguage
+  .map((locale) => availableLanguages.find(({ code }) => code.toLowerCase() === locale)?.code)
+  .find(Boolean);
+const detectedLanguage = exactBrowserLanguage ||
+  (browserLanguage.some((locale) => locale.startsWith("pt"))
+    ? supportedLanguages.find((code) => code.toLowerCase().startsWith("pt"))
+    : browserLanguage.some((locale) => locale.startsWith("ru"))
+      ? supportedLanguages.find((code) => code.toLowerCase().startsWith("ru"))
+      : null) || supportedLanguages.find((code) => code.toLowerCase() === "en-us") || supportedLanguages[0] || "en-US";
 await loadLanguage(supportedLanguages.includes(savedLanguage) ? savedLanguage : detectedLanguage);
 language = currentLang;
 document.documentElement.lang = currentLang;
