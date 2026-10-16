@@ -12,8 +12,8 @@ const OFFICIAL_ORIGIN_UNLOCK_KEY = "darkstudio-official-origin-unlocked";
 const OFFICIAL_ORIGIN_PASSWORD_HASH =
   "fdeee64735ecac5bcf069172e2dbe5dc89e7214d648eb968a4fff90bc8e1e873";
 const OFFICIAL_ORIGINS = new Set([
-  "https://dark-studio-code.netlify.app",
-  "https://dark-studio-code.com",
+  "https://darkstudio-code.netlify.app",
+  "https://darkstudio-code.com",
   "https://dscode.dev",
 ]);
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
