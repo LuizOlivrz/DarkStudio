@@ -1,9 +1,8 @@
 // ─────────────────────────────────────────────
 // ✨ Importações / Imports
 // ─────────────────────────────────────────────
-import { getDevMode, blockWeb } from "./config.js";
+import { getDevMode, blockWeb, t, getCurrentLanguage } from "./config.js";
 import { chatOpenValue, ChatVerification } from "./main.js";
-
 let chatOpen = chatOpenValue();
 
 // Bloqueia execução se estiver em mobile (definido em config.js)
@@ -22,8 +21,6 @@ if (!blockWeb) {
   const inlineSend = document.getElementById("inline-send");
   const inlineMessages = document.getElementById("inline-messages");
   const chat = document.getElementById("chat");
-  const configMenu = document.getElementById("config-menu");
-  const editorCodes = document.getElementById("Editor");
 
   // ─────────────────────────────────────────────
   // 🎃 Detecção de Tema por Data / Auto Theme by Date
@@ -361,12 +358,12 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
   async function applyInlineFix(userPrompt) {
     const selection = editor.getSelection();
     const model = editor.getModel();
-    const selectedCode = model.getValueInRange(selection);
 
-    if (!selection) {
-      showInlineChat("⚠️ Selecione um trecho de código primeiro.");
+    if (!selection || selection.isEmpty()) {
+      showInlineChat(t("inlineSelectCode"));
       return;
     }
+    const selectedCode = model.getValueInRange(selection);
 
     const rawResponse = await window.sendInlineRequest(`
       Código:
@@ -375,17 +372,41 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
       Pedido:
       ${userPrompt}
 
-      Responda somente com código.
+      Altere somente o trecho selecionado. Responda como um objeto JSON válido, sem cercas Markdown, com duas propriedades string: "corrected_code" contendo o trecho completo corrigido e "summary" contendo um resumo curto e específico das alterações realizadas, escrito em ${getCurrentLanguage()}.
       `);
-    const aiResponse = extractCodeOnly(rawResponse);
+    const result = parseInlineResponse(rawResponse);
 
     editor.executeEdits("copilot-inline", [
       {
         range: selection,
-        text: aiResponse,
+        text: result.code,
         forceMoveMarkers: true,
       },
     ]);
+    showInlineSummary(result.summary);
+  }
+
+  function parseInlineResponse(rawResponse) {
+    const text = String(rawResponse || "").trim();
+    const jsonText = text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1] || text;
+    const start = jsonText.indexOf("{");
+    const end = jsonText.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+      try {
+        const parsed = JSON.parse(jsonText.slice(start, end + 1));
+        if (typeof parsed.corrected_code === "string") {
+          return {
+            code: parsed.corrected_code,
+            summary: typeof parsed.summary === "string" && parsed.summary.trim()
+              ? parsed.summary.trim()
+              : t("inlineSummaryFallback"),
+          };
+        }
+      } catch {
+        // Older or malformed model replies continue through the legacy code extraction.
+      }
+    }
+    return { code: extractCodeOnly(text), summary: t("inlineSummaryFallback") };
   }
 
   function extractCodeOnly(text) {
@@ -400,11 +421,9 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
       chat.style.opacity = "0";
       chat.style.pointerEvents = "none";
       document.getElementById("Editor-Input").focus();
-      editorCodes.style.width = "130vh";
     }
 
     inlineChat.style.display = "block";
-    editorCodes.style.height = "calc(100vh - 21.5vh)";
     inlineChat.style.pointerEvents = "auto";
     chatOpen = true;
 
@@ -412,17 +431,35 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
       inlineChat.style.opacity = "1";
     });
 
-    if (message) {
-      inlineMessages.innerHTML = `<div class="ai">${message}</div>`;
-    }
+    if (message) showInlineMessage(message);
 
     inlineInput.value = "";
     inlineInput.focus();
   }
 
+  function showInlineMessage(message) {
+    const item = document.createElement("div");
+    item.className = "ai";
+    item.textContent = message;
+    inlineMessages.replaceChildren(item);
+  }
+
+  function showInlineSummary(summary) {
+    const card = document.createElement("div");
+    card.className = "ai inline-change-summary";
+    const heading = document.createElement("strong");
+    heading.textContent = t("inlineChangesTitle");
+    const body = document.createElement("p");
+    body.textContent = summary;
+    card.append(heading, body);
+    inlineMessages.replaceChildren(card);
+    inlineChat.style.display = "block";
+    inlineChat.style.opacity = "1";
+    inlineChat.style.pointerEvents = "auto";
+  }
+
   function hideInlineChat() {
     inlineChat.style.opacity = "0";
-    editorCodes.style.height = "calc(100vh - 71px)";
     inlineChat.style.pointerEvents = "none";
     chatOpen = false;
     setTimeout(() => {
@@ -436,8 +473,16 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
     const userPrompt = inlineInput.value.trim();
     if (!userPrompt) return;
 
-    hideInlineChat();
-    await applyInlineFix(userPrompt);
+    inlineSend.disabled = true;
+    showInlineChat(t("inlineWorking"));
+    try {
+      await applyInlineFix(userPrompt);
+    } catch (error) {
+      console.error("Inline AI edit failed:", error);
+      showInlineChat(t("inlineError"));
+    } finally {
+      inlineSend.disabled = false;
+    }
   };
 
   inlineInput.addEventListener("keydown", (e) => {

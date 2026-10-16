@@ -1,766 +1,1989 @@
-// Mapa Mental básico para DarkStudio
-// Permite adicionar arquivos via file input, criar nós arrastáveis,
-// conectar nós e abrir o conteúdo no editor ao clicar.
+// ============================================================
+// DarkStudio — Mind Map + Project Workspace
+// Workspace visual, arquivos, pastas, conexões e Monaco Editor
+// ============================================================
 
 const STORAGE_KEY = "darkstudio_mindmap_v1";
+const SVG_NS = "http://www.w3.org/2000/svg";
+const TEXT_FILE_EXTENSIONS = new Set([
+  "html", "htm", "css", "js", "mjs", "cjs", "json", "txt", "md",
+  "xml", "svg", "csv", "tsv", "yaml", "yml", "toml", "ini", "ts",
+  "jsx", "tsx", "vue", "svelte", "scss", "sass", "less", "php", "py",
+  "rb", "java", "c", "h", "cpp", "hpp", "cs", "go", "rs", "sh",
+  "bat", "ps1", "sql", "graphql", "webmanifest",
+]);
+
+const mind = document.getElementById("mindmap-container");
+const nodeLayer = document.getElementById("mindmap-nodes");
+const svg = document.getElementById("mindmap-svg");
 
 let nodes = [];
-let previousDisplays = {};
-let deleteTimer = null;
-let deleteCandidate = null;
 let connections = [];
+
+let currentEditingNode = null;
 let connectMode = false;
 let connectSource = null;
-let currentEditingNode = null;
-const container = document.getElementById("mindmap-container");
+let activeDrag = null;
+let folderClickTimer = null;
+let previousDisplays = {};
 
-const parentRect = container.getBoundingClientRect();
+let workspaceName = "workspace 1";
+let workspaceAutosaveInstalled = false;
+let highestNodeZIndex = 10;
+let indexedDbPromise = null;
+
+let fileInput;
+let folderInput;
+
+function tr(key) {
+  return window.darkStudioTranslate?.(key) || key;
+}
+
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
+
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getNode(id) {
+  return nodes.find((node) => node.id === id);
+}
+
+function getNodeElement(id) {
+  return (
+    nodeLayer?.querySelector(`.mm-node[data-id="${CSS.escape(String(id))}"]`) ||
+    null
+  );
+}
+
+function getWorkspacePath(node) {
+  return node?.filePath || node?.name || "";
+}
+
+function getFileExtension(filename) {
+  const name = String(filename || "");
+  const index = name.lastIndexOf(".");
+
+  return index > 0 ? name.slice(index + 1).toLowerCase() : "";
+}
+
+function getLanguageFromFile(filename) {
+  const languages = {
+    js: "javascript",
+    mjs: "javascript",
+    cjs: "javascript",
+    ts: "typescript",
+    jsx: "javascript",
+    tsx: "typescript",
+    html: "html",
+    htm: "html",
+    css: "css",
+    scss: "scss",
+    less: "less",
+    json: "json",
+    md: "markdown",
+    markdown: "markdown",
+    py: "python",
+    java: "java",
+    c: "c",
+    h: "c",
+    cpp: "cpp",
+    hpp: "cpp",
+    cs: "csharp",
+    sql: "sql",
+    xml: "xml",
+    yaml: "yaml",
+    yml: "yaml",
+    sh: "shell",
+    bash: "shell",
+    bat: "bat",
+    cmd: "bat",
+    php: "php",
+    rs: "rust",
+    go: "go",
+    kt: "kotlin",
+    txt: "plaintext",
+    log: "plaintext",
+  };
+
+  return languages[getFileExtension(filename)] || "plaintext";
+}
+
+function escapeSelector(value) {
+  if (window.CSS?.escape) return CSS.escape(String(value));
+
+  return String(value).replace(/["\\]/g, "\\$&");
+}
+
+function centerPosition(offset = 0) {
+  const rect = mind?.getBoundingClientRect();
+
+  return {
+    x: Math.max(12, (rect?.width || 800) / 2 - 90 + offset),
+    y: Math.max(80, (rect?.height || 600) / 2 - 25 + offset),
+  };
+}
+
+// ============================================================
+// PERSISTÊNCIA
+// ============================================================
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections }));
-  } catch (e) {
-    console.warn("Could not save mindmap state:", e);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        nodes,
+        connections,
+        workspaceName,
+      }),
+    );
+  } catch (error) {
+    console.warn("DarkStudio: não foi possível salvar o Workspace.", error);
+  }
+
+  persistStateToIndexedDB();
+
+  updateWorkspaceNameUI();
+}
+
+function openWorkspaceDB() {
+  if (indexedDbPromise) return indexedDbPromise;
+  indexedDbPromise = new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error("IndexedDB indisponível"));
+    const request = indexedDB.open("DarkStudioWorkspaceDB", 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains("workspace")) {
+        request.result.createObjectStore("workspace");
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Falha no IndexedDB"));
+  });
+  return indexedDbPromise;
+}
+
+async function persistStateToIndexedDB() {
+  try {
+    const db = await openWorkspaceDB();
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction("workspace", "readwrite");
+      transaction.objectStore("workspace").put({ nodes, connections, workspaceName }, "current");
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  } catch (error) {
+    // localStorage remains the fallback for browsers with IndexedDB disabled.
+    console.warn("DarkStudio: persistência ampliada indisponível.", error);
+  }
+}
+
+async function restoreStateFromIndexedDB() {
+  try {
+    const db = await openWorkspaceDB();
+    const saved = await new Promise((resolve, reject) => {
+      const request = db.transaction("workspace", "readonly").objectStore("workspace").get("current");
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+    if (!saved || !Array.isArray(saved.nodes)) return;
+    nodes = saved.nodes;
+    connections = Array.isArray(saved.connections) ? saved.connections : [];
+    workspaceName = typeof saved.workspaceName === "string" && saved.workspaceName
+      ? saved.workspaceName
+      : (typeof saved.workspaceMeta?.name === "string" && saved.workspaceMeta.name)
+        ? saved.workspaceMeta.name
+        : workspaceName;
+    for (const node of nodes) {
+      node.id = String(node.id || makeId());
+      node.name = node.name || tr("newFile");
+      node.content = typeof node.content === "string" ? node.content : "";
+      node.filePath = node.filePath || node.name;
+      node.type = node.type || "text";
+      if (!Number.isFinite(node.x)) node.x = 120;
+      if (!Number.isFinite(node.y)) node.y = 120;
+      if (!Number.isFinite(node.zIndex)) node.zIndex = 0;
+      if (node.type === "folder") node.isOpen = node.isOpen !== false;
+    }
+    connections = connections.filter((connection) =>
+      getNode(connection.from) && getNode(connection.to) && connection.from !== connection.to,
+    );
+  } catch (error) {
+    console.warn("DarkStudio: não foi possível restaurar o Workspace ampliado.", error);
   }
 }
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    nodes = parsed.nodes || [];
-    connections = parsed.connections || [];
-  } catch (e) {
-    console.warn("Could not load mindmap state:", e);
+
+    if (!raw) {
+      nodes = [];
+      connections = [];
+      return;
+    }
+
+    const data = JSON.parse(raw);
+
+    nodes = Array.isArray(data.nodes) ? data.nodes : [];
+    connections = Array.isArray(data.connections) ? data.connections : [];
+
+    workspaceName = data.workspaceName || "workspace 1";
+
+    for (const node of nodes) {
+      node.id = String(node.id || makeId());
+      node.name = node.name || tr("newFile");
+      node.content = typeof node.content === "string" ? node.content : "";
+
+      node.filePath = node.filePath || node.name;
+      node.type = node.type || "text";
+
+      if (!Number.isFinite(node.x)) node.x = 120;
+      if (!Number.isFinite(node.y)) node.y = 120;
+
+      if (!Number.isFinite(node.vx)) node.vx = 0;
+      if (!Number.isFinite(node.vy)) node.vy = 0;
+
+      if (node.type === "folder") {
+        node.isOpen = node.isOpen !== false;
+      }
+    }
+
+    // Remove conexões que apontam para nós inexistentes.
+    connections = connections.filter((connection) => {
+      return (
+        getNode(connection.from) &&
+        getNode(connection.to) &&
+        connection.from !== connection.to
+      );
+    });
+
+    // Remove referências a pastas que não existem.
+    for (const node of nodes) {
+      if (
+        node.parentFolderId &&
+        !nodes.some(
+          (item) => item.id === node.parentFolderId && item.type === "folder",
+        )
+      ) {
+        delete node.parentFolderId;
+      }
+    }
+  } catch (error) {
+    console.warn("DarkStudio: erro ao carregar o Workspace.", error);
+
+    nodes = [];
+    connections = [];
+    workspaceName = "workspace 1";
   }
 }
 
-function createStyle() {
-  const css = `
-  .mm-node{position:absolute;padding:10px 12px;border-radius:8px;background:rgba(30,30,30,0.95);color:#fff;border:1px solid rgba(255,255,255,0.06);cursor:grab;user-select:none;box-shadow:0 6px 18px rgba(0,0,0,0.6);display:flex;align-items:center;gap:8px}
-  .mm-node.selected{outline:2px solid var(--accent-color,#ff6700)}
-  .mm-node .name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
-  .mm-node img.thumb{width:36px;height:36px;object-fit:cover;border-radius:6px}
+// ============================================================
+// ESTILOS DO MAPA
+// ============================================================
+
+function injectStyles() {
+  if (document.getElementById("darkstudio-workspace-styles")) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = "darkstudio-workspace-styles";
+
+  style.textContent = `
+    #mindmap-container {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    #mindmap-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    #mindmap-nodes {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .mm-node {
+      position: absolute;
+      box-sizing: border-box;
+      min-height: 44px;
+      max-width: 270px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 9px;
+      background: rgba(25,25,25,.97);
+      color: #f5f5f5;
+      box-shadow: 0 7px 20px rgba(0,0,0,.30);
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      transition:
+        border-color .12s,
+        box-shadow .12s,
+        background .12s;
+    }
+
+    .mm-node:active {
+      cursor: grabbing;
+    }
+
+    .mm-node.selected {
+      outline: 2px solid var(--accent-color,#ff781f);
+    }
+
+    .mm-node.mm-folder {
+      min-width: 135px;
+      border-color: rgba(255,177,65,.48);
+      background: rgba(43,34,20,.97);
+    }
+
+    .mm-node.drop-target {
+      border-color: #ffd27a;
+      box-shadow:
+        0 0 0 3px rgba(255,190,70,.23),
+        0 8px 24px rgba(0,0,0,.4);
+    }
+
+    .mm-node.current-file {
+      border-color: #ff8738;
+      box-shadow: 0 0 0 1px #ff8738;
+    }
+
+    .mm-node .mm-icon {
+      flex: 0 0 auto;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .mm-node .name {
+      max-width: 215px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .mm-node.mm-folder .name {
+      font-weight: 600;
+    }
+
+    .mm-node img.thumb {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    #mindmap-add-menu {
+      position: fixed;
+      z-index: 1000000;
+      min-width: 215px;
+      max-width: calc(100vw - 24px);
+      padding: 6px;
+      display: grid;
+      gap: 4px;
+      border: 1px solid rgba(255,135,56,.65);
+      border-radius: 10px;
+      background: rgba(16,16,16,.98);
+      box-shadow: 0 12px 32px #0009;
+    }
+
+    #mindmap-add-menu button {
+      width: 100%;
+      padding: 10px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #eee;
+      text-align: left;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    #mindmap-add-menu button:hover {
+      background: rgba(255,120,31,.16);
+    }
+
+    #workspace-name {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      z-index: 10;
+      max-width: 50%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 7px;
+      background: rgba(15,15,15,.9);
+      color: #ccc;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .mm-link {
+      stroke: rgba(210,210,210,.48);
+      stroke-width: 2;
+    }
+
+    .mm-folder-link {
+      fill: none;
+      stroke: rgba(255,177,65,.75);
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    #mindmap-delete-zone {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      transform: none;
+      z-index: 1000001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 48px;
+      border: 1px solid rgba(255,100,100,.6);
+      border-radius: 12px;
+      background: rgba(100,20,20,.95);
+      color: white;
+      font-size: 23px;
+      box-shadow: 0 6px 20px #0007;
+      pointer-events: none;
+    }
   `;
-  const s = document.createElement("style");
-  s.id = "mindmap-styles";
-  s.textContent = css;
-  document.head.appendChild(s);
+
+  document.head.appendChild(style);
 }
+
+// ============================================================
+// NOME DO WORKSPACE
+// ============================================================
+
+function updateWorkspaceNameUI() {
+  if (!mind) return;
+
+  let label = document.getElementById("workspace-name");
+
+  if (!label) {
+    label = document.createElement("div");
+    label.id = "workspace-name";
+    mind.appendChild(label);
+  }
+
+  label.textContent = workspaceName;
+  label.title = `${tr("currentWorkspace")}: ${workspaceName}`;
+}
+
+function showNameDialog(initialName = "", title = "Nome") {
+  return new Promise((resolve) => {
+    document.getElementById("mindmap-name-popup")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "mindmap-name-popup";
+
+    Object.assign(overlay.style, {
+      position: "fixed",
+      inset: "0",
+      zIndex: "1000002",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+      background: "rgba(0,0,0,.72)",
+      backdropFilter: "blur(5px)",
+    });
+
+    const form = document.createElement("form");
+
+    Object.assign(form.style, {
+      width: "100%",
+      maxWidth: "360px",
+      padding: "22px",
+      borderRadius: "13px",
+      border: "1px solid rgba(255,135,56,.6)",
+      background: "#151515",
+      color: "#fff",
+      boxShadow: "0 20px 60px #0009",
+      fontFamily: "inherit",
+    });
+
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+
+    Object.assign(heading.style, {
+      margin: "0 0 16px",
+      fontSize: "17px",
+    });
+
+    const input = document.createElement("input");
+    input.value = initialName;
+    input.maxLength = 100;
+    input.placeholder = tr("namePlaceholder");
+    input.autocomplete = "off";
+
+    Object.assign(input.style, {
+      boxSizing: "border-box",
+      width: "100%",
+      padding: "11px",
+      marginBottom: "17px",
+      border: "1px solid #444",
+      borderRadius: "7px",
+      outline: "none",
+      background: "#222",
+      color: "#fff",
+      fontSize: "14px",
+    });
+
+    const actions = document.createElement("div");
+
+    Object.assign(actions.style, {
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: "9px",
+    });
+
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = tr("cancel");
+
+    const confirm = document.createElement("button");
+    confirm.type = "submit";
+    confirm.textContent = tr("save");
+
+    for (const button of [cancel, confirm]) {
+      Object.assign(button.style, {
+        padding: "9px 13px",
+        borderRadius: "7px",
+        border: "1px solid #444",
+        background: button === confirm ? "#ff781f" : "#242424",
+        color: "#fff",
+        cursor: "pointer",
+      });
+    }
+
+    let completed = false;
+
+    function finish(value) {
+      if (completed) return;
+
+      completed = true;
+      overlay.remove();
+      resolve(value);
+    }
+
+    cancel.addEventListener("click", () => finish(null));
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const value = input.value.trim();
+
+      if (!value) {
+        input.focus();
+        return;
+      }
+
+      finish(value);
+    });
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) finish(null);
+    });
+
+    overlay.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") finish(null);
+    });
+
+    actions.append(cancel, confirm);
+    form.append(heading, input, actions);
+    overlay.appendChild(form);
+    document.body.appendChild(overlay);
+
+    input.focus();
+    input.select();
+  });
+}
+
+async function renameWorkspace() {
+  const name = await showNameDialog(workspaceName, tr("workspaceRename"));
+
+  if (!name) return;
+
+  workspaceName = name;
+  saveState();
+}
+
+// ============================================================
+// CRIAÇÃO DE NÓS
+// ============================================================
+
+function addNode(name, content = "", type = "text", position = null) {
+  const point = position || centerPosition((nodes.length % 7) * 18);
+
+  const node = {
+    id: makeId(),
+    name: name || (type === "folder" ? tr("newFolder") : tr("newFile")),
+    content: typeof content === "string" ? content : "",
+    filePath: name || tr("newFile"),
+    type,
+    x: point.x,
+    y: point.y,
+    vx: 0,
+    vy: 0,
+  };
+
+  if (type === "folder") {
+    node.isOpen = true;
+    node.content = "";
+  }
+
+  nodes.push(node);
+
+  if (nodeLayer) {
+    nodeLayer.appendChild(createNodeElement(node));
+  }
+
+  saveState();
+  updateFolderVisibility();
+  updateConnections();
+
+  return node;
+}
+
+function addBlankNode() {
+  const node = addNode(`${tr("newFile")}.txt`, "", "text");
+  openNodeInEditor(node);
+}
+
+async function addFolder() {
+  const name = await showNameDialog("", tr("createFolder"));
+
+  if (!name) return;
+
+  const folder = addNode(name, "", "folder");
+  folder.filePath = name;
+
+  saveState();
+  renderNodes();
+}
+
+// ============================================================
+// RENDERIZAÇÃO DOS NÓS
+// ============================================================
 
 function createNodeElement(node) {
-  const el = document.createElement("div");
-  el.className = "mm-node";
-  el.dataset.id = node.id;
-  el.style.left = node.x + "px";
-  el.style.top = node.y + "px";
-  el.style.zIndex = 1000;
+  const element = document.createElement("div");
 
-  if (node.type === "image") {
-    const img = document.createElement("img");
-    img.className = "thumb";
-    img.src = node.content;
-    img.alt = node.name;
-    el.appendChild(img);
+  element.className = [
+    "mm-node",
+    node.type === "folder" ? "mm-folder" : "",
+    currentEditingNode?.id === node.id ? "current-file" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-    // Hover preview (larger) — overlay attached to mindmap container
-    el.addEventListener("mouseenter", (ev) => {
-      try {
-        const container = document.getElementById("mindmap-container");
-        if (!container) return;
-        let prev = document.getElementById("mindmap-hover-preview");
-        if (prev) prev.remove();
+  element.dataset.id = node.id;
+  element.style.left = `${node.x}px`;
+  element.style.top = `${node.y}px`;
+  element.style.zIndex = String(Number(node.zIndex) || (node.type === "folder" ? 2 : 3));
 
-        const rect = el.getBoundingClientRect();
-        const parentRect = container.getBoundingClientRect();
-        const cx = rect.left - parentRect.left + rect.width / 2;
-        const cy = rect.top - parentRect.top + rect.height / 2;
-
-        prev = document.createElement("div");
-        prev.id = "mindmap-hover-preview";
-        Object.assign(prev.style, {
-          position: "absolute",
-          left: cx + "px",
-          top: cy + "px",
-          transform: "translate(-50%, -120%)",
-          pointerEvents: "none",
-          zIndex: 99998,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "6px",
-        });
-
-        const largeImg = document.createElement("img");
-        largeImg.src = node.content;
-        largeImg.alt = node.name;
-        Object.assign(largeImg.style, {
-          maxWidth: "min(640px, 10vw)",
-          maxHeight: "70vh",
-          borderRadius: "8px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
-          display: "block",
-        });
-
-        prev.appendChild(largeImg);
-        container.appendChild(prev);
-      } catch (e) {
-        console.warn("preview error", e);
-      }
-    });
-
-    el.addEventListener("mouseleave", () => {
-      const prev = document.getElementById("mindmap-hover-preview");
-      if (prev) prev.remove();
-    });
+  if (node.type === "folder") {
+    element.setAttribute("aria-expanded", String(node.isOpen !== false));
   }
 
-  const nameDiv = document.createElement("div");
-  nameDiv.className = "name";
-  nameDiv.textContent = node.name;
-  el.appendChild(nameDiv);
+  if (node.type === "image") {
+    const image = document.createElement("img");
+    image.className = "thumb";
+    image.src = node.content;
+    image.alt = node.name;
+    element.appendChild(image);
+  } else {
+    const icon = document.createElement("span");
+    icon.className = "mm-icon";
+    icon.textContent =
+      node.type === "folder"
+        ? node.isOpen === false
+          ? "📁"
+          : "📂"
+        : getNodeIcon(node);
+    element.appendChild(icon);
+  }
 
-  let offsetX = 0;
-  let offsetY = 0;
-  let dragging = false;
-  let moved = false;
+  const label = document.createElement("div");
+  label.className = "name";
+  label.textContent = node.name;
+  element.appendChild(label);
 
-  el.addEventListener("mousedown", (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    moved = false;
-    dragging = true;
-    offsetX = e.clientX - el.getBoundingClientRect().left;
-    offsetY = e.clientY - el.getBoundingClientRect().top;
-    el.style.cursor = "grabbing";
-    document.body.style.userSelect = "none";
+  element.addEventListener("pointerdown", (event) => {
+    // Raise the active node without changing its coordinates or graph edges.
+    highestNodeZIndex = Math.max(highestNodeZIndex, 10) + 1;
+    element.style.zIndex = String(highestNodeZIndex);
+    node.zIndex = highestNodeZIndex;
+    beginDrag(event, node, element);
   });
 
-  document.addEventListener("mouseup", () => {
-    if (!dragging) return;
-    dragging = false;
-    el.style.cursor = "grab";
-    document.body.style.userSelect = "";
-    const id = el.dataset.id;
-    const rect = el.getBoundingClientRect();
-    const parentRect = el.parentElement.getBoundingClientRect();
-    const nodeObj = nodes.find((n) => n.id === id);
-    if (nodeObj) {
-      nodeObj.x = rect.left - parentRect.left;
-      nodeObj.y = rect.top - parentRect.top;
-      const trash = document.getElementById("mindmap-delete-zone");
+  element.addEventListener("click", (event) => {
+    event.stopPropagation();
 
-      if (trash) {
-        const trashRect = trash.getBoundingClientRect();
-        const nodeRect = el.getBoundingClientRect();
-
-        const touching =
-          nodeRect.left < trashRect.right &&
-          nodeRect.right > trashRect.left &&
-          nodeRect.top < trashRect.bottom &&
-          nodeRect.bottom > trashRect.top;
-
-        if (touching) {
-          deleteNode(node.id);
-
-          hideDeleteZone();
-
-          return;
-        }
-      }
-
-      hideDeleteZone();
-
-      clearTimeout(deleteTimer);
-
-      deleteTimer = null;
-
-      deleteCandidate = null;
-      saveState();
-      updateConnections();
-    }
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    if (!dragging) return;
-    moved = true;
-    const parentRect = el.parentElement.getBoundingClientRect();
-
-    let nx = e.clientX - parentRect.left - offsetX;
-    let ny = e.clientY - parentRect.top - offsetY;
-
-    const maxX = parentRect.width - el.offsetWidth;
-    const maxY = parentRect.height - el.offsetHeight;
-
-    nx = Math.max(0, Math.min(nx, maxX));
-    ny = Math.max(0, Math.min(ny, maxY));
-    el.style.left = nx + "px";
-    el.style.top = ny + "px";
-    const TOP_BAR_LIMIT = 80;
-
-    if (ny < TOP_BAR_LIMIT) {
-      deleteCandidate = node.id;
-
-      if (!deleteTimer) {
-        deleteTimer = setTimeout(() => {
-          showDeleteZone();
-
-          deleteTimer = null;
-        }, 500);
-      }
-    } else {
-      clearTimeout(deleteTimer);
-
-      deleteTimer = null;
-
-      deleteCandidate = null;
-
-      hideDeleteZone();
-    }
-    updateConnections();
-  });
-
-  el.addEventListener("click", (e) => {
-    e.stopPropagation();
-
-    // foi arrastado, não abre
-    if (moved) {
-      moved = false;
+    if (element.dataset.wasDragged === "true") {
+      element.dataset.wasDragged = "false";
       return;
     }
 
     if (connectMode) {
-      handleConnectClick(node.id, el);
+      handleConnectClick(node, element);
       return;
     }
 
-    if (node.type !== "image") {
-      openNodeInEditor(node);
-    }
+    clearTimeout(folderClickTimer);
+    folderClickTimer = setTimeout(() => {
+      if (node.type === "folder") toggleFolder(node);
+      else openNodeInEditor(node);
+    }, 400);
   });
 
-  return el;
-}
+  element.addEventListener("dblclick", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
 
-function handleConnectClick(id, el) {
-  if (!connectSource) {
-    connectSource = id;
-    el.classList.add("selected");
-    return;
-  }
-  if (connectSource === id) {
-    // cancel
-    const prev = document.querySelector(`.mm-node[data-id="${connectSource}"]`);
-    if (prev) prev.classList.remove("selected");
-    connectSource = null;
-    return;
-  }
-  // create connection
-  // verificar se a conexão já existe
-  const existingIndex = connections.findIndex(
-    (c) =>
-      (c.from === connectSource && c.to === id) ||
-      (c.from === id && c.to === connectSource),
-  );
+    clearTimeout(folderClickTimer);
 
-  if (existingIndex !== -1) {
-    // remove conexão existente
-    connections.splice(existingIndex, 1);
-  } else {
-    // cria nova conexão
-    connections.push({
-      from: connectSource,
-      to: id,
-    });
-  }
-  const prev = document.querySelector(`.mm-node[data-id="${connectSource}"]`);
-  if (prev) prev.classList.remove("selected");
-  connectSource = null;
-  saveState();
-  updateConnections();
-}
-
-function openNodeInEditor(node) {
-  // set editor value then switch to editor view
-  try {
-    const editor = document.getElementById("Editor");
-    const editorInput = document.getElementById("Editor-Input");
-    // if image, show image viewer overlay inside Editor
-    if (node.type === "image") {
-      // If mindmap is visible, show viewer over mindmap and keep map mode
-      const mindVisible = mind && mind.style.display === "block";
-      if (mindVisible) {
-        let viewer = document.getElementById("mindmap-image-viewer");
-        if (!viewer) {
-          viewer = document.createElement("div");
-          viewer.id = "mindmap-image-viewer";
-          Object.assign(viewer.style, {
-            position: "absolute",
-            inset: "0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.85)",
-            zIndex: 99999,
-          });
-          mind.appendChild(viewer);
-        }
-        viewer.innerHTML = `<div style=\"max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px\"><img src=\"${node.content}\" style=\"max-width:90%;max-height:80vh;border-radius:6px\"/><button id=\"mindmap-close-image\">Fechar Imagem</button></div>`;
-        const closeBtn = document.getElementById("mindmap-close-image");
-        if (closeBtn) {
-          closeBtn.addEventListener("click", () => {
-            const v = document.getElementById("mindmap-image-viewer");
-            if (v) v.remove();
-            // keep mindmap visible — do not switch to editor
-          });
-        }
-      } else {
-        if (editorInput) editorInput.style.display = "none";
-        let viewer = document.getElementById("mindmap-image-viewer");
-        if (!viewer) {
-          viewer = document.createElement("div");
-          viewer.id = "mindmap-image-viewer";
-          Object.assign(viewer.style, {
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#000",
-          });
-          editor.appendChild(viewer);
-        }
-        viewer.innerHTML = `<div style=\"max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:10px\"><img src=\"${node.content}\" style=\"max-width:90%;max-height:80vh;border-radius:6px\"/><button id=\"mindmap-close-image\">Fechar Imagem</button></div>`;
-        const closeBtn = document.getElementById("mindmap-close-image");
-        if (closeBtn) {
-          closeBtn.addEventListener("click", () => {
-            viewer.remove();
-            if (editorInput) editorInput.style.display = "block";
-          });
-        }
-      }
-    } else {
-      // salvar alterações do editor no nó atual
-
-      // salva o nó anterior
-      // salva o nó anterior
-      if (
-        currentEditingNode &&
-        window.editor &&
-        typeof window.editor.getValue === "function"
-      ) {
-        const content = window.editor.getValue();
-
-        // salva conteúdo
-        currentEditingNode.content = content;
-
-        // pega primeira linha
-        const firstLine = content.split("\n")[0].trim();
-
-        // se existir, renomeia o nó antigo
-        if (firstLine) {
-          currentEditingNode.name = firstLine.substring(0, 40);
-
-          // atualiza visualmente o nó
-          const nameEl = document.querySelector(
-            `.mm-node[data-id="${currentEditingNode.id}"] .name`,
-          );
-
-          if (nameEl) {
-            nameEl.textContent = currentEditingNode.name;
-          }
-        }
-
-        saveState();
-      }
-
-      // só depois troca para o novo nó
-      currentEditingNode = node;
-
-      if (window.editor) {
-        window.editor.setValue(node.content || "");
-      }
-
-      if (window.editor && typeof window.editor.setValue === "function") {
-        if (typeof node.content === "string")
-          window.editor.setValue(node.content || "");
-      }
-      // ensure monaco/editor visible
-      const viewer = document.getElementById("mindmap-image-viewer");
-      if (viewer) viewer.remove();
-      const editorInputEl = document.getElementById("Editor-Input");
-      if (editorInputEl) editorInputEl.style.display = "block";
-    }
-  } catch (e) {
-    console.warn("Editor not available:", e);
-  }
-  // show editor, hide mindmap
-  const editorEl = document.getElementById("Editor");
-  const mind = document.getElementById("mindmap-container");
-  if (editorEl && mind) {
-    mind.style.display = "none";
-    editorEl.style.display = "block";
-    document
-      .getElementById("mindmap-add-files")
-      ?.style.setProperty("display", "none");
-    document
-      .getElementById("mindmap-connect")
-      ?.style.setProperty("display", "none");
-    document
-      .getElementById("mindmap-clear")
-      ?.style.setProperty("display", "none");
-  }
-}
-
-function updateConnections() {
-  const svg = document.getElementById("mindmap-svg");
-  svg.innerHTML = "";
-  connections.forEach((c) => {
-    const a = document.querySelector(`.mm-node[data-id="${c.from}"]`);
-    const b = document.querySelector(`.mm-node[data-id="${c.to}"]`);
-    if (!a || !b) return;
-    const ra = a.getBoundingClientRect();
-    const rb = b.getBoundingClientRect();
-    const parentRect = document
-      .getElementById("mindmap-nodes")
-      .getBoundingClientRect();
-    const ax = ra.left - parentRect.left + ra.width / 2;
-    const ay = ra.top - parentRect.top + ra.height / 2;
-    const bx = rb.left - parentRect.left + rb.width / 2;
-    const by = rb.top - parentRect.top + rb.height / 2;
-
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", ax);
-    line.setAttribute("y1", ay);
-    line.setAttribute("x2", bx);
-    line.setAttribute("y2", by);
-    line.setAttribute("stroke", "rgba(200,200,200,0.35)");
-    line.setAttribute("stroke-width", "2");
-    svg.appendChild(line);
-  });
-}
-
-function addNodeFromFile(name, content, px = 120, py = 120, type = "text") {
-  const id = String(Date.now()) + Math.random().toString(36).slice(2, 8);
-  const parent = document.getElementById("mindmap-nodes");
-  const node = {
-    id,
-    name,
-    content,
-    filePath: name, // ou id do arquivo
-    x: px,
-    y: py,
-    type,
-  };
-  nodes.push(node);
-  const el = createNodeElement(node);
-  parent.appendChild(el);
-  saveState();
-  updateConnections();
-}
-
-function clearMap() {
-  nodes = [];
-  connections = [];
-
-  currentEditingNode = null;
-
-  const parent = document.getElementById("mindmap-nodes");
-
-  parent.innerHTML = "";
-
-  updateConnections();
-
-  saveState();
-}
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function initFromState() {
-  const parent = document.getElementById("mindmap-nodes");
-  parent.innerHTML = "";
-  nodes.forEach((n) => {
-    const el = createNodeElement(n);
-    parent.appendChild(el);
-  });
-  updateConnections();
-}
-
-function wireUI() {
-  const btn = document.getElementById("mindmap-button");
-  const mind = document.getElementById("mindmap-container");
-  const editor = document.getElementById("Editor");
-  const addBtn = document.getElementById("mindmap-add-files");
-  const connectBtn = document.getElementById("mindmap-connect");
-  const clearBtn = document.getElementById("mindmap-clear");
-
-  const hiddenInput = document.createElement("input");
-  hiddenInput.type = "file";
-  hiddenInput.multiple = true;
-  hiddenInput.accept =
-    ".js,.html,.css,.txt,.json,.java,.py,.cpp,.c,.cmd,.pyw,.sbv,.vcf,.bat,.md,image/*";
-  hiddenInput.style.display = "none";
-  document.body.appendChild(hiddenInput);
-
-  hiddenInput.addEventListener("change", (e) => {
-    const files = Array.from(e.target.files || []);
-    files.forEach((f, idx) => {
-      const reader = new FileReader();
-      if (f.type && f.type.startsWith("image/")) {
-        reader.onload = () => {
-          const container = document.getElementById("mindmap-container");
-
-          const px =
-            container.clientWidth / 2 - 120 + (Math.random() * 120 - 60);
-
-          const py =
-            container.clientHeight / 2 - 60 + (Math.random() * 120 - 60);
-          addNodeFromFile(f.name, reader.result, px, py, "image");
-        };
-        reader.readAsDataURL(f);
-      } else {
-        reader.onload = () => {
-          const container = document.getElementById("mindmap-container");
-
-          const px =
-            container.clientWidth / 2 - 120 + (Math.random() * 120 - 60);
-
-          const py =
-            container.clientHeight / 2 - 60 + (Math.random() * 120 - 60);
-          addNodeFromFile(f.name, reader.result, px, py, "text");
-        };
-        reader.readAsText(f);
-      }
-    });
-    hiddenInput.value = "";
-  });
-
-  addBtn.addEventListener("click", () => hiddenInput.click());
-
-  connectBtn.addEventListener("click", () => {
-    connectMode = !connectMode;
-    connectSource = null;
-    connectBtn.textContent = connectMode
-      ? "Conectando (clique em 2 nós)"
-      : "Conectar";
-  });
-
-  clearBtn.addEventListener("click", () => {
-    if (confirm("Limpar todo o mapa mental?")) clearMap();
-  });
-
-  let previousDisplays = {};
-
-  btn.addEventListener("click", () => {
-    const editorButtons = [
-      "download-file",
-      "load-button",
-      "clear",
-      "execute",
-      "new-iframe-button",
-    ];
-
-    const mapButtons = [addBtn, connectBtn, clearBtn];
-
-    const opening = mind.style.display === "none" || mind.style.display === "";
-
-    if (opening) {
-      // abrir mapa
-      syncCurrentEditorToMap();
-      mind.style.display = "block";
-
-      if (editor) {
-        editor.style.display = "none";
-      }
-
-      // salvar estado atual dos botões normais
-      previousDisplays = {};
-
-      editorButtons.forEach((id) => {
-        const el = document.getElementById(id);
-
-        if (!el) return;
-
-        previousDisplays[id] = getComputedStyle(el).display;
-
-        el.style.display = "none";
-      });
-
-      // mostrar botões do mapa
-      mapButtons.forEach((btn) => {
-        if (btn) btn.style.display = "inline-block";
-      });
-
-      initFromState();
-    } else {
-      // fechar mapa
-      mind.style.display = "none";
-
-      if (editor) {
-        editor.style.display = "block";
-      }
-
-      // esconder botões do mapa
-      mapButtons.forEach((btn) => {
-        if (btn) btn.style.display = "none";
-      });
-
-      // restaurar estado original dos botões normais
-      editorButtons.forEach((id) => {
-        const el = document.getElementById(id);
-
-        if (!el) return;
-
-        el.style.display = previousDisplays[id] || "";
-      });
-    }
-  });
-
-  // click on canvas clears connect selection
-  const nodesParent = document.getElementById("mindmap-nodes");
-  nodesParent.addEventListener("click", () => {
-    if (connectSource) {
-      const prev = document.querySelector(
-        `.mm-node[data-id="${connectSource}"]`,
-      );
-      if (prev) prev.classList.remove("selected");
-      connectSource = null;
-    }
-  });
-}
-
-function syncCurrentEditorToMap() {
-  if (!window.editor) return;
-
-  const content = window.editor.getValue();
-
-  if (!content.trim()) return;
-
-  if (!currentEditingNode) {
-    const content = window.editor.getValue();
-
-    const existingNode = nodes.find(
-      (n) => n.type === "text" && n.content === content,
+    const name = await showNameDialog(
+      node.name,
+      tr(node.type === "folder" ? "renameFolder" : "renameFile"),
     );
 
-    if (existingNode) {
-      currentEditingNode = existingNode;
-    }
+    if (!name || name === node.name) return;
+    if (node.type === "folder") renameFolderNode(node, name);
+    else renameFileNode(node, name);
+  });
+
+  return element;
+}
+
+function getNodeIcon(node) {
+  const extension = getFileExtension(node.name);
+
+  const icons = {
+    js: "🟨",
+    mjs: "🟨",
+    ts: "🔷",
+    html: "🌐",
+    htm: "🌐",
+    css: "🎨",
+    json: "🧩",
+    md: "📝",
+    py: "🐍",
+    java: "☕",
+    png: "🖼️",
+    jpg: "🖼️",
+    jpeg: "🖼️",
+    gif: "🖼️",
+    svg: "🖼️",
+    txt: "📄",
+  };
+
+  return icons[extension] || "▤";
+}
+
+function renderNodes() {
+  if (!nodeLayer) return;
+
+  nodeLayer.innerHTML = "";
+
+  for (const node of nodes) {
+    highestNodeZIndex = Math.max(highestNodeZIndex, Number(node.zIndex) || 0);
+    nodeLayer.appendChild(createNodeElement(node));
   }
 
-  // se não existir mais no array, invalida
-  if (
-    currentEditingNode &&
-    !nodes.find((n) => n.id === currentEditingNode.id)
-  ) {
-    currentEditingNode = null;
+  updateFolderVisibility();
+  updateConnections();
+}
+
+// ============================================================
+// PASTAS ANINHADAS
+// ============================================================
+
+function getParentFolder(node) {
+  return node?.parentFolderId ? getNode(node.parentFolderId) : null;
+}
+
+function isInsideClosedFolder(node) {
+  let parent = getParentFolder(node);
+  const visited = new Set();
+
+  while (parent && !visited.has(parent.id)) {
+    visited.add(parent.id);
+
+    if (parent.isOpen === false) return true;
+
+    parent = getParentFolder(parent);
   }
 
-  if (currentEditingNode) {
-    currentEditingNode.content = content;
+  return false;
+}
 
-    const firstLine = content.split("\n")[0].trim();
+function updateFolderVisibility() {
+  for (const node of nodes) {
+    const element = getNodeElement(node.id);
 
-    if (firstLine) {
-      currentEditingNode.name = firstLine.substring(0, 40);
-    }
+    if (!element) continue;
 
-    saveState();
+    element.style.display = isInsideClosedFolder(node) ? "none" : "flex";
+  }
+
+  updateConnections();
+}
+
+function toggleFolder(folder) {
+  if (!folder || folder.type !== "folder") return;
+
+  folder.isOpen = folder.isOpen === false;
+
+  const element = getNodeElement(folder.id);
+  const icon = element?.querySelector(".mm-icon");
+
+  if (icon) {
+    icon.textContent = folder.isOpen ? "📂" : "📁";
+  }
+
+  element?.setAttribute("aria-expanded", String(folder.isOpen));
+
+  saveState();
+  updateFolderVisibility();
+}
+
+function renameFolderNode(folder, newName) {
+  if (/[\\/]/.test(newName)) {
+    alert(tr("invalidName"));
+    return;
+  }
+  const oldPath = folder.filePath || folder.name;
+  const parent = getParentFolder(folder);
+  const parentPath = parent?.filePath || "";
+
+  const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+  if (nodes.some((node) => node.id !== folder.id && node.filePath === newPath)) {
+    alert(tr("fileExists"));
     return;
   }
 
-  // Não existe? então cria
-  const node = {
-    id: String(Date.now()),
-    name: "Novo Documento",
-    content,
-    x: 200,
-    y: 200,
-    type: "text",
-  };
+  folder.name = newName;
+  folder.filePath = newPath;
 
-  nodes.push(node);
+  // Atualiza caminhos dos descendentes.
+  for (const node of nodes) {
+    if (node.id === folder.id) continue;
 
-  const parent = document.getElementById("mindmap-nodes");
+    const path = node.filePath || "";
 
-  if (parent) {
-    parent.appendChild(createNodeElement(node));
+    if (path.startsWith(`${oldPath}/`)) {
+      node.filePath = newPath + path.slice(oldPath.length);
+    }
   }
 
-  currentEditingNode = node;
-
   saveState();
+  renderNodes();
 }
 
-function initMindmap() {
-  createStyle();
-  loadState();
-  wireUI();
+function renameFileNode(file, newName) {
+  if (/[\\/]/.test(newName)) {
+    alert(tr("invalidName"));
+    return;
+  }
+  const parent = getParentFolder(file);
+  const parentPath = parent?.filePath || "";
+  const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+  const collision = nodes.some((node) => node.id !== file.id && node.filePath === newPath);
+  if (collision) {
+    alert(tr("fileExists"));
+    return;
+  }
+  file.name = newName;
+  file.filePath = newPath;
+  saveState();
+  renderNodes();
+  updateSelectedNodeUI();
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initMindmap);
-} else {
-  initMindmap();
-}
+// ============================================================
+// ARRASTAR E SOLTAR
+// ============================================================
 
-export {};
+function beginDrag(event, node, element) {
+  if (event.button !== 0 || connectMode) return;
 
-function showDeleteZone() {
-  let zone = document.getElementById("mindmap-delete-zone");
-  if (nodes.length <= 1) return;
+  if (event.target.closest("button, input")) return;
 
-  if (zone) return zone;
+  event.preventDefault();
 
-  zone = document.createElement("div");
+  const rect = element.getBoundingClientRect();
 
-  zone.id = "mindmap-delete-zone";
+  activeDrag = {
+    node,
+    element,
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    offsetX: event.clientX - rect.left,
+    offsetY: event.clientY - rect.top,
+    moved: false,
+    dropTarget: null,
+  };
 
-  zone.innerHTML = "🗑️";
+  element.setPointerCapture?.(event.pointerId);
+  element.style.cursor = "grabbing";
+  document.body.style.userSelect = "none";
 
-  Object.assign(zone.style, {
-    position: "fixed",
-    top: "10px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "10px",
-    height: "auto",
-    borderRadius: "70%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "22px",
-    zIndex: "999999",
+  document.addEventListener("pointermove", onPointerMove, {
+    passive: false,
   });
 
-  document.body.appendChild(zone);
+  document.addEventListener("pointerup", onPointerUp);
+  document.addEventListener("pointercancel", onPointerUp);
+}
 
-  return zone;
+function onPointerMove(event) {
+  if (!activeDrag || event.pointerId !== activeDrag.pointerId) {
+    return;
+  }
+
+  event.preventDefault();
+
+  const drag = activeDrag;
+  const rect = mind.getBoundingClientRect();
+
+  const x = Math.max(
+    0,
+    Math.min(
+      rect.width - drag.element.offsetWidth,
+      event.clientX - rect.left - drag.offsetX,
+    ),
+  );
+
+  const y = Math.max(
+    0,
+    Math.min(
+      rect.height - drag.element.offsetHeight,
+      event.clientY - rect.top - drag.offsetY,
+    ),
+  );
+
+  if (
+    Math.abs(event.clientX - drag.startX) +
+      Math.abs(event.clientY - drag.startY) >
+    5
+  ) {
+    drag.moved = true;
+    drag.element.dataset.wasDragged = "true";
+  }
+
+  drag.node.x = x;
+  drag.node.y = y;
+
+  drag.element.style.left = `${x}px`;
+  drag.element.style.top = `${y}px`;
+
+  highlightDropTarget(drag.node, event.clientX, event.clientY);
+  updateConnections();
+
+  if (y < 70) {
+    showDeleteZone();
+  } else {
+    hideDeleteZone();
+  }
+}
+
+function validFolderTarget(node, folder) {
+  if (!node || !folder || folder.type !== "folder") return false;
+  if (node.id === folder.id) return false;
+
+  // Impede colocar uma pasta dentro dela própria ou de um descendente.
+  let current = folder;
+
+  while (current?.parentFolderId) {
+    if (current.parentFolderId === node.id) return false;
+    current = getNode(current.parentFolderId);
+  }
+
+  return true;
+}
+
+function highlightDropTarget(node, clientX, clientY) {
+  nodeLayer?.querySelectorAll(".drop-target").forEach((element) => {
+    element.classList.remove("drop-target");
+  });
+
+  if (!mind) return;
+
+  const target = document.elementFromPoint(clientX, clientY);
+  const targetElement = target?.closest(".mm-node");
+
+  if (!targetElement) {
+    if (activeDrag) activeDrag.dropTarget = null;
+    return;
+  }
+
+  const folder = getNode(targetElement.dataset.id);
+
+  if (!validFolderTarget(node, folder)) {
+    if (activeDrag) activeDrag.dropTarget = null;
+    return;
+  }
+
+  targetElement.classList.add("drop-target");
+
+  if (activeDrag) {
+    activeDrag.dropTarget = folder;
+  }
+}
+
+function onPointerUp(event) {
+  document.removeEventListener("pointermove", onPointerMove);
+  document.removeEventListener("pointerup", onPointerUp);
+  document.removeEventListener("pointercancel", onPointerUp);
+
+  document.body.style.userSelect = "";
+
+  if (!activeDrag) return;
+
+  const drag = activeDrag;
+
+  drag.element.style.cursor = "grab";
+  activeDrag = null;
+
+  const target = drag.dropTarget;
+
+  if (drag.moved) {
+    const trash = document.getElementById("mindmap-delete-zone");
+    const nodeRect = drag.element.getBoundingClientRect();
+    const trashRect = trash?.getBoundingClientRect();
+
+    const droppedInTrash =
+      trashRect &&
+      nodeRect.left < trashRect.right &&
+      nodeRect.right > trashRect.left &&
+      nodeRect.top < trashRect.bottom &&
+      nodeRect.bottom > trashRect.top;
+
+    if (droppedInTrash) {
+      deleteNode(drag.node.id);
+    } else if (target && validFolderTarget(drag.node, target)) {
+      attachNodeToFolder(drag.node, target);
+    } else {
+      // Soltar fora de uma pasta desagrupa o nó.
+      delete drag.node.parentFolderId;
+      delete drag.node.folderOffsetX;
+      delete drag.node.folderOffsetY;
+    }
+  }
+
+  nodeLayer?.querySelectorAll(".drop-target").forEach((element) => {
+    element.classList.remove("drop-target");
+  });
+
+  hideDeleteZone();
+  saveState();
+  updateFolderVisibility();
+  updateConnections();
+}
+
+function attachNodeToFolder(node, folder) {
+  if (!validFolderTarget(node, folder)) return;
+
+  node.parentFolderId = folder.id;
+  node.folderOffsetX = node.x - folder.x;
+  node.folderOffsetY = node.y - folder.y;
+
+  folder.isOpen = true;
+}
+
+function showDeleteZone() {
+  if (document.getElementById("mindmap-delete-zone")) return;
+
+  const zone = document.createElement("div");
+  zone.id = "mindmap-delete-zone";
+  zone.textContent = "🗑️";
+
+  const map = document.getElementById("mindmap-container");
+  (map || document.body).appendChild(zone);
 }
 
 function hideDeleteZone() {
   document.getElementById("mindmap-delete-zone")?.remove();
 }
 
-function deleteNode(nodeId) {
-  nodes = nodes.filter((n) => n.id !== nodeId);
+// ============================================================
+// CONEXÕES ENTRE NÓS
+// ============================================================
 
-  connections = connections.filter((c) => c.from !== nodeId && c.to !== nodeId);
-
-  if (currentEditingNode && currentEditingNode.id === nodeId) {
-    currentEditingNode = null;
+function handleConnectClick(node, element) {
+  if (!connectSource) {
+    connectSource = node.id;
+    element.classList.add("selected");
+    return;
   }
 
-  document.querySelector(`.mm-node[data-id="${nodeId}"]`)?.remove();
+  if (connectSource === node.id) {
+    getNodeElement(connectSource)?.classList.remove("selected");
+    connectSource = null;
+    return;
+  }
 
+  const index = connections.findIndex((connection) => {
+    return (
+      (connection.from === connectSource && connection.to === node.id) ||
+      (connection.to === connectSource && connection.from === node.id)
+    );
+  });
+
+  if (index >= 0) {
+    connections.splice(index, 1);
+  } else {
+    connections.push({
+      from: connectSource,
+      to: node.id,
+    });
+  }
+
+  getNodeElement(connectSource)?.classList.remove("selected");
+
+  connectSource = null;
   saveState();
   updateConnections();
 }
+
+function updateConnections() {
+  if (!svg || !nodeLayer) return;
+
+  svg.innerHTML = "";
+
+  const layerRect = nodeLayer.getBoundingClientRect();
+
+  // Conexões criadas manualmente.
+  for (const connection of connections) {
+    const from = getNode(connection.from);
+    const to = getNode(connection.to);
+
+    if (!from || !to) continue;
+    if (isInsideClosedFolder(from) || isInsideClosedFolder(to)) continue;
+
+    const a = getNodeElement(from.id);
+    const b = getNodeElement(to.id);
+
+    if (!a || !b) continue;
+
+    const ra = a.getBoundingClientRect();
+    const rb = b.getBoundingClientRect();
+
+    const line = document.createElementNS(SVG_NS, "line");
+
+    line.setAttribute("x1", ra.left - layerRect.left + ra.width / 2);
+    line.setAttribute("y1", ra.top - layerRect.top + ra.height / 2);
+    line.setAttribute("x2", rb.left - layerRect.left + rb.width / 2);
+    line.setAttribute("y2", rb.top - layerRect.top + rb.height / 2);
+    line.setAttribute("class", "mm-link");
+
+    svg.appendChild(line);
+  }
+
+  // Linhas de vínculo entre pastas e seus itens.
+  for (const node of nodes) {
+    if (!node.parentFolderId || isInsideClosedFolder(node)) continue;
+
+    const parent = getNode(node.parentFolderId);
+
+    if (!parent || isInsideClosedFolder(parent)) continue;
+
+    const a = getNodeElement(parent.id);
+    const b = getNodeElement(node.id);
+
+    if (!a || !b) continue;
+
+    const ra = a.getBoundingClientRect();
+    const rb = b.getBoundingClientRect();
+
+    const line = document.createElementNS(SVG_NS, "line");
+
+    line.setAttribute("x1", ra.left - layerRect.left + ra.width / 2);
+    line.setAttribute("y1", ra.top - layerRect.top + ra.height / 2);
+    line.setAttribute("x2", rb.left - layerRect.left + rb.width / 2);
+    line.setAttribute("y2", rb.top - layerRect.top + rb.height / 2);
+    line.setAttribute("class", "mm-folder-link");
+
+    svg.appendChild(line);
+  }
+}
+
+// ============================================================
+// ARQUIVOS E PASTAS IMPORTADOS
+// ============================================================
+
+function findFolderByPath(path) {
+  return nodes.find((node) => node.type === "folder" && node.filePath === path);
+}
+
+function ensureFolderPath(path) {
+  const normalized = path.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+
+  if (!normalized) return null;
+
+  const existing = findFolderByPath(normalized);
+
+  if (existing) return existing;
+
+  const segments = normalized.split("/");
+  const folderName = segments.pop();
+  const parentPath = segments.join("/");
+
+  let parent = parentPath ? ensureFolderPath(parentPath) : null;
+
+  const folder = addNode(
+    folderName,
+    "",
+    "folder",
+    centerPosition((nodes.length % 8) * 16),
+  );
+
+  folder.filePath = normalized;
+
+  if (parent) {
+    attachNodeToFolder(folder, parent);
+  }
+
+  return folder;
+}
+
+async function readFileContent(file) {
+  const binaryTypes = /^(?:image|audio|video|font)\//i;
+  const extension = file.name.split(".").pop().toLowerCase();
+  if (binaryTypes.test(file.type || "") || !TEXT_FILE_EXTENSIONS.has(extension)) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = reject;
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return file.text();
+}
+
+async function importWorkspaceFiles(fileList) {
+  const files = Array.from(fileList || []);
+
+  if (!files.length) return;
+
+  const isDirectoryImport = files.some((file) => file.webkitRelativePath);
+
+  let rootName = "";
+
+  if (isDirectoryImport) {
+    const firstPath = files.find(
+      (file) => file.webkitRelativePath,
+    )?.webkitRelativePath;
+
+    rootName = firstPath?.split("/")[0] || "";
+
+    if (!rootName || files.some((file) => !file.webkitRelativePath)) {
+      throw new Error("Não foi possível identificar a pasta importada.");
+    }
+  }
+
+  // Read every file before mutating the current workspace. A failed import
+  // leaves the existing project untouched.
+  const prepared = [];
+  for (const file of files) {
+    const sourcePath = file.webkitRelativePath || file.name;
+
+    const parts = sourcePath.replace(/\\/g, "/").split("/").filter((part) => part && part !== ".");
+    if (parts.some((part) => part === "..")) continue;
+
+    if (isDirectoryImport && parts[0] === rootName) {
+      parts.shift();
+    }
+
+    if (!parts.length) continue;
+
+    const filename = parts.pop();
+    const directoryPath = parts.join("/");
+    const filePath = [...parts, filename].join("/");
+    prepared.push({ file, filename, directoryPath, filePath, content: await readFileContent(file) });
+  }
+
+  if (!prepared.length) throw new Error("A pasta não contém arquivos importáveis.");
+
+  // Importing a directory represents opening a new project: replace all old
+  // nodes and edges only after the complete directory was read successfully.
+  if (isDirectoryImport) {
+    syncCurrentEditorToMap();
+    nodes = [];
+    connections = [];
+    currentEditingNode = null;
+    connectSource = null;
+    connectMode = false;
+    closeImageViewer();
+  }
+
+  let importedCount = 0;
+  const seenPaths = new Set();
+  for (const entry of prepared) {
+    if (seenPaths.has(entry.filePath)) continue;
+    seenPaths.add(entry.filePath);
+    const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : null;
+    const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
+    const node = addNode(
+      entry.filename,
+      entry.content,
+      isImage ? "image" : "text",
+      centerPosition((nodes.length % 8) * 18),
+    );
+
+    node.filePath = entry.filePath;
+
+    if (parent) {
+      attachNodeToFolder(node, parent);
+    }
+
+    importedCount++;
+  }
+
+  if (rootName) {
+    workspaceName = rootName;
+  }
+
+  saveState();
+  renderNodes();
+
+  console.info(`DarkStudio: ${importedCount} arquivo(s) importado(s).`);
+}
+
+function normalizeProjectPath(path) {
+  const parts = [];
+  for (const part of String(path || "").replace(/\\/g, "/").split("/")) {
+    if (!part || part === ".") continue;
+    if (part === "..") parts.pop();
+    else parts.push(part);
+  }
+  return parts.join("/");
+}
+
+function previewMime(path) {
+  const ext = path.split(".").pop().toLowerCase();
+  return ({ html: "text/html", htm: "text/html", css: "text/css", js: "text/javascript", mjs: "text/javascript", json: "application/json", svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", ico: "image/x-icon", woff: "font/woff", woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf", mp4: "video/mp4", webm: "video/webm", mp3: "audio/mpeg", wav: "audio/wav" })[ext] || "text/plain";
+}
+
+function createProjectPreview(node) {
+  if (!node || node.type === "folder") return null;
+  const files = new Map(nodes.filter((item) => item.type !== "folder" && item.filePath).map((item) => [normalizeProjectPath(item.filePath), item]));
+  const index = files.get(normalizeProjectPath(node.filePath));
+  if (!index || !/\.html?$/i.test(index.filePath || index.name)) return null;
+
+  const urls = new Map();
+  const generatedUrls = new Set();
+  for (const [path, item] of files) {
+    const mime = previewMime(path);
+    const blob = item.content.startsWith("data:")
+      ? null
+      : new Blob([item.content], { type: mime });
+    const resourceUrl = blob ? URL.createObjectURL(blob) : item.content;
+    urls.set(path, resourceUrl);
+    if (resourceUrl.startsWith("blob:")) generatedUrls.add(resourceUrl);
+  }
+
+  const resolve = (reference, fromPath) => {
+    const raw = String(reference || "").trim();
+    if (!raw || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(raw)) return raw;
+    const clean = raw.split(/[?#]/, 1)[0];
+    let decoded;
+    try { decoded = decodeURIComponent(clean); } catch { decoded = clean; }
+    const parent = fromPath.includes("/") ? fromPath.slice(0, fromPath.lastIndexOf("/")) : "";
+    const target = normalizeProjectPath(decoded.startsWith("/") ? decoded : `${parent ? `${parent}/` : ""}${decoded}`);
+    return urls.get(target) || raw;
+  };
+  const rewriteCss = (css, path) => css
+    .replace(/url\(\s*(['"]?)(.*?)\1\s*\)/gi, (all, quote, ref) => `url("${resolve(ref, path)}")`)
+    .replace(/@import\s+(['"])(.*?)\1/gi, (all, quote, ref) => `@import "${resolve(ref, path)}"`);
+
+  // Blob URLs for CSS need their own relative dependencies rewritten too.
+  for (const [path, item] of files) {
+    if (/\.css$/i.test(path) && !item.content.startsWith("data:")) {
+      const old = urls.get(path);
+      const cssUrl = URL.createObjectURL(new Blob([rewriteCss(item.content, path)], { type: "text/css" }));
+      generatedUrls.add(cssUrl);
+      urls.set(path, cssUrl);
+    }
+  }
+
+  // Rewrite relative ES module imports to the matching imported resource URL.
+  // This supports common static module graphs without requiring a project server.
+  const moduleUrls = new Map();
+  const moduleStack = new Set();
+  const buildModuleUrl = (path) => {
+    if (moduleUrls.has(path)) return moduleUrls.get(path);
+    const item = files.get(path);
+    if (!item || !/\.(?:m?js|cjs)$/i.test(path)) return urls.get(path);
+    if (moduleStack.has(path)) return urls.get(path); // preserve circular edge as an original module URL
+    moduleStack.add(path);
+    const source = String(item.content || "").replace(
+      /\b(from\s*|import\s*(?:\(\s*)?)(["'])(?:(\.{1,2}\/|\/))([^"']+)\2/g,
+      (all, prefix, quote, pathPrefix, specifier) => {
+        const target = normalizeProjectPath(pathPrefix === "/"
+          ? `/${specifier}`
+          : `${path.includes("/") ? path.slice(0, path.lastIndexOf("/")) + "/" : ""}${pathPrefix}${specifier}`);
+        const url = files.has(target) ? buildModuleUrl(target) : resolve(`${pathPrefix}${specifier}`, path);
+        return `${prefix}${quote}${url}${quote}`;
+      },
+    );
+    moduleStack.delete(path);
+    const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+    generatedUrls.add(url);
+    moduleUrls.set(path, url);
+    urls.set(path, url);
+    return url;
+  };
+  for (const path of files.keys()) {
+    if (/\.(?:m?js|cjs)$/i.test(path)) buildModuleUrl(path);
+  }
+
+  let html = String(index.content || "");
+  html = html.replace(/<base\b[^>]*>/gi, "");
+  html = html.replace(/(<(?:script|link|img|source|video|audio|track|iframe|input)\b[^>]*?\b(?:src|href|poster)\s*=\s*)(["'])(.*?)\2/gi,
+    (all, prefix, quote, ref) => `${prefix}${quote}${resolve(ref, index.filePath)}${quote}`);
+  html = html.replace(/\bsrcset\s*=\s*(["'])(.*?)\1/gi, (all, quote, value) => `srcset=${quote}${value.split(",").map((part) => { const [url, ...descriptor] = part.trim().split(/\s+/); return [resolve(url, index.filePath), ...descriptor].join(" "); }).join(", ")}${quote}`);
+  html = html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (all, css) => all.replace(css, rewriteCss(css, index.filePath)));
+  html = html.replace(/\bstyle\s*=\s*(["'])(.*?)\1/gi, (all, quote, css) => `style=${quote}${rewriteCss(css, index.filePath)}${quote}`);
+  return { html, revoke: () => generatedUrls.forEach((url) => URL.revokeObjectURL(url)) };
+}
+
+window.getMindmapProjectPreview = () => createProjectPreview(currentEditingNode);
+
+// ============================================================
+// MENU DE ADIÇÃO
+// ============================================================
+
+function closeAddMenu() {
+  document.getElementById("mindmap-add-menu")?.remove();
+  document.removeEventListener("pointerdown", onOutsideMenuClick);
+}
+
+function onOutsideMenuClick(event) {
+  const menu = document.getElementById("mindmap-add-menu");
+  const button = document.getElementById("mindmap-add-files");
+
+  if (menu?.contains(event.target) || button?.contains(event.target)) {
+    return;
+  }
+
+  closeAddMenu();
+}
+
+function createAddMenu() {
+  closeAddMenu();
+
+  const button = document.getElementById("mindmap-add-files");
+
+  if (!button) return;
+
+  const menu = document.createElement("div");
+  menu.id = "mindmap-add-menu";
+
+  const options = [
+    {
+      label: `＋ ${tr("newFile")}`,
+      action: addBlankNode,
+    },
+    {
+      label: `📁 ${tr("newFolder")}`,
+      action: addFolder,
+    },
+    {
+      label: `⇧ ${tr("importFiles")}`,
+      action: () => fileInput.click(),
+    },
+    {
+      label: `📂 ${tr("importFolder")}`,
+      action: () => folderInput.click(),
+    },
+    {
+      label: `✎ ${tr("workspaceRename")}`,
+      action: renameWorkspace,
+    },
+  ];
+
+  for (const option of options) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.textContent = option.label;
+
+    item.addEventListener("click", async () => {
+      closeAddMenu();
+
+      try {
+        await option.action();
+      } catch (error) {
+        console.error(error);
+        alert(tr("actionError"));
+      }
+    });
+
+    menu.appendChild(item);
+  }
+
+  document.body.appendChild(menu);
+
+  const rect = button.getBoundingClientRect();
+
+  menu.style.left = `${Math.max(
+    12,
+    Math.min(rect.left, window.innerWidth - menu.offsetWidth - 12),
+  )}px`;
+
+  menu.style.top = `${Math.max(
+    12,
+    Math.min(rect.bottom + 6, window.innerHeight - menu.offsetHeight - 12),
+  )}px`;
+
+  setTimeout(() => {
+    document.addEventListener("pointerdown", onOutsideMenuClick);
+  }, 0);
+}
+
+// ============================================================
+// ABRIR ARQUIVO NO MONACO
+// ============================================================
+
+function updateSelectedNodeUI() {
+  nodeLayer?.querySelectorAll(".mm-node").forEach((element) => {
+    element.classList.toggle(
+      "current-file",
+      element.dataset.id === currentEditingNode?.id,
+    );
+  });
+}
+
+function setEditorLanguage(node) {
+  const editor = window.editor;
+
+  if (!editor || !editor.getModel()) return;
+
+  const language = getLanguageFromFile(getWorkspacePath(node));
+
+  if (window.monaco?.editor?.setModelLanguage) {
+    window.monaco.editor.setModelLanguage(editor.getModel(), language);
+  }
+}
+
+function syncCurrentEditorToMap() {
+  if (
+    !currentEditingNode ||
+    !window.editor ||
+    typeof window.editor.getValue !== "function"
+  ) {
+    return;
+  }
+
+  currentEditingNode.content = window.editor.getValue();
+
+  saveState();
+}
+
+function openNodeInEditor(node) {
+  if (!node || node.type === "folder") return;
+
+  if (node.type === "image") {
+    showImageViewer(node);
+    return;
+  }
+
+  // Guarda o arquivo atual antes de trocar.
+  syncCurrentEditorToMap();
+
+  currentEditingNode = node;
+
+  if (window.editor && typeof window.editor.setValue === "function") {
+    window.editor.setValue(node.content || "");
+    setEditorLanguage(node);
+  } else {
+    console.warn("DarkStudio: o Monaco Editor ainda não está disponível.");
+  }
+
+  closeImageViewer();
+  updateSelectedNodeUI();
+  showEditor();
+}
+
+function showEditor() {
+  if (mind) mind.style.display = "none";
+
+  const editor = document.getElementById("Editor");
+
+  if (editor) editor.style.display = "block";
+
+  const mapButtons = ["mindmap-add-files", "mindmap-connect", "mindmap-clear"];
+
+  for (const id of mapButtons) {
+    const element = document.getElementById(id);
+
+    if (element) element.style.display = "none";
+  }
+
+  for (const id of [
+    "download-file",
+    "load-button",
+    "clear",
+    "execute",
+    "new-iframe-button",
+  ]) {
+    const element = document.getElementById(id);
+
+    if (!element) continue;
+
+    element.style.display = previousDisplays[id] ?? "";
+  }
+}
+
+function showMap() {
+  syncCurrentEditorToMap();
+
+  const editor = document.getElementById("Editor");
+
+  if (editor) editor.style.display = "none";
+  if (mind) mind.style.display = "block";
+
+  for (const id of [
+    "download-file",
+    "load-button",
+    "clear",
+    "execute",
+    "new-iframe-button",
+  ]) {
+    const element = document.getElementById(id);
+
+    if (!element) continue;
+
+    previousDisplays[id] = getComputedStyle(element).display;
+    element.style.display = "none";
+  }
+
+  for (const id of ["mindmap-add-files", "mindmap-connect", "mindmap-clear"]) {
+    const element = document.getElementById(id);
+
+    if (element) element.style.display = "inline-block";
+  }
+
+  renderNodes();
+}
+
+function closeImageViewer() {
+  document.getElementById("mindmap-image-viewer")?.remove();
+
+  const input = document.getElementById("Editor-Input");
+
+  if (input) input.style.display = "block";
+}
+
+function showImageViewer(node) {
+  closeImageViewer();
+
+  const viewer = document.createElement("div");
+  viewer.id = "mindmap-image-viewer";
+
+  Object.assign(viewer.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "1000001",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "14px",
+    padding: "20px",
+    background: "rgba(0,0,0,.92)",
+  });
+
+  const image = document.createElement("img");
+  image.src = node.content;
+  image.alt = node.name;
+
+  Object.assign(image.style, {
+    maxWidth: "90vw",
+    maxHeight: "80vh",
+    objectFit: "contain",
+    borderRadius: "8px",
+  });
+
+  const title = document.createElement("div");
+  title.textContent = node.name;
+  title.style.color = "#fff";
+
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = tr("closeImage");
+
+  close.addEventListener("click", closeImageViewer);
+
+  viewer.append(image, title, close);
+  document.body.appendChild(viewer);
+}
+
+// ============================================================
+// SALVAMENTO AUTOMÁTICO DO MONACO
+// ============================================================
+
+function installWorkspaceAutosave() {
+  if (
+    workspaceAutosaveInstalled ||
+    !window.editor ||
+    typeof window.editor.onDidChangeModelContent !== "function"
+  ) {
+    return;
+  }
+
+  workspaceAutosaveInstalled = true;
+
+  window.editor.onDidChangeModelContent(() => {
+    if (!currentEditingNode) return;
+
+    currentEditingNode.content = window.editor.getValue();
+
+    saveState();
+  });
+}
+
+function waitForEditor() {
+  if (window.editor) {
+    installWorkspaceAutosave();
+    return;
+  }
+
+  setTimeout(waitForEditor, 500);
+}
+
+// ============================================================
+// APAGAR NÓS E LIMPAR MAPA
+// ============================================================
+
+function deleteNode(nodeId) {
+  const deleted = getNode(nodeId);
+
+  if (!deleted) return;
+
+  // Remove a pasta e seus descendentes se for uma pasta.
+  const idsToDelete = new Set([nodeId]);
+
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (const node of nodes) {
+      if (
+        node.parentFolderId &&
+        idsToDelete.has(node.parentFolderId) &&
+        !idsToDelete.has(node.id)
+      ) {
+        idsToDelete.add(node.id);
+        changed = true;
+      }
+    }
+  }
+
+  nodes = nodes.filter((node) => !idsToDelete.has(node.id));
+
+  connections = connections.filter(
+    (connection) =>
+      !idsToDelete.has(connection.from) && !idsToDelete.has(connection.to),
+  );
+
+  if (currentEditingNode && idsToDelete.has(currentEditingNode.id)) {
+    currentEditingNode = null;
+  }
+
+  saveState();
+  renderNodes();
+}
+
+function clearMap() {
+  if (!confirm(tr("workspaceCleared"))) {
+    return;
+  }
+
+  nodes = [];
+  connections = [];
+  currentEditingNode = null;
+  connectSource = null;
+  connectMode = false;
+
+  saveState();
+  renderNodes();
+}
+
+// ============================================================
+// CONFIGURAÇÃO DOS BOTÕES
+// ============================================================
+
+function setupFileInputs() {
+  fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.multiple = true;
+  fileInput.accept = "*/*";
+  fileInput.hidden = true;
+
+  folderInput = document.createElement("input");
+  folderInput.type = "file";
+  folderInput.multiple = true;
+  folderInput.setAttribute("webkitdirectory", "");
+  folderInput.setAttribute("directory", "");
+  folderInput.hidden = true;
+
+  document.body.append(fileInput, folderInput);
+
+  fileInput.addEventListener("change", async () => {
+    try {
+      await importWorkspaceFiles(fileInput.files);
+    } catch (error) {
+      console.error("Erro ao importar arquivos:", error);
+      alert(tr("fileImportError"));
+    } finally {
+      fileInput.value = "";
+    }
+  });
+
+  folderInput.addEventListener("change", async () => {
+    try {
+      await importWorkspaceFiles(folderInput.files);
+    } catch (error) {
+      console.error("Erro ao importar pasta:", error);
+      alert(tr("folderImportError"));
+    } finally {
+      folderInput.value = "";
+    }
+  });
+}
+
+function wireUI() {
+  const mapButton = document.getElementById("mindmap-button");
+  const addButton = document.getElementById("mindmap-add-files");
+  const connectButton = document.getElementById("mindmap-connect");
+  const clearButton = document.getElementById("mindmap-clear");
+
+  if (mapButton) {
+    mapButton.addEventListener("click", () => {
+      const isOpen = mind && getComputedStyle(mind).display !== "none";
+
+      if (isOpen) {
+        closeAddMenu();
+        showEditor();
+      } else {
+        showMap();
+      }
+    });
+  }
+
+  if (addButton) {
+    addButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      if (document.getElementById("mindmap-add-menu")) {
+        closeAddMenu();
+      } else {
+        createAddMenu();
+      }
+    });
+  }
+
+  if (connectButton) {
+    connectButton.addEventListener("click", () => {
+      connectMode = !connectMode;
+      connectSource = null;
+
+      nodeLayer?.querySelectorAll(".selected").forEach((element) => {
+        element.classList.remove("selected");
+      });
+
+      connectButton.textContent = connectMode ? tr("connectPrompt") : tr("connect");
+    });
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener("click", clearMap);
+  }
+
+  nodeLayer?.addEventListener("click", (event) => {
+    if (event.target !== nodeLayer || !connectSource) return;
+
+    getNodeElement(connectSource)?.classList.remove("selected");
+    connectSource = null;
+  });
+
+  window.addEventListener("resize", updateConnections);
+  window.addEventListener("darkstudio:languagechange", () => {
+    const connectButton = document.getElementById("mindmap-connect");
+    if (connectButton) {
+      connectButton.textContent = connectMode ? tr("connectPrompt") : tr("connect");
+    }
+    const menu = document.getElementById("mindmap-add-menu");
+    if (menu) createAddMenu();
+  });
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+
+async function initMindmap() {
+  if (!mind || !nodeLayer || !svg) {
+    console.warn(
+      "DarkStudio: não encontrei os elementos do mapa mental no HTML.",
+    );
+    return;
+  }
+
+  injectStyles();
+  loadState();
+  await restoreStateFromIndexedDB();
+  setupFileInputs();
+  wireUI();
+  renderNodes();
+  updateWorkspaceNameUI();
+  waitForEditor();
+
+  console.info("DarkStudio Workspace inicializado.");
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initMindmap, {
+    once: true,
+  });
+} else {
+  initMindmap();
+}
+
+export {};

@@ -15,7 +15,7 @@ body {
 }
 
 #Editor {
-  position: fixed;
+  position: absolute;
   top: 5px;
   left: 5px;
   /* Antes era 88px */
@@ -69,7 +69,7 @@ body {
 }
 
 #options {
-  position: fixed;
+  position: absolute;
   bottom: 3.5vh;
   left: 5px;
   box-shadow: 0 0 28px rgba(255, 103, 0, 0.18);
@@ -93,7 +93,7 @@ body {
 }
 
 #config-icon {
-  position: fixed;
+  position: absolute;
   pointer-events: auto !important;
   bottom: 7px;
   right: 20px;
@@ -142,7 +142,7 @@ body {
 }
 
 #code-language {
-  position: fixed;
+  position: absolute;
   bottom: -40px;
   right: 75px;
   background-color: rgba(9, 9, 9, 0.88);
@@ -169,7 +169,7 @@ body {
 }
 
 #dynamic-panel {
-  position: fixed;
+  position: absolute;
   bottom: 100px;
   right: 14px;
   max-width: 280px;
@@ -233,7 +233,7 @@ img {
   height: auto;
   cursor: pointer;
   transition: fill 0.3s ease;
-  position: fixed;
+  position: absolute;
   bottom: 70px;
   right: 30px;
   display: flex;
@@ -249,7 +249,7 @@ img {
 }
 
 #config {
-  position: fixed;
+  position: absolute;
   opacity: 0;
   pointer-events: none;
   top: 5px;
@@ -367,7 +367,7 @@ p {
   color: var(--text);
   display: flex;
   flex-direction: column;
-  position: fixed;
+  position: absolute;
   right: 5px;
   top: 5px;
   transition: box-shadow 0.3s ease, opacity 0.3s ease, width 0.5s ease, transform 0.3s ease;
@@ -454,7 +454,7 @@ p {
   width: auto;
   gap: 6px;
   animation: float 3s ease-in-out infinite;
-  position: fixed;
+  position: absolute;
   bottom: 9vh;
   transition: animation 0.3s ease-in-out;
 }
@@ -540,7 +540,7 @@ p {
   font-family: monospace;
   color: var(--text);
   display: flex;
-  position: fixed;
+  position: absolute;
   right: 7px;
   bottom: 7.5vh;
   transition: box-shadow 0.3s ease, opacity 0.3s ease, width 0.5s ease;
@@ -571,7 +571,7 @@ p {
   width: auto;
   gap: 6px;
   animation: float 3s ease-in-out infinite;
-  position: fixed;
+  position: absolute;
   bottom: 9vh;
   transition: animation 0.3s ease-in-out;
 }
@@ -616,4 +616,760 @@ p {
 
 #page-bg {
   display: none;
+}
+
+/* Responsive workspace grid: the options track stays fixed until resized. */
+html,
+body {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  min-height: 100dvh;
+  height: 100dvh;
+}
+
+#Website-Container {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: var(--workspace-height, 88dvh);
+  min-height: min(320px, 100dvh);
+  max-height: 100dvh;
+  margin: 0;
+  bottom: auto !important;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: var(--options-width, 120px) minmax(0, 1fr);
+  overflow: visible;
+}
+
+#Website-Container.with-chat {
+  grid-template-columns: var(--options-width, 120px) minmax(0, 1fr) var(--chat-width, 350px);
+}
+
+#options,
+#Editor,
+#chat,
+#config,
+#mindmap-container {
+  grid-row: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+#options {
+  grid-column: 1;
+  position: relative;
+  overflow: auto;
+}
+
+#Editor,
+#config,
+#mindmap-container {
+  grid-column: 2;
+}
+
+#Editor {
+  overflow: hidden;
+}
+
+#Editor-Input {
+  min-width: 0;
+  min-height: 0;
+}
+
+#chat {
+  grid-column: 3;
+  position: relative;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#chat.show {
+  display: flex !important;
+}
+
+#input-area {
+  position: static;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+#input {
+  width: 0;
+  min-width: 0;
+}
+
+#config {
+  display: none;
+  overflow: auto;
+}
+
+#Website-Container.settings-active #Editor,
+#Website-Container.settings-active #mindmap-container {
+  display: none !important;
+}
+
+#Website-Container.settings-active #config {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#Website-Container.settings-active #options #mindmap-button {
+  outline-color: var(--accent-color);
+}
+
+.panel-resize-handle {
+  position: absolute;
+  z-index: 40;
+  touch-action: none;
+  user-select: none;
+}
+
+.panel-resize-handle::after {
+  content: "";
+  display: block;
+  background: var(--border-orange);
+  border-radius: 999px;
+  opacity: .52;
+  transition: opacity .15s ease, box-shadow .15s ease;
+}
+
+.panel-resize-handle:hover::after,
+.panel-resize-handle:focus-visible::after {
+  opacity: 1;
+  box-shadow: 0 0 12px var(--accent-color);
+}
+
+.resize-width {
+  top: 20%;
+  bottom: 20%;
+  width: 10px;
+  cursor: col-resize;
+}
+
+.resize-width::after {
+  width: 3px;
+  height: 100%;
+  margin: 0 auto;
+}
+
+#options-resize-handle {
+  right: 0;
+}
+
+#chat-resize-handle {
+  left: 0;
+}
+
+.resize-height {
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  height: 12px;
+  cursor: row-resize;
+}
+
+.resize-height::after {
+  width: 100%;
+  height: 3px;
+  margin: 4px 0;
+}
+
+#inline-chat {
+  position: absolute;
+  left: 50%;
+  right: auto;
+  bottom: 2dvh;
+  width: min(80vw, 900px);
+  max-height: 45dvh;
+  transform: translateX(-50%);
+  overflow: auto;
+  z-index: 50;
+}
+
+#inline-messages {
+  max-height: 32dvh;
+  margin: 0 0 8px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+#inline-input-area {
+  position: static;
+  width: 100%;
+}
+
+#inline-input {
+  width: 0;
+  min-width: 0;
+}
+
+#config-toggle,
+#config-icon {
+  position: absolute;
+  right: 10px;
+  bottom: calc(var(--workspace-height, 88dvh) - 100dvh + 10px);
+}
+
+#network-status {
+  position: absolute;
+  left: calc(var(--options-width, 120px) + 12px);
+  bottom: calc(var(--workspace-height, 88dvh) - 93dvh);
+}
+
+#code-language {
+  position: absolute;
+  left: calc(var(--options-width, 120px) + 12px);
+  right: 66px;
+  bottom: calc(var(--workspace-height, 88dvh) - 100dvh);
+  width: auto;
+}
+
+#code-language:hover {
+  width: auto !important;
+}
+
+#dynamic-panel {
+  position: absolute;
+  left: 8px;
+  bottom: calc(var(--workspace-height, 88dvh) - 99dvh);
+  max-width: min(320px, calc(100vw - 16px));
+  min-width: 0;
+}
+
+#signature {
+  position: absolute;
+  left: calc(var(--options-width, 120px) + 50%);
+  bottom: calc(var(--workspace-height, 88dvh) - 100dvh);
+  transform: translateX(-50%);
+}
+
+#page-bg {
+  position: absolute;
+}
+
+#mini-player {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+@media (max-width: 700px) {
+  #Website-Container {
+    height: var(--workspace-height, 90dvh);
+    min-height: 260px;
+    padding: 4px;
+  }
+
+  #options {
+    padding: 8px 5px;
+    gap: 8px;
+  }
+
+  #options button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+
+  #Website-Container.with-chat {
+    grid-template-columns: var(--options-width, 88px) minmax(0, 1fr) var(--chat-width, 240px);
+  }
+
+  #chat {
+    padding: 8px;
+  }
+
+  #inline-chat {
+    width: calc(100vw - 16px);
+    max-height: 55dvh;
+  }
+
+  #dynamic-panel {
+    bottom: -9dvh;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+.inline-change-summary p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+/* =========================================================
+   DARKSTUDIO EXECUTOR
+   Ocupa exatamente a mesma célula do Editor
+   ========================================================= */
+
+#executor-panel {
+  grid-column: 2;
+  grid-row: 1;
+
+  width: 100%;
+  height: 92.2vh;
+
+  min-width: 300px;
+
+  box-sizing: border-box;
+
+  background: #090909;
+
+  border: 2px solid var(--border-orange);
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  display: none;
+
+  opacity: 0;
+  transform: translateY(10px);
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+
+  position: relative;
+
+  z-index: 10;
+}
+
+#executor-panel.executor-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#executor-output {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+}
+
+#executor-output iframe {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+
+  margin: 0;
+  padding: 0;
+
+  color: white;
+  background: #090909;
+}
+
+/* =========================================================
+   EDITOR DURANTE EXECUÇÃO
+   ========================================================= */
+
+#Editor {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+#Editor.editor-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+
+  pointer-events: none;
+}
+
+
+/* Stable footer: the dynamic panel, collapsed editor status and Settings icon share one responsive row. */
+:root {
+  --workspace-height: min(88dvh, calc(100dvh - 72px));
+}
+
+#Website-Container {
+  height: var(--workspace-height);
+  min-height: min(260px, 100dvh);
+}
+
+#workspace-footer {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: calc(var(--workspace-height) - 100dvh + 8px);
+  z-index: 60;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#workspace-footer > * {
+  pointer-events: auto;
+}
+
+#workspace-footer #dynamic-panel {
+  position: relative;
+  inset: auto;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: min(320px, 42vw);
+  min-width: 0;
+  height: 58px;
+  min-height: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+  order: 0;
+  animation: float 3s ease-in-out infinite;
+}
+
+#workspace-footer #code-language {
+  position: relative;
+  inset: auto;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  height: 58px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  overflow: hidden;
+  transform: translateY(calc(100% - 10px));
+  order: 1;
+  animation: float 3s ease-in-out infinite;
+  transition: transform .3s ease, width .3s ease, border-radius .3s ease;
+  z-index: 1;
+}
+
+#workspace-footer #code-language h4 {
+  width: 100%;
+  margin: 0;
+  opacity: 0;
+  text-align: center;
+  transition: opacity .2s ease;
+}
+
+#workspace-footer #code-language:hover,
+#workspace-footer #code-language:focus-within {
+  width: auto !important;
+  bottom: auto;
+  transform: translateY(0);
+  animation: none;
+}
+
+#workspace-footer #code-language:hover h4,
+#workspace-footer #code-language:focus-within h4 {
+  opacity: 1;
+}
+
+#workspace-footer #config-toggle {
+  position: relative;
+  inset: auto;
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 2px solid var(--border-orange);
+  border-radius: 18px;
+  background: rgba(9, 9, 9, .94);
+  box-shadow: 0 8px 28px rgba(255, 103, 0, .2);
+  cursor: pointer;
+  pointer-events: auto;
+  order: 2;
+  z-index: 3;
+  animation: float 3s ease-in-out infinite;
+}
+
+#workspace-footer #config-toggle:hover,
+#workspace-footer #config-toggle:focus-visible {
+  border-radius: 10px;
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+#workspace-footer #Config-SVG {
+  display: block;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+}
+
+#network-status {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: auto;
+  left: auto;
+  z-index: 25;
+}
+
+@keyframes float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 5px; }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --workspace-height: min(90dvh, calc(100dvh - 64px));
+  }
+
+  #workspace-footer {
+    left: 6px;
+    right: 6px;
+    gap: 6px;
+  }
+
+  #workspace-footer #dynamic-panel {
+    max-width: min(240px, 42vw);
+    height: 52px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  #workspace-footer #config-toggle {
+    flex-basis: 52px;
+    width: 52px;
+    height: 52px;
+    min-height: 0;
+    border-radius: 15px;
+  }
+
+  #workspace-footer #Config-SVG {
+    width: 34px;
+    height: 34px;
+  }
+
+  #workspace-footer #code-language {
+    height: 52px;
+  }
+}
+
+
+/* The status bar keeps a 10px hover target anchored while its content slides up. */
+#workspace-footer #code-language {
+  position: relative;
+  flex: 1 1 0;
+  align-self: end;
+  height: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+  pointer-events: none;
+  z-index: 2;
+}
+
+#workspace-footer #code-language::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--border-orange);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: rgba(9, 9, 9, .94);
+  box-shadow: 0 -4px 14px rgba(255, 103, 0, .16);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+#workspace-footer #code-language h4 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -48px;
+  width: 100%;
+  height: 58px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 5px 12px;
+  overflow: hidden;
+  border: 2px solid var(--border-orange);
+  border-radius: 12px 12px 0 0;
+  background: rgba(9, 9, 9, .96);
+  color: var(--accent-color);
+  opacity: 0;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: auto;
+  transition: bottom .3s ease, opacity .2s ease;
+}
+
+#workspace-footer #code-language:hover h4,
+#workspace-footer #code-language:focus-within h4 {
+  bottom: 0;
+  opacity: 1;
+}
+
+@media (max-width: 700px) {
+  #workspace-footer #code-language h4 {
+    height: 52px;
+    bottom: -42px;
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+}
+
+
+#workspace-footer #code-language {
+  align-self: stretch;
+  height: auto;
+}
+
+#workspace-footer #code-language::before {
+  inset: auto 0 0;
+  height: 10px;
+}
+
+#workspace-footer #code-language h4 {
+  height: 100%;
+  bottom: calc(10px - 100%);
+}
+
+#workspace-footer #code-language:hover h4,
+#workspace-footer #code-language:focus-within h4 {
+  bottom: 0;
+}
+
+@media (max-width: 700px) {
+  #workspace-footer #dynamic-panel {
+    height: 52px;
+  }
+}
+
+/* Keep the options content readable and its resize handle isolated. */
+:root {
+  --workspace-height: calc(100dvh - 70px);
+}
+
+#options {
+  min-width: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+#options button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#options-resize-handle {
+  z-index: 70;
+  width: 12px;
+  right: -1px;
+  touch-action: none;
+}
+
+#signature {
+  left: 50%;
+}
+
+#workspace-footer {
+  bottom: calc(var(--workspace-height) - 100dvh);
+}
+
+#workspace-footer #code-language {
+  align-self: stretch;
+  height: auto;
+  margin: 0;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+#workspace-footer #dynamic-panel {
+  flex-basis: max-content;
+  min-height: 58px;
+  transition: flex-basis .18s ease, opacity .18s ease, transform .18s ease;
+  transform: translateY(-8px);
+  overflow: hidden;
+}
+
+#workspace-footer #dynamic-panel.is-changing {
+  flex-basis: min(320px, 42vw);
+}
+
+#workspace-footer #dynamic-panel-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity .12s ease, transform .12s ease;
+}
+
+#workspace-footer #dynamic-panel-text:not(.visible) {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+#workspace-footer #config-toggle {
+  transform: translateY(-8px);
+}
+
+@media (max-width: 700px) {
+  :root {
+    --workspace-height: calc(100dvh - 60px);
+  }
+
+  #options {
+    padding-inline: 7px;
+  }
+
+  #options-resize-handle {
+    width: 12px;
+  }
+
+  #workspace-footer #dynamic-panel,
+  #workspace-footer #config-toggle {
+    transform: translateY(-6px);
+  }
+
+  #workspace-footer #dynamic-panel {
+    min-height: 52px;
+    flex-basis: max-content;
+  }
+
+  #workspace-footer #dynamic-panel.is-changing {
+    flex-basis: min(240px, 42vw);
+  }
+}
+
+/* Keep the adjustable options track active when the AI chat is closed. */
+#Website-Container.no-chat {
+  grid-template-columns: var(--options-width, 126px) minmax(0, 1fr);
 }
