@@ -68,13 +68,31 @@ if (!blockWeb) {
       color &&
       (localStorage.getItem(`${settingKey}Customized`) === "true" ||
         !["#5d00ff", "#683ab7", legacySeasonalDefault].includes(color.toLowerCase()));
-    const palette = {
+    const wallpaperColorsEnabled =
+      localStorage.getItem("wallpaperColorsEnabled") === "true";
+    const customPalette = {
       primary: isCustomColor(savedBorder, "borderColor", "#ff8a3d")
         ? savedBorder
-        : festivePalette?.primary || "#5d00ff",
+        : "#5d00ff",
       secondary: isCustomColor(savedAccent, "accentColor", "#ff6700")
         ? savedAccent
-        : festivePalette?.secondary || "#5d00ff",
+        : "#5d00ff",
+    };
+    const wallpaperPalette = {
+      primary: localStorage.getItem("wallpaperPrimaryColor") || "#5d00ff",
+      secondary: localStorage.getItem("wallpaperSecondaryColor") || "#5d00ff",
+    };
+    const palette = {
+      primary: wallpaperColorsEnabled
+        ? wallpaperPalette.primary
+        : autoTheme
+          ? festivePalette?.primary || "#5d00ff"
+          : customPalette.primary,
+      secondary: wallpaperColorsEnabled
+        ? wallpaperPalette.secondary
+        : autoTheme
+          ? festivePalette?.secondary || "#5d00ff"
+          : customPalette.secondary,
     };
     const root = document.documentElement;
     root.style.setProperty("--primary-color", palette.primary);
@@ -97,6 +115,12 @@ if (!blockWeb) {
 
     const autoCheckbox = document.getElementById("auto-fest-checkbox");
     if (autoCheckbox) autoCheckbox.checked = autoTheme;
+  }
+  if (localStorage.getItem("wallpaperColorsEnabled") === "true") {
+    autoTheme = false;
+    localStorage.setItem("autoTheme", "false");
+    const autoCheckbox = document.getElementById("auto-fest-checkbox");
+    if (autoCheckbox) autoCheckbox.checked = false;
   }
 
   select.addEventListener("change", function () {
@@ -448,7 +472,13 @@ if (!blockWeb) {
   if (autoCheckbox) {
     autoCheckbox.addEventListener("change", function () {
       autoTheme = this.checked; // ← Atualiza a variável, não o elemento
+      if (autoTheme) {
+        const wallpaperColorsInput = document.getElementById("wallpaper-colors-checkbox");
+        if (wallpaperColorsInput) wallpaperColorsInput.checked = false;
+        localStorage.setItem("wallpaperColorsEnabled", "false");
+      }
       if (getDevMode()) console.log("💾 Auto Theme changed to:", autoTheme);
+      window.darkStudioUpdateAppearanceOptions?.();
       // Recarrega o tema do editor sem recarregar a página
       if (autoTheme) {
         const newTheme = detectThemeByDate();
