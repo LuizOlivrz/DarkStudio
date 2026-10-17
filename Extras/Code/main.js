@@ -1230,7 +1230,7 @@ body {
    ===================================================== */
 
    html {
-   color: #683AB7;
+   color: #5d00ff;
    }
 </style>
 ${code}
@@ -1640,6 +1640,9 @@ ${code}
     document.querySelectorAll("[data-i18n]").forEach((element) => {
       element.textContent = t(element.dataset.i18n);
     });
+    document.querySelectorAll("#send, #inline-send").forEach((button) => {
+      button.textContent = t("send");
+    });
     document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
       element.placeholder = t(element.dataset.i18nPlaceholder);
     });
@@ -1708,19 +1711,18 @@ ${code}
 
   function setBorderColor(color) {
     if (!color) return;
-    document.documentElement.style.setProperty("--border-orange", color);
-    document.documentElement.style.setProperty("--orange", color);
+    document.documentElement.style.setProperty("--primary-color", color);
     localStorage.setItem("borderColor", color);
     if (borderColorInput) borderColorInput.value = color;
   }
 
   function setAccentColor(color) {
     if (!color) return;
-    document.documentElement.style.setProperty("--accent-color", color);
+    document.documentElement.style.setProperty("--secondary-color", color);
     const rgb = color.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
     if (rgb) {
       document.documentElement.style.setProperty(
-        "--accent-rgb",
+        "--secondary-rgb",
         `${parseInt(rgb[1], 16)}, ${parseInt(rgb[2], 16)}, ${parseInt(rgb[3], 16)}`,
       );
     }
@@ -1729,40 +1731,52 @@ ${code}
   }
 
   const savedBorderColor = localStorage.getItem("borderColor");
-  if (savedBorderColor && savedBorderColor.toLowerCase() !== "#ff8a3d") {
+  const hasCustomBorderColor =
+    savedBorderColor &&
+    (localStorage.getItem("borderColorCustomized") === "true" ||
+      !["#ff8a3d", "#683ab7"].includes(savedBorderColor.toLowerCase()));
+  if (hasCustomBorderColor) {
     setBorderColor(savedBorderColor);
   } else {
-    setBorderColor("#683AB7");
+    setBorderColor("#5d00ff");
   }
 
   const savedAccentColor = localStorage.getItem("accentColor");
-  if (savedAccentColor && savedAccentColor.toLowerCase() !== "#ff6700") {
+  const hasCustomAccentColor =
+    savedAccentColor &&
+    (localStorage.getItem("accentColorCustomized") === "true" ||
+      !["#ff6700", "#683ab7"].includes(savedAccentColor.toLowerCase()));
+  if (hasCustomAccentColor) {
     setAccentColor(savedAccentColor);
   } else {
-    setAccentColor("#683AB7");
+    setAccentColor("#5d00ff");
   }
 
   if (borderColorInput) {
     borderColorInput.addEventListener("input", (event) => {
+      localStorage.setItem("borderColorCustomized", "true");
       setBorderColor(event.target.value);
     });
   }
 
   if (accentColorInput) {
     accentColorInput.addEventListener("input", (event) => {
+      localStorage.setItem("accentColorCustomized", "true");
       setAccentColor(event.target.value);
     });
   }
 
   if (resetBorderColorButton) {
     resetBorderColorButton.addEventListener("click", () => {
-      setBorderColor("#683AB7");
+      localStorage.setItem("borderColorCustomized", "true");
+      setBorderColor("#5d00ff");
     });
   }
 
   if (resetAccentColorButton) {
     resetAccentColorButton.addEventListener("click", () => {
-      setAccentColor("#683AB7");
+      localStorage.setItem("accentColorCustomized", "true");
+      setAccentColor("#5d00ff");
     });
   }
 
@@ -1832,8 +1846,12 @@ ${code}
           const color = colorThief.getColor(img);
 
           document.documentElement.style.setProperty(
-            "--accent-color",
+            "--secondary-color",
             `rgb(${color.join(",")})`,
+          );
+          document.documentElement.style.setProperty(
+            "--secondary-rgb",
+            color.join(", "),
           );
 
           resolve(true);

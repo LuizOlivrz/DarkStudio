@@ -362,7 +362,7 @@ function injectStyles() {
     }
 
     .mm-node.selected {
-      outline: 2px solid var(--accent-color,#683AB7);
+      outline: 2px solid var(--secondary-color,#5d00ff);
     }
 
     .mm-node.mm-folder {
@@ -379,8 +379,8 @@ function injectStyles() {
     }
 
     .mm-node.current-file {
-      border-color: #683AB7;
-      box-shadow: 0 0 0 1px #683AB7;
+      border-color: var(--primary-color, #5d00ff);
+      box-shadow: 0 0 0 1px var(--primary-color, #5d00ff);
     }
 
     .mm-node .mm-icon {
@@ -418,7 +418,7 @@ function injectStyles() {
       padding: 6px;
       display: grid;
       gap: 4px;
-      border: 1px solid rgba(var(--accent-rgb, 104, 58, 183),.65);
+      border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255),.65);
       border-radius: 10px;
       background: rgba(16,16,16,.98);
       box-shadow: 0 12px 32px #0009;
@@ -438,7 +438,7 @@ function injectStyles() {
     }
 
     #mindmap-add-menu button:hover {
-      background: rgba(var(--accent-rgb, 104, 58, 183),.16);
+      background: rgba(var(--secondary-rgb, 93, 0, 255),.16);
     }
 
     #workspace-name {
@@ -540,7 +540,7 @@ function showNameDialog(initialName = "", title = "Nome") {
       maxWidth: "360px",
       padding: "22px",
       borderRadius: "13px",
-      border: "1px solid rgba(var(--accent-rgb, 104, 58, 183),.6)",
+      border: "1px solid rgba(var(--secondary-rgb, 93, 0, 255),.6)",
       background: "#151515",
       color: "#fff",
       boxShadow: "0 20px 60px #0009",
@@ -595,7 +595,9 @@ function showNameDialog(initialName = "", title = "Nome") {
         padding: "9px 13px",
         borderRadius: "7px",
         border: "1px solid #444",
-        background: button === confirm ? "#683AB7" : "#242424",
+        background: button === confirm
+          ? "var(--primary-color, #5d00ff)"
+          : "#242424",
         color: "#fff",
         cursor: "pointer",
       });

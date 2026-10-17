@@ -12,7 +12,7 @@ O ambiente de execução das extensões disponibiliza apenas a API de comandos `
   "name": "Hello World",
   "version": "1.0.0",
   "description": "Adiciona uma pequena mensagem de boas-vindas ao painel de opções.",
-  "code": "(async () => { const [options] = await DS.query('#options'); if (options) await DS.appendHTML(options.handle, '<p class=\"hello-extension\">Olá, vindo de uma extensão do DarkStudio.</p>'); await DS.addCSS('.hello-extension { padding: 8px; color: var(--accent-color); }'); })();"
+  "code": "(async () => { const [options] = await DS.query('#options'); if (options) await DS.appendHTML(options.handle, '<p class=\"hello-extension\">Olá, vindo de uma extensão do DarkStudio.</p>'); await DS.addCSS('.hello-extension { padding: 8px; color: var(--secondary-color); }'); })();"
 }
 ```
 
