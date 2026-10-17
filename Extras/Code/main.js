@@ -1539,6 +1539,80 @@ ${code}
     else pageBg.classList.remove("active");
   }
 
+  let wallpaperColorStatusKey = "";
+
+  function setWallpaperColorStatus(messageKey) {
+    const status = document.getElementById("wallpaper-colors-status");
+    if (!status) return;
+    wallpaperColorStatusKey = messageKey || "";
+    status.textContent = messageKey ? t(messageKey) : "";
+    status.hidden = !messageKey;
+  }
+
+  window.addEventListener("darkstudio:languagechange", () => {
+    setWallpaperColorStatus(wallpaperColorStatusKey);
+  });
+
+  function colorToHex(color) {
+    return `#${color
+      .map((channel) =>
+        Math.max(0, Math.min(255, Math.round(channel)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
+
+  function applyWallpaperColors() {
+    const wallpaperColorsInput = document.getElementById("wallpaper-colors-checkbox");
+    if (!wallpaperColorsInput?.checked) return;
+
+    const root = document.documentElement;
+    const storedPrimary = localStorage.getItem("wallpaperPrimaryColor") || "#5d00ff";
+    const storedSecondary = localStorage.getItem("wallpaperSecondaryColor") || "#5d00ff";
+    root.style.setProperty("--primary-color", storedPrimary);
+    root.style.setProperty("--secondary-color", storedSecondary);
+    const storedSecondaryRgb = storedSecondary.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    if (storedSecondaryRgb) {
+      root.style.setProperty(
+        "--secondary-rgb",
+        `${parseInt(storedSecondaryRgb[1], 16)}, ${parseInt(storedSecondaryRgb[2], 16)}, ${parseInt(storedSecondaryRgb[3], 16)}`,
+      );
+    }
+
+    const image = document.getElementById("page-bg-img");
+    if (!image?.complete || !image.naturalWidth) {
+      setWallpaperColorStatus("wallpaperColorsMissing");
+      return;
+    }
+
+    if (typeof window.ColorThief !== "function") {
+      console.error("Dynamic wallpaper colors require Color Thief, but it is unavailable.");
+      setWallpaperColorStatus("wallpaperColorsUnavailable");
+      return;
+    }
+
+    try {
+      const palette = new window.ColorThief().getPalette(image, 2);
+      if (!Array.isArray(palette) || !Array.isArray(palette[0]) || palette[0].length < 3) {
+        throw new Error("Color Thief returned an invalid wallpaper palette.");
+      }
+      const primary = colorToHex(palette[0]);
+      const secondaryRgb = palette[1] || palette[0];
+      const secondary = colorToHex(secondaryRgb);
+
+      localStorage.setItem("wallpaperPrimaryColor", primary);
+      localStorage.setItem("wallpaperSecondaryColor", secondary);
+      root.style.setProperty("--primary-color", primary);
+      root.style.setProperty("--secondary-color", secondary);
+      root.style.setProperty("--secondary-rgb", secondaryRgb.join(", "));
+      setWallpaperColorStatus("");
+    } catch (error) {
+      console.error("Could not extract colors from the wallpaper:", error);
+      setWallpaperColorStatus("wallpaperColorsError");
+    }
+  }
+
   function initBackgroundFeature() {
     const checkbox = document.getElementById("bg-image-checkbox");
     const fileInput = document.getElementById("bg-image-file");
@@ -1553,6 +1627,12 @@ ${code}
     const savedImg = localStorage.getItem("bgImageData") || "";
     const savedBlur = parseInt(localStorage.getItem("bgBlur") || "10", 10);
 
+    pageBgImg?.addEventListener("load", applyWallpaperColors);
+    pageBgImg?.addEventListener("error", () => {
+      if (localStorage.getItem("wallpaperColorsEnabled") === "true") {
+        setWallpaperColorStatus("wallpaperColorsError");
+      }
+    });
     checkbox.checked = savedEnabled;
     if (savedImg && pageBgImg) pageBgImg.src = savedImg;
     if (range) {
@@ -1574,11 +1654,28 @@ ${code}
       fileInput.addEventListener("change", (e) => {
         const f = e.target.files && e.target.files[0];
         if (!f) return;
+        if (f.type && !f.type.startsWith("image/")) {
+          console.error("The selected background file is not an image.");
+          if (localStorage.getItem("wallpaperColorsEnabled") === "true") {
+            setWallpaperColorStatus("wallpaperColorsError");
+          }
+          return;
+        }
         const reader = new FileReader();
+        reader.onerror = () => {
+          console.error("Could not read the selected background image:", reader.error);
+          if (localStorage.getItem("wallpaperColorsEnabled") === "true") {
+            setWallpaperColorStatus("wallpaperColorsError");
+          }
+        };
         reader.onload = () => {
-          if (pageBgImg) pageBgImg.src = reader.result;
+          if (pageBgImg && typeof reader.result === "string") {
+            pageBgImg.src = reader.result;
+          }
           try {
-            localStorage.setItem("bgImageData", reader.result);
+            if (typeof reader.result === "string") {
+              localStorage.setItem("bgImageData", reader.result);
+            }
           } catch (err) {
             if (getDevMode())
               console.warn("Could not persist background image:", err);
@@ -1709,6 +1806,35 @@ ${code}
 
   loadCheckboxState();
 
+  const seasonalThemeInput = document.getElementById("auto-fest-checkbox");
+  const wallpaperColorsInput = document.getElementById("wallpaper-colors-checkbox");
+  const seasonalThemeOption = document.getElementById("seasonal-theme-option");
+  const wallpaperColorsOption = document.getElementById("wallpaper-colors-option");
+  const customColorSettings = document.getElementById("custom-color-settings");
+  const savedSeasonalTheme = localStorage.getItem("autoTheme");
+  const wallpaperColorsEnabled = localStorage.getItem("wallpaperColorsEnabled") === "true";
+
+  if (seasonalThemeInput && savedSeasonalTheme !== null) {
+    seasonalThemeInput.checked = savedSeasonalTheme === "true";
+  }
+  if (wallpaperColorsInput) wallpaperColorsInput.checked = wallpaperColorsEnabled;
+  if (wallpaperColorsEnabled && seasonalThemeInput) {
+    seasonalThemeInput.checked = false;
+    localStorage.setItem("autoTheme", "false");
+  }
+
+  function updateAppearanceOptions() {
+    const seasonalEnabled = Boolean(seasonalThemeInput?.checked);
+    const wallpaperEnabled = Boolean(wallpaperColorsInput?.checked);
+    if (seasonalThemeOption) seasonalThemeOption.hidden = wallpaperEnabled;
+    if (wallpaperColorsOption) wallpaperColorsOption.hidden = seasonalEnabled;
+    if (customColorSettings) {
+      customColorSettings.hidden = seasonalEnabled || wallpaperEnabled;
+    }
+  }
+
+  window.darkStudioUpdateAppearanceOptions = updateAppearanceOptions;
+
   function setBorderColor(color) {
     if (!color) return;
     document.documentElement.style.setProperty("--primary-color", color);
@@ -1750,6 +1876,53 @@ ${code}
     setAccentColor(savedAccentColor);
   } else {
     setAccentColor("#5d00ff");
+  }
+
+  function applySavedCustomColors() {
+    const border = localStorage.getItem("borderColor");
+    const accent = localStorage.getItem("accentColor");
+    const legacyDefaults = ["#ff8a3d", "#ff6700", "#683ab7"];
+    setBorderColor(
+      border && !legacyDefaults.includes(border.toLowerCase()) ? border : "#5d00ff",
+    );
+    setAccentColor(
+      accent && !legacyDefaults.includes(accent.toLowerCase()) ? accent : "#5d00ff",
+    );
+  }
+
+  updateAppearanceOptions();
+
+  seasonalThemeInput?.addEventListener("change", () => {
+    if (seasonalThemeInput.checked && wallpaperColorsInput) {
+      wallpaperColorsInput.checked = false;
+      localStorage.setItem("wallpaperColorsEnabled", "false");
+      setWallpaperColorStatus("");
+    }
+    localStorage.setItem("autoTheme", String(seasonalThemeInput.checked));
+    updateAppearanceOptions();
+    if (!seasonalThemeInput.checked && !wallpaperColorsInput?.checked) {
+      applySavedCustomColors();
+    }
+  });
+
+  wallpaperColorsInput?.addEventListener("change", () => {
+    localStorage.setItem("wallpaperColorsEnabled", String(wallpaperColorsInput.checked));
+    if (wallpaperColorsInput.checked && seasonalThemeInput) {
+      seasonalThemeInput.checked = false;
+      localStorage.setItem("autoTheme", "false");
+      seasonalThemeInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    updateAppearanceOptions();
+    if (wallpaperColorsInput.checked) applyWallpaperColors();
+    else {
+      setWallpaperColorStatus("");
+      applySavedCustomColors();
+    }
+  });
+
+  const backgroundImage = document.getElementById("page-bg-img");
+  if (backgroundImage?.complete && backgroundImage.naturalWidth) {
+    applyWallpaperColors();
   }
 
   if (borderColorInput) {
@@ -1840,6 +2013,19 @@ ${code}
       img.referrerPolicy = "no-referrer";
 
       img.onload = () => {
+        const savedAccent = localStorage.getItem("accentColor");
+        const customAccent =
+          localStorage.getItem("accentColorCustomized") === "true" ||
+          Boolean(savedAccent && !["#5d00ff", "#683ab7", "#ff6700"].includes(savedAccent.toLowerCase()));
+        if (
+          document.getElementById("auto-fest-checkbox")?.checked ||
+          localStorage.getItem("wallpaperColorsEnabled") === "true" ||
+          customAccent
+        ) {
+          resolve(true);
+          return;
+        }
+
         try {
           const colorThief = new ColorThief();
 

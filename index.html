@@ -9,16 +9,15 @@
   <!-- ====== SEO & IDENTIFICATION / SEO E IDENTIFICAÇÃO ====== -->
   <title>DarkStudio</title>
   <meta name="google-site-verification" content="-sB3DJOfvAJQBVoavPb6dxxWae8Bs2Q5q8P1Czt67wM" />
-  <meta name="description" content="DarkStudio — Coding into the night 🌃." data-i18n-content="siteDescription" />
+  <meta name="description" content="As melhores coisas acontecem no escuro..." data-i18n-content="siteDescription" />
   <meta name="keywords" content="DarkStudio, Editor, DS" />
   <meta name="author" content="Luiz (CDP)" />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://dark-studio-code.netlify.app/">
+  <link rel="canonical" href="https://darkstudio-code.netlify.app/">
 
   <!-- Aparencia por compartilhamento -->
   <meta property="og:title" content="DarkStudio">
-  <meta property="og:description" content="A web code editor for HTML, CSS, and JavaScript."
-    data-i18n-content="ogDescription">
+  <meta property="og:description" content="As melhores coisas acontecem no escuro..." data-i18n-content="ogDescription">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://darkstudio-code.netlify.app/">
   <meta property="og:image" content="https://darkstudio-code.netlify.app/assets/darkstudio.png">
@@ -135,7 +134,7 @@
     <!-- ====== SETTINGS PANEL / PAINEL DE CONFIGURAÇÕES ====== -->
     <div id="config">
       <h1 data-i18n="settings">Settings</h1>
-      <a class="brand" href="help/index.html" style="color: var(--accent-color, inherit)">Página de ajuda</a>
+      <a class="brand" href="help/index.html" style="color: var(--secondary-color, inherit)">Página de ajuda</a>
       <details class="settings-tree" open>
         <summary data-i18n="generalSettings">General</summary>
         <h3 data-i18n="languageHeading">Language</h3>
@@ -169,19 +168,31 @@
           <option value="solarized-light" data-i18n="themeSolarizedLight">Solarized Light</option>
           <option value="auto" data-i18n="themeAutomatic">Automatic</option>
         </select><br />
-        <label for="auto-fest-checkbox">
-          <input type="checkbox" id="auto-fest-checkbox" checked />
-          <span data-i18n="autoTheme">Automatically change theme based on holidays.</span> </label>
-        <h3 data-i18n="borderColor">Border color</h3>
-        <label for="border-color-input" data-i18n="borderColorLabel">Border color for accent elements:</label>
-        <input type="color" id="border-color-input" value="#5d00ff" />
-        <button type="button" id="reset-border-color" data-i18n="reset">Reset</button>
-        <br /><br />
-        <h3 data-i18n="accentColor">Accent color</h3>
-        <label for="accent-color-input" data-i18n="accentColorLabel">Text accent color:</label>
-        <input type="color" id="accent-color-input" value="#5d00ff" />
-        <button type="button" id="reset-accent-color" data-i18n="reset">Reset</button>
-        <br /><br />
+        <div id="seasonal-theme-option">
+          <label for="auto-fest-checkbox">
+            <input type="checkbox" id="auto-fest-checkbox" checked />
+            <span data-i18n="autoTheme">Automatically change theme based on holidays.</span>
+          </label>
+        </div>
+        <div id="wallpaper-colors-option">
+          <label for="wallpaper-colors-checkbox">
+            <input type="checkbox" id="wallpaper-colors-checkbox" />
+            <span data-i18n="wallpaperColors">Use dynamic colors from the background image.</span>
+          </label>
+          <p id="wallpaper-colors-status" role="status" aria-live="polite" hidden></p>
+        </div>
+        <div id="custom-color-settings">
+          <h3 data-i18n="borderColor">Border color</h3>
+          <label for="border-color-input" data-i18n="borderColorLabel">Border color for accent elements:</label>
+          <input type="color" id="border-color-input" value="#5d00ff" />
+          <button type="button" id="reset-border-color" data-i18n="reset">Reset</button>
+          <br /><br />
+          <h3 data-i18n="accentColor">Accent color</h3>
+          <label for="accent-color-input" data-i18n="accentColorLabel">Text accent color:</label>
+          <input type="color" id="accent-color-input" value="#5d00ff" />
+          <button type="button" id="reset-accent-color" data-i18n="reset">Reset</button>
+          <br /><br />
+        </div>
       </details>
       <details class="settings-tree">
         <summary data-i18n="interfaceSettings">Interface</summary>
