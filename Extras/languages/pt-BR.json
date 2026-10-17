@@ -92,7 +92,7 @@
   "renameFile": "Renomear arquivo",
   "newFolder": "Criar pasta",
   "createFolder": "Criar pasta",
-  "newFile": "Novo arquivo",
+  "newFile": "Novo arquivo em branco",
   "importFiles": "Importar arquivos",
   "importFolder": "Importar pasta do projeto",
   "namePlaceholder": "Digite um nome...",

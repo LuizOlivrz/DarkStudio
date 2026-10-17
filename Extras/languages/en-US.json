@@ -96,7 +96,7 @@
   "renameFile": "Rename file",
   "newFolder": "Create folder",
   "createFolder": "Create folder",
-  "newFile": "New file",
+  "newFile": "New blank file",
   "importFiles": "Import files",
   "importFolder": "Import project folder",
   "namePlaceholder": "Enter a name...",

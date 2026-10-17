@@ -20,7 +20,7 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
-export const version = "16.10.26"; // Current version / versão atual
+export const version = "17.10.26"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
 // ▶️ CODE EXECUTOR SETTINGS
@@ -82,7 +82,11 @@ export async function loadLanguage(langCode) {
     if (!res.ok) throw new Error("Language not found");
 
     const dictionary = await res.json();
-    if (!dictionary || typeof dictionary !== "object" || Array.isArray(dictionary)) {
+    if (
+      !dictionary ||
+      typeof dictionary !== "object" ||
+      Array.isArray(dictionary)
+    ) {
       throw new Error("Invalid language catalog");
     }
     if (requestSequence !== languageLoadSequence) return currentLang;
@@ -129,31 +133,45 @@ export function getCurrentLanguage() {
 export async function getAvailableLanguages() {
   let languageCodes = ["en-US", "pt-BR", "ru"];
   try {
-    const response = await fetch("Extras/languages/index.json", { cache: "no-store" });
+    const response = await fetch("Extras/languages/index.json", {
+      cache: "no-store",
+    });
     if (response.ok) {
       const manifest = await response.json();
       if (Array.isArray(manifest.languages)) {
         languageCodes = manifest.languages
-          .map((entry) => typeof entry === "string" ? entry : entry?.code)
-          .filter((code) => typeof code === "string" && /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(code));
+          .map((entry) => (typeof entry === "string" ? entry : entry?.code))
+          .filter(
+            (code) =>
+              typeof code === "string" &&
+              /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(code),
+          );
       }
     }
   } catch {
     // Fall back to known candidates; individual JSON checks below still filter missing files.
   }
 
-  const catalogs = await Promise.all(languageCodes.map(async (code) => {
-    try {
-      const response = await fetch(`Extras/languages/${code}.json`, { cache: "no-store" });
-      if (!response.ok) return null;
-      const catalog = await response.json();
-      if (!catalog || typeof catalog !== "object" || Array.isArray(catalog)) return null;
-      const languageName = typeof catalog.languageName === "string" ? catalog.languageName.trim() : "";
-      return languageName ? { code, name: languageName } : null;
-    } catch {
-      return null;
-    }
-  }));
+  const catalogs = await Promise.all(
+    languageCodes.map(async (code) => {
+      try {
+        const response = await fetch(`Extras/languages/${code}.json`, {
+          cache: "no-store",
+        });
+        if (!response.ok) return null;
+        const catalog = await response.json();
+        if (!catalog || typeof catalog !== "object" || Array.isArray(catalog))
+          return null;
+        const languageName =
+          typeof catalog.languageName === "string"
+            ? catalog.languageName.trim()
+            : "";
+        return languageName ? { code, name: languageName } : null;
+      } catch {
+        return null;
+      }
+    }),
+  );
 
   return catalogs.filter(Boolean);
 }
@@ -161,12 +179,14 @@ export async function getAvailableLanguages() {
 async function populateLanguageSelector(languages) {
   const selector = document.getElementById("language-select");
   if (!selector || !languages.length) return;
-  selector.replaceChildren(...languages.map(({ code, name }) => {
-    const option = document.createElement("option");
-    option.value = code;
-    option.textContent = name;
-    return option;
-  }));
+  selector.replaceChildren(
+    ...languages.map(({ code, name }) => {
+      const option = document.createElement("option");
+      option.value = code;
+      option.textContent = name;
+      return option;
+    }),
+  );
 }
 
 // Honor an explicit Settings choice; otherwise use a language available on disk.
@@ -174,18 +194,31 @@ const availableLanguages = await getAvailableLanguages();
 await populateLanguageSelector(availableLanguages);
 const supportedLanguages = availableLanguages.map(({ code }) => code);
 const savedLanguage = localStorage.getItem("darkstudio-language");
-const browserLanguage = (navigator.languages?.length ? navigator.languages : [navigator.language || "en-US"])
-  .map((locale) => String(locale).toLowerCase());
+const browserLanguage = (
+  navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language || "en-US"]
+).map((locale) => String(locale).toLowerCase());
 const exactBrowserLanguage = browserLanguage
-  .map((locale) => availableLanguages.find(({ code }) => code.toLowerCase() === locale)?.code)
+  .map(
+    (locale) =>
+      availableLanguages.find(({ code }) => code.toLowerCase() === locale)
+        ?.code,
+  )
   .find(Boolean);
-const detectedLanguage = exactBrowserLanguage ||
+const detectedLanguage =
+  exactBrowserLanguage ||
   (browserLanguage.some((locale) => locale.startsWith("pt"))
     ? supportedLanguages.find((code) => code.toLowerCase().startsWith("pt"))
     : browserLanguage.some((locale) => locale.startsWith("ru"))
       ? supportedLanguages.find((code) => code.toLowerCase().startsWith("ru"))
-      : null) || supportedLanguages.find((code) => code.toLowerCase() === "en-us") || supportedLanguages[0] || "en-US";
-await loadLanguage(supportedLanguages.includes(savedLanguage) ? savedLanguage : detectedLanguage);
+      : null) ||
+  supportedLanguages.find((code) => code.toLowerCase() === "en-us") ||
+  supportedLanguages[0] ||
+  "en-US";
+await loadLanguage(
+  supportedLanguages.includes(savedLanguage) ? savedLanguage : detectedLanguage,
+);
 language = currentLang;
 document.documentElement.lang = currentLang;
 
@@ -423,11 +456,7 @@ if (!block) {
       console.error("Could not load Color Thief:", error);
     }
 
-    await Promise.all([
-      loadJS("monaco"),
-      loadJS("main"),
-      loadJS("AI"),
-    ]);
+    await Promise.all([loadJS("monaco"), loadJS("main"), loadJS("AI")]);
 
     await loadCSS(device !== "Mobile" ? "dark.css" : "mobile.css");
     await loadJS("extensions");
@@ -454,14 +483,18 @@ else {
         <strong>${t("reason")}:</strong><br/>
         ${t(blockReasonKey).replaceAll("\n", "<br/>")}
       </div>
-      ${blockReasonKey === "blockedOrigin" ? `
+      ${
+        blockReasonKey === "blockedOrigin"
+          ? `
         <form id="origin-unlock-form" style="display:flex;flex-direction:column;gap:10px;width:min(320px,100%);margin-top:24px;">
           <label for="origin-unlock-password">${t("originPasswordLabel")}</label>
           <input id="origin-unlock-password" type="password" autocomplete="current-password" required style="box-sizing:border-box;width:100%;padding:10px;border:1px solid #fff;border-radius:6px;">
           <button type="submit" style="padding:10px;border:0;border-radius:6px;cursor:pointer;">${t("originPasswordSubmit")}</button>
           <p id="origin-unlock-error" role="status" aria-live="polite" style="margin:0;"></p>
         </form>
-      ` : ""}
+      `
+          : ""
+      }
     </div>
   `;
 
@@ -473,7 +506,8 @@ else {
     const input = document.getElementById("origin-unlock-password");
     const errorMessage = document.getElementById("origin-unlock-error");
     const submitButton = unlockForm.querySelector("button[type='submit']");
-    if (!(input instanceof HTMLInputElement) || !errorMessage || !submitButton) return;
+    if (!(input instanceof HTMLInputElement) || !errorMessage || !submitButton)
+      return;
 
     submitButton.disabled = true;
     errorMessage.textContent = "";
@@ -491,7 +525,10 @@ else {
       sessionStorage.setItem(OFFICIAL_ORIGIN_UNLOCK_KEY, "true");
       window.location.reload();
     } catch (error) {
-      console.error("DarkStudio: could not validate the local unlock password.", error);
+      console.error(
+        "DarkStudio: could not validate the local unlock password.",
+        error,
+      );
       errorMessage.textContent = t("originPasswordUnavailable");
     } finally {
       submitButton.disabled = false;
