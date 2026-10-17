@@ -58,27 +58,33 @@ if (!blockWeb) {
 
   function applySeasonalPalette(themeName) {
     const festivePalette = autoTheme ? {
-      halloween: { border: "#FF8A3D", accent: "#FF781F" },
-      christmas: { border: "#FFFFFF", accent: "#D62828" },
-      easter: { border: "#E6A8D7", accent: "#71A85A" },
+      halloween: { primary: "#FF8A3D", secondary: "#FF781F" },
+      christmas: { primary: "#FFFFFF", secondary: "#D62828" },
+      easter: { primary: "#E6A8D7", secondary: "#71A85A" },
     }[themeName] : null;
     const savedBorder = localStorage.getItem("borderColor");
     const savedAccent = localStorage.getItem("accentColor");
-    const normalPalette = {
-      border: !savedBorder || savedBorder.toLowerCase() === "#ff8a3d" ? "#683AB7" : savedBorder,
-      accent: !savedAccent || savedAccent.toLowerCase() === "#ff6700" ? "#683AB7" : savedAccent,
+    const isCustomColor = (color, settingKey, legacySeasonalDefault) =>
+      color &&
+      (localStorage.getItem(`${settingKey}Customized`) === "true" ||
+        !["#5d00ff", "#683ab7", legacySeasonalDefault].includes(color.toLowerCase()));
+    const palette = {
+      primary: isCustomColor(savedBorder, "borderColor", "#ff8a3d")
+        ? savedBorder
+        : festivePalette?.primary || "#5d00ff",
+      secondary: isCustomColor(savedAccent, "accentColor", "#ff6700")
+        ? savedAccent
+        : festivePalette?.secondary || "#5d00ff",
     };
-    const palette = festivePalette || normalPalette;
     const root = document.documentElement;
-    root.style.setProperty("--border-orange", palette.border);
-    root.style.setProperty("--orange", palette.border);
-    root.style.setProperty("--accent-color", palette.accent);
-    const rgb = palette.accent.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
-    if (rgb) root.style.setProperty("--accent-rgb", `${parseInt(rgb[1], 16)}, ${parseInt(rgb[2], 16)}, ${parseInt(rgb[3], 16)}`);
+    root.style.setProperty("--primary-color", palette.primary);
+    root.style.setProperty("--secondary-color", palette.secondary);
+    const rgb = palette.secondary.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    if (rgb) root.style.setProperty("--secondary-rgb", `${parseInt(rgb[1], 16)}, ${parseInt(rgb[2], 16)}, ${parseInt(rgb[3], 16)}`);
     const borderInput = document.getElementById("border-color-input");
     const accentInput = document.getElementById("accent-color-input");
-    if (borderInput) borderInput.value = palette.border;
-    if (accentInput) accentInput.value = palette.accent;
+    if (borderInput) borderInput.value = palette.primary;
+    if (accentInput) accentInput.value = palette.secondary;
   }
 
   // ─────────────────────────────────────────────

@@ -3,5 +3,5 @@
   "name": "Hello World",
   "version": "1.0.0",
   "description": "Adds a small welcome note to the options panel.",
-  "code": "(async () => { const [options] = await DS.query('#options'); if (options) await DS.appendHTML(options.handle, '<p class=\"hello-extension\">Hello from a DarkStudio extension.</p>'); await DS.addCSS('.hello-extension { padding: 8px; color: var(--accent-color); }'); })();"
+  "code": "(async () => { const [options] = await DS.query('#options'); if (options) await DS.appendHTML(options.handle, '<p class=\"hello-extension\">Hello from a DarkStudio extension.</p>'); await DS.addCSS('.hello-extension { padding: 8px; color: var(--secondary-color); }'); })();"
 }
