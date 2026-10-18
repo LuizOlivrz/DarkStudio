@@ -2734,3 +2734,32 @@ body {
   max-width: none !important;
   max-height: none !important;
 }
+
+
+/* Visible resize affordances on all four corners and four edges. */
+#mini-player .mini-player-resize-handle { opacity: .5; }
+#mini-player .mini-player-resize-handle:hover,
+#mini-player .mini-player-resize-handle:focus-visible { opacity: 1; }
+#mini-player .mini-player-resize-handle.resize-ne::after,
+#mini-player .mini-player-resize-handle.resize-nw::after,
+#mini-player .mini-player-resize-handle.resize-se::after,
+#mini-player .mini-player-resize-handle.resize-sw::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--green, #18ff72);
+  border-style: solid;
+}
+#mini-player .mini-player-resize-handle.resize-se::after {
+  right: 3px; bottom: 3px; border-width: 0 2px 2px 0;
+}
+#mini-player .mini-player-resize-handle.resize-nw::after {
+  left: 3px; top: 3px; border-width: 2px 0 0 2px;
+}
+#mini-player .mini-player-resize-handle.resize-ne::after {
+  right: 3px; top: 3px; border-width: 2px 2px 0 0;
+}
+#mini-player .mini-player-resize-handle.resize-sw::after {
+  left: 3px; bottom: 3px; border-width: 0 0 2px 2px;
+}
