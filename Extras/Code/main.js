@@ -669,92 +669,87 @@ if (!blockWeb) {
     const player = document.getElementById("mini-player");
     const list = document.getElementById("mini-player-list");
     const toggle = document.getElementById("mini-player-toggle");
-    const caption = document.getElementById("mini-player-caption");
     if (!player || !list) return;
-
     const text = typeof code === "string" ? code.trim() : "";
     const urls = text.match(/https?:\/\/[^\s<>"']+/gi) || [];
     const embeds = [];
     const seen = new Set();
     let websiteUrl = "";
-
     for (const rawUrl of urls) {
       const cleanedUrl = rawUrl.replace(/[),.;!?]+$/, "");
       try {
         const url = new URL(cleanedUrl);
         const host = url.hostname.toLowerCase();
         let videoId = "";
-
-        if (host === "youtu.be") {
-          videoId = url.pathname.split("/").filter(Boolean)[0] || "";
-        } else if (["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)) {
-          if (url.pathname === "/watch") {
-            videoId = url.searchParams.get("v") || "";
-          } else {
+        if (host === "youtu.be") videoId = url.pathname.split("/").filter(Boolean)[0] || "";
+        else if (["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)) {
+          if (url.pathname === "/watch") videoId = url.searchParams.get("v") || "";
+          else {
             const match = url.pathname.match(/^\/(shorts|live|embed)\/([^/]+)/);
             if (match) videoId = match[2];
           }
         }
-
         if (/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-          const src = `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1`;
-          if (!seen.has(src)) embeds.push({ type: "youtube", src, height: 180 });
+          const src = "https://www.youtube.com/embed/" + videoId + "?autoplay=0&mute=1";
+          if (!seen.has(src)) embeds.push({ type: "youtube", src: src, height: 180 });
           seen.add(src);
           continue;
         }
-
         const spotify = getSpotifyInfo(cleanedUrl);
         if (spotify) {
-          const src = `https://open.spotify.com/embed/${spotify.type}/${spotify.id}`;
-          if (!seen.has(src)) embeds.push({ type: "spotify", src, height: spotify.type === "track" ? 152 : 352, spotify });
+          const src = "https://open.spotify.com/embed/" + spotify.type + "/" + spotify.id;
+          if (!seen.has(src)) embeds.push({ type: "spotify", src: src, height: spotify.type === "track" ? 152 : 352, spotify: spotify });
           seen.add(src);
           continue;
         }
-
-        // Any other HTTP(S) URL gets a website preview; no domain allowlist.
         if (!websiteUrl) websiteUrl = url.href;
-        if (!seen.has(url.href)) {
-          embeds.push({ type: "website", src: url.href, height: 480, host });
-          seen.add(url.href);
-        }
-      } catch {
-        // Ignore malformed URLs and continue checking the remaining links.
-      }
+      } catch {}
     }
-
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
-      item.className = `mini-player-item ${embed.type}`;
+      item.className = "mini-player-item " + embed.type;
       const iframe = document.createElement("iframe");
       iframe.src = embed.src;
-      iframe.title = embed.type === "website"
-        ? `Website preview: ${embed.host}`
-        : `${embed.type === "youtube" ? "YouTube" : "Spotify"} player ${index + 1}`;
+      iframe.title = (embed.type === "youtube" ? "YouTube" : "Spotify") + " player " + (index + 1);
       iframe.loading = "lazy";
       iframe.referrerPolicy = "no-referrer";
       iframe.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
       iframe.allowFullscreen = true;
-      iframe.style.height = embed.type === "website" ? "100%" : `${embed.height}px`;
-      if (embed.type === "website") {
-        iframe.addEventListener("load", () => {
-          window.dispatchEvent(new CustomEvent("darkstudio:preview-loaded", { detail: { url: embed.src } }));
-        }, { once: true });
-      }
+      iframe.style.height = embed.height + "px";
       item.appendChild(iframe);
       if (embed.spotify) updateSpotifyTheme(embed.spotify);
       return item;
     }));
-
     player.classList.toggle("visible", embeds.length > 0);
     if (toggle) toggle.hidden = embeds.length === 0;
-    if (caption) caption.textContent = embeds.some((embed) => embed.type === "website")
-      ? "Website preview"
-      : embeds.length ? "Media player" : "Preview";
-
-    if (websiteUrl) {
-      window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
-    }
+    player.dataset.pendingWebsite = websiteUrl;
+    if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
   }
+
+  window.addEventListener("darkstudio:site-analysis", (event) => {
+    const detail = event.detail || {};
+    const player = document.getElementById("mini-player");
+    const list = document.getElementById("mini-player-list");
+    const toggle = document.getElementById("mini-player-toggle");
+    if (!player || !list || player.dataset.pendingWebsite !== detail.url) return;
+    list.querySelectorAll(".mini-player-item.website").forEach((node) => node.remove());
+    if (detail.ok) {
+      const item = document.createElement("div");
+      item.className = "mini-player-item website";
+      const iframe = document.createElement("iframe");
+      iframe.src = detail.url;
+      iframe.title = detail.title || new URL(detail.url).hostname;
+      iframe.loading = "lazy";
+      iframe.referrerPolicy = "no-referrer";
+      iframe.allow = "fullscreen";
+      iframe.style.height = "100%";
+      item.appendChild(iframe);
+      list.appendChild(item);
+      player.classList.add("visible");
+    }
+    player.classList.toggle("visible", list.children.length > 0);
+    if (toggle) toggle.hidden = list.children.length === 0;
+  });
 
   document.getElementById("mini-player-toggle")?.addEventListener("click", (event) => {
     const toggle = event.currentTarget;
