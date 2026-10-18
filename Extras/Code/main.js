@@ -1283,9 +1283,9 @@ if (!blockWeb) {
       if (direction.includes("n")) top += dy;
       if (direction.includes("s")) bottom += dy;
 
-      // Keep a 340px minimum width while allowing Spotify to grow freely.
+      // Apply the 340px minimum width only to Spotify; other media can resize smaller.
       // Preserve the opposite edge when resizing from the west/east handles.
-      const minWidth = Math.min(340, bounds.right - bounds.left);
+      const minWidth = resize.free ? Math.min(340, bounds.right - bounds.left) : 1;
       if (direction.includes("w")) {
         right = clamp(right, bounds.left + minWidth, bounds.right);
         left = clamp(left, bounds.left, right - minWidth);
