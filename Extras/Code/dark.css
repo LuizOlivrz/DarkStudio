@@ -3128,3 +3128,40 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+/* Feed TikTok interativo também no modo expandido: manter scroll, hover e controles do iframe. */
+#mini-player.is-expanded #mini-player-list.mini-player-tiktok-stack,
+#mini-player.is-expanded-portrait #mini-player-list.mini-player-tiktok-stack,
+#mini-player.is-expanded-landscape #mini-player-list.mini-player-tiktok-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scroll-snap-type: y mandatory !important;
+  overscroll-behavior-y: contain !important;
+  pointer-events: auto !important;
+  touch-action: pan-y !important;
+}
+#mini-player.is-expanded #mini-player-list.mini-player-tiktok-stack > .mini-player-item,
+#mini-player.is-expanded-portrait #mini-player-list.mini-player-tiktok-stack > .mini-player-item,
+#mini-player.is-expanded-landscape #mini-player-list.mini-player-tiktok-stack > .mini-player-item {
+  display: block !important;
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  pointer-events: auto !important;
+  scroll-snap-align: start !important;
+}
+#mini-player.is-expanded #mini-player-list.mini-player-tiktok-stack > .mini-player-item iframe,
+#mini-player.is-expanded-portrait #mini-player-list.mini-player-tiktok-stack > .mini-player-item iframe,
+#mini-player.is-expanded-landscape #mini-player-list.mini-player-tiktok-stack > .mini-player-item iframe {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: auto !important;
+}
+
