@@ -2538,3 +2538,105 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #mini-player, #Editor { transition: none !important; }
 }
+
+
+/* Mini-player interaction fixes: stable expanded dimensions, reliable drag and generous resize hitbox. */
+#mini-player.mini-player-dragging,
+#mini-player.mini-player-resizing {
+  transition: none !important;
+  user-select: none !important;
+}
+#mini-player.mini-player-dragging #mini-player-toolbar,
+#mini-player.is-expanded.mini-player-dragging #mini-player-expand {
+  cursor: grabbing !important;
+}
+#mini-player #mini-player-expand {
+  position: relative;
+  z-index: 1500 !important;
+  touch-action: none !important;
+  pointer-events: auto !important;
+}
+#mini-player.is-expanded,
+#mini-player.is-expanded-portrait,
+#mini-player.is-expanded-landscape {
+  resize: none !important;
+}
+#mini-player.is-expanded .mini-player-resize-handle,
+#mini-player.is-expanded-portrait .mini-player-resize-handle,
+#mini-player.is-expanded-landscape .mini-player-resize-handle {
+  display: none !important;
+  pointer-events: none !important;
+}
+#mini-player:not(.collapsed):not(.is-expanded) .mini-player-resize-handle.resize-se {
+  display: block !important;
+  width: 44px !important;
+  height: 44px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1600 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 0 8px 0 !important;
+  cursor: nwse-resize !important;
+  touch-action: none !important;
+  pointer-events: auto !important;
+}
+#mini-player:not(.collapsed):not(.is-expanded) .mini-player-resize-handle.resize-se::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 13px;
+  height: 13px;
+  border-right: 3px solid rgba(202, 135, 235, .95);
+  border-bottom: 3px solid rgba(202, 135, 235, .95);
+  border-radius: 0 0 4px 0;
+  pointer-events: none;
+}
+#mini-player .mini-player-orientation-caption {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1300 !important;
+  max-width: calc(100% - 30px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(8, 4, 14, .78) !important;
+  color: #e8b7ff !important;
+  border: 1px solid rgba(202, 135, 235, .65);
+  border-radius: 5px;
+  transition: opacity .14s ease, transform .14s ease;
+}
+#mini-player .mini-player-orientation-caption.is-changing {
+  opacity: .2;
+  transform: translateY(-3px);
+}
+#mini-player .mini-player-orientation-caption.landscape {
+  top: 5px !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 70px);
+  text-align: center;
+}
+#mini-player .mini-player-orientation-caption.portrait {
+  top: 50% !important;
+  right: 5px !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 22px !important;
+  max-width: 22px !important;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+  white-space: normal;
+}
+@media (prefers-reduced-motion: reduce) {
+  #mini-player.mini-player-dragging,
+  #mini-player.mini-player-resizing,
+  #mini-player .mini-player-orientation-caption {
+    transition: none !important;
+  }
+}
