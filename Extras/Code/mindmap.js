@@ -767,8 +767,7 @@ function addNode(name, content = "", type = "text", position = null) {
 }
 
 function addBlankNode() {
-  const node = addNode(`${tr("newFile")}.txt`, "", "text");
-  openNodeInEditor(node);
+  addNode(`${tr("newFile")}.txt`, "", "text");
 }
 
 async function addFolder() {
@@ -1137,26 +1136,30 @@ function highlightDropTarget(node, clientX, clientY) {
 
   if (!mind) return;
 
-  const target = document.elementFromPoint(clientX, clientY);
-  const targetElement = target?.closest(".mm-node");
+  // Detecta a pasta pela área real, sem depender de elementFromPoint:
+  // o elemento arrastado pode ficar por cima e capturar o ponteiro.
+  const folder = nodes
+    .filter((item) => item.type === "folder" && validFolderTarget(node, item))
+    .map((item) => ({ item, element: getNodeElement(item.id) }))
+    .filter(({ element }) => {
+      if (!element || element.style.display === "none") return false;
+      const rect = element.getBoundingClientRect();
+      return clientX >= rect.left && clientX <= rect.right &&
+        clientY >= rect.top && clientY <= rect.bottom;
+    })
+    .sort((a, b) => {
+      const za = Number(a.element.style.zIndex) || 0;
+      const zb = Number(b.element.style.zIndex) || 0;
+      return zb - za;
+    })[0];
 
-  if (!targetElement) {
+  if (!folder) {
     if (activeDrag) activeDrag.dropTarget = null;
     return;
   }
 
-  const folder = getNode(targetElement.dataset.id);
-
-  if (!validFolderTarget(node, folder)) {
-    if (activeDrag) activeDrag.dropTarget = null;
-    return;
-  }
-
-  targetElement.classList.add("drop-target");
-
-  if (activeDrag) {
-    activeDrag.dropTarget = folder;
-  }
+  folder.element.classList.add("drop-target");
+  if (activeDrag) activeDrag.dropTarget = folder.item;
 }
 
 function onPointerUp(event) {
@@ -1769,10 +1772,6 @@ function onOutsideMenuClick(event) {
 function createAddMenu(position = null) {
   closeAddMenu();
 
-  const button = document.getElementById("mindmap-add-files");
-
-  if (!button) return;
-
   const menu = document.createElement("div");
   menu.id = "mindmap-add-menu";
 
@@ -1787,11 +1786,45 @@ function createAddMenu(position = null) {
     },
     {
       label: `⇧ ${tr("importFiles")}`,
-      action: () => fileInput.click(),
-    },
-    {
-      label: `📂 ${tr("importFolder")}`,
-      action: () => folderInput.click(),
+      action: () => {
+        const chooser = document.createElement("div");
+        chooser.id = "mindmap-import-choice";
+        Object.assign(chooser.style, {
+          position: "fixed", inset: "0", zIndex: "1000001",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,.55)"
+        });
+        const panel = document.createElement("div");
+        Object.assign(panel.style, {
+          display: "grid", gap: "8px", minWidth: "230px", padding: "16px",
+          border: "1px solid var(--secondary-color,#5d00ff)", borderRadius: "10px",
+          background: "#151515", color: "#fff"
+        });
+        const title = document.createElement("strong");
+        title.textContent = tr("importFiles");
+        const filesButton = document.createElement("button");
+        filesButton.type = "button";
+        filesButton.textContent = tr("importFiles");
+        const folderButton = document.createElement("button");
+        folderButton.type = "button";
+        folderButton.textContent = tr("importFolder");
+        const cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.textContent = tr("cancel");
+        for (const button of [filesButton, folderButton, cancelButton]) {
+          Object.assign(button.style, {
+            padding: "9px 12px", borderRadius: "6px", border: "1px solid #444",
+            background: "#242424", color: "#fff", cursor: "pointer", textAlign: "left"
+          });
+        }
+        filesButton.addEventListener("click", () => { chooser.remove(); fileInput.click(); });
+        folderButton.addEventListener("click", () => { chooser.remove(); folderInput.click(); });
+        cancelButton.addEventListener("click", () => chooser.remove());
+        chooser.addEventListener("click", (event) => { if (event.target === chooser) chooser.remove(); });
+        panel.append(title, filesButton, folderButton, cancelButton);
+        chooser.appendChild(panel);
+        document.body.appendChild(chooser);
+      },
     },
     {
       label: `✎ ${tr("workspaceRename")}`,
@@ -1838,9 +1871,9 @@ function createAddMenu(position = null) {
 
   document.body.appendChild(menu);
 
-  const rect = button.getBoundingClientRect();
-  const menuX = Number.isFinite(position?.x) ? position.x : rect.left;
-  const menuY = Number.isFinite(position?.y) ? position.y : rect.bottom + 6;
+  const rect = mind?.getBoundingClientRect();
+  const menuX = Number.isFinite(position?.x) ? position.x : (rect?.left || 12) + 12;
+  const menuY = Number.isFinite(position?.y) ? position.y : (rect?.top || 12) + 12;
 
   menu.style.left = `${Math.max(
     12,
@@ -1931,13 +1964,8 @@ function showEditor() {
 
   if (editor) editor.style.display = "block";
 
-  const mapButtons = ["mindmap-add-files", "mindmap-connect", "mindmap-clear"];
-
-  for (const id of mapButtons) {
-    const element = document.getElementById(id);
-
-    if (element) element.style.display = "none";
-  }
+  const extensionsButton = document.getElementById("extensions-button");
+  if (extensionsButton) extensionsButton.style.display = previousDisplays["extensions-button"] ?? "";
 
   for (const id of [
     "download-file",
@@ -1980,10 +2008,10 @@ function showMap() {
     element.style.display = "none";
   }
 
-  for (const id of ["mindmap-add-files", "mindmap-connect", "mindmap-clear"]) {
-    const element = document.getElementById(id);
-
-    if (element) element.style.display = "inline-block";
+  const extensionsButton = document.getElementById("extensions-button");
+  if (extensionsButton) {
+    previousDisplays["extensions-button"] = getComputedStyle(extensionsButton).display;
+    extensionsButton.style.display = "none";
   }
 
   renderNodes();
@@ -2180,7 +2208,6 @@ function setupFileInputs() {
 
 function wireUI() {
   const mapButton = document.getElementById("mindmap-button");
-  const addButton = document.getElementById("mindmap-add-files");
   const connectButton = document.getElementById("mindmap-connect");
   const clearButton = document.getElementById("mindmap-clear");
 
@@ -2204,18 +2231,6 @@ function wireUI() {
         showEditor();
       } else {
         showMap();
-      }
-    });
-  }
-
-  if (addButton) {
-    addButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-
-      if (document.getElementById("mindmap-add-menu")) {
-        closeAddMenu();
-      } else {
-        createAddMenu();
       }
     });
   }
