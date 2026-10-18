@@ -776,7 +776,7 @@ if (!blockWeb) {
           const match = url.pathname.match(/\/video\/(\d+)/);
           if (match) embed = {
             type: "tiktok",
-            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&muted=1&music_info=1&description=1",
+            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&muted=1&volume_control=1&music_info=1&description=1",
             ratio: "9 / 16",
             width: 338,
             height: 600,
