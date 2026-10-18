@@ -3206,3 +3206,16 @@ body {
   max-height: 80px !important;
   overflow: hidden !important;
 }
+
+
+/* Em qualquer modo de tela cheia do mini-player, ocultar a barra de arraste. */
+#mini-player.is-expanded #mini-player-toolbar,
+#mini-player.is-expanded-portrait #mini-player-toolbar,
+#mini-player.is-expanded-landscape #mini-player-toolbar,
+#mini-player:fullscreen #mini-player-toolbar,
+#mini-player:-webkit-full-screen #mini-player-toolbar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
