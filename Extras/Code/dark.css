@@ -2577,8 +2577,8 @@ body {
 }
 #mini-player:not(.collapsed):not(.is-expanded) .mini-player-resize-handle.resize-se {
   display: block !important;
-  width: 44px !important;
-  height: 44px !important;
+  width: 16px !important;
+  height: 16px !important;
   right: 0 !important;
   bottom: 0 !important;
   z-index: 1600 !important;
@@ -2592,13 +2592,15 @@ body {
 #mini-player:not(.collapsed):not(.is-expanded) .mini-player-resize-handle.resize-se::after {
   content: "";
   position: absolute;
-  right: 5px;
-  bottom: 5px;
-  width: 13px;
-  height: 13px;
-  border-right: 3px solid rgba(202, 135, 235, .95);
-  border-bottom: 3px solid rgba(202, 135, 235, .95);
-  border-radius: 0 0 4px 0;
+  right: 4px;
+  bottom: 4px;
+  width: 7px;
+  height: 7px;
+  border: 0 !important;
+  border-right: 1px solid var(--green, #18ff72) !important;
+  border-bottom: 1px solid var(--green, #18ff72) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   pointer-events: none;
 }
 #mini-player .mini-player-orientation-caption {
