@@ -1406,8 +1406,22 @@ if (!blockWeb) {
     window.addEventListener("pointerup", stopResize);
     window.addEventListener("pointercancel", stopResize);
 
+    const syncPlayerVisibility = () => {
+      const enabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
+      const visible = enabled && isEditorSurfaceVisible();
+      player.hidden = !visible;
+      player.classList.toggle("visible", visible && list.querySelector(".mini-player-item") !== null);
+      if (visible && isExpanded()) fitExpandedPlayer();
+    };
+    // Watch the editor and its ancestors so hiding the editor also hides the mini-player.
+    const editorVisibilityObserver = new MutationObserver(syncPlayerVisibility);
+    for (let node = editorSurface; node && node !== document.documentElement; node = node.parentElement) {
+      editorVisibilityObserver.observe(node, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    }
+
     // Recompute only on viewport/media changes, not on every AI panel/grid mutation.
     window.addEventListener("resize", () => {
+      syncPlayerVisibility();
       const bounds = editorSurface.getBoundingClientRect();
       if (isExpanded()) fitExpandedPlayer();
       else {
