@@ -751,7 +751,7 @@ if (!blockWeb) {
           const isShort = /^\/shorts\//.test(url.pathname);
           embed = {
             type: "youtube",
-            src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin) + (isShort ? "&mute=1" : ""),
+            src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin) + "",
             ratio: isShort ? "9 / 16" : "16 / 9",
             width: isShort ? 300 : 480,
             height: isShort ? 533 : 270,
@@ -776,7 +776,7 @@ if (!blockWeb) {
           const match = url.pathname.match(/\/video\/(\d+)/);
           if (match) embed = {
             type: "tiktok",
-            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&muted=1&volume_control=1&music_info=1&description=1",
+            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&volume_control=1&music_info=1&description=1",
             ratio: "9 / 16",
             width: 338,
             height: 600,
