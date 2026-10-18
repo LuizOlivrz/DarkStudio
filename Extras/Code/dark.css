@@ -2430,8 +2430,14 @@ body {
 }
 #mini-player.is-expanded-portrait.mini-player-resizing,
 #mini-player.is-expanded-landscape.mini-player-resizing { transition: none !important; }
+/* Expanded mode must keep the YouTube iframe fully interactive. */
 #mini-player.is-expanded-portrait #mini-player-list,
-#mini-player.is-expanded-landscape #mini-player-list { pointer-events: none; }
+#mini-player.is-expanded-landscape #mini-player-list,
+#mini-player.is-expanded-portrait #mini-player-list iframe,
+#mini-player.is-expanded-landscape #mini-player-list iframe {
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
 #mini-player.is-expanded-portrait #mini-player-expand,
 #mini-player.is-expanded-landscape #mini-player-expand { pointer-events: auto; touch-action: none; }
 
