@@ -692,6 +692,31 @@ function addNode(name, content = "", type = "text", position = null) {
   return node;
 }
 
+function addEditorContentNode() {
+  const editorContent =
+    window.editor?.getValue?.() ??
+    window.monacoEditor?.getValue?.() ??
+    document.querySelector("#Editor")?.value ??
+    "";
+  const source = String(editorContent);
+  if (!source.trim()) {
+    alert(tr("editorContentEmpty"));
+    return;
+  }
+
+  const detectedLabel = document.querySelector("#code-language h4")?.textContent?.trim() || "";
+  const extensionByLanguage = {
+    JavaScript: "js", HTML: "html", CSS: "css", JSON: "json", Python: "py",
+    Java: "java", "C++": "cpp", "C#": "cs", Rust: "rs", SQL: "sql",
+    Markdown: "md", Kotlin: "kt", Arduino: "ino", "Batch (BAT/CMD)": "bat",
+  };
+  const extension = extensionByLanguage[detectedLabel] || "txt";
+  const node = addNode(`${tr("editorContentFileName")}.${extension}`, source, "text");
+  openNodeInEditor(node);
+  saveState();
+  renderNodes();
+}
+
 function addBlankNode() {
   const node = addNode(`${tr("newFile")}.txt`, "", "text");
   openNodeInEditor(node);
@@ -1618,6 +1643,10 @@ function createAddMenu() {
     {
       label: `＋ ${tr("newFile")}`,
       action: addBlankNode,
+    },
+    {
+      label: `▤ ${tr("addEditorContent")}`,
+      action: addEditorContentNode,
     },
     {
       label: `📁 ${tr("newFolder")}`,
