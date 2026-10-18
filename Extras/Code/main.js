@@ -905,30 +905,46 @@ if (!blockWeb) {
       websiteContainer?.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
       websiteContainer?.style.removeProperty("--mini-player-fit-width");
       websiteContainer?.style.removeProperty("--mini-player-fit-height");
+      editorSurface?.style.removeProperty("--mini-player-fit-width");
+      editorSurface?.style.removeProperty("--mini-player-fit-height");
+      editorSurface?.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
       player.classList.remove("is-expanded-portrait", "is-expanded-landscape");
       player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
     }
 
     function fitEditorToVideo() {
       if (!player.classList.contains("is-expanded")) return;
-      const list = player.querySelector("#mini-player-list") || player.querySelector(".mini-player-list");
+      const list = player.querySelector("#mini-player-list");
       const item = list?.querySelector(".mini-player-item");
-      if (!item) return;
+      if (!item || !editorSurface || !websiteContainer) return;
+
       const ratio = item.style.aspectRatio || "";
-      const portrait = item.classList.contains("tiktok") || /9\s*\/\s*16/.test(ratio);
-      const optionsWidth = websiteContainer?.querySelector("#options")?.getBoundingClientRect().width || 120;
-      const availableWidth = Math.max(280, window.innerWidth - optionsWidth - 24);
-      const availableHeight = Math.max(240, window.innerHeight - 48);
+      const portrait = item.classList.contains("tiktok") || /9\\s*\\/\\s*16/.test(ratio);
+      const containerRect = websiteContainer.getBoundingClientRect();
+      const editorRect = editorSurface.getBoundingClientRect();
+      const options = websiteContainer.querySelector("#options");
+      const chat = websiteContainer.querySelector("#chat, #dynamic-panel");
+      const optionsWidth = options?.getBoundingClientRect().width || 120;
+      const chatWidth = chat && getComputedStyle(chat).display !== "none"
+        ? chat.getBoundingClientRect().width : 0;
+      const availableWidth = Math.max(280, containerRect.width - optionsWidth - chatWidth - 32);
+      const availableHeight = Math.max(240, Math.min(editorRect.height || window.innerHeight - 120, window.innerHeight - 120));
       const fitWidth = portrait
         ? Math.min(availableHeight * 9 / 16, availableWidth, 520)
-        : Math.min(availableWidth, Math.max(280, editorSurface?.getBoundingClientRect().width || availableWidth));
+        : Math.min(availableWidth, Math.max(280, editorRect.width));
       const fitHeight = Math.min(availableHeight, portrait ? fitWidth * 16 / 9 : fitWidth * 9 / 16);
-      websiteContainer?.classList.toggle("mini-player-fit-portrait", portrait);
-      websiteContainer?.classList.toggle("mini-player-fit-landscape", !portrait);
-      websiteContainer?.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
-      websiteContainer?.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
+
+      // Keep the app's root grid untouched: only the editor surface receives fit dimensions.
+      editorSurface.classList.toggle("mini-player-fit-portrait", portrait);
+      editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
+      editorSurface.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
+      editorSurface.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
       player.classList.toggle("is-expanded-portrait", portrait);
       player.classList.toggle("is-expanded-landscape", !portrait);
+      player.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
+      player.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
+      player.style.setProperty("--mini-player-editor-left", Math.round(editorRect.left) + "px");
+      player.style.setProperty("--mini-player-editor-top", Math.round(editorRect.top) + "px");
       player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
       for (const position of (portrait ? ["left", "right"] : ["top", "bottom"])) {
         const tape = document.createElement("div");
