@@ -153,6 +153,16 @@ if (!blockWeb) {
       handleTypingActivity();
     });
 
+    // Workspace tabs/files replace the Monaco model without necessarily changing
+    // the old model's content. Refresh the UI and media preview on model switches.
+    window.editor.onDidChangeModel(() => {
+      scheduleCodeAnalysis();
+      requestAnimationFrame(() => {
+        if (!window.editor) return;
+        updateUI(window.editor.getValue(), detectLanguage(window.editor.getValue()));
+      });
+    });
+
     initDynamicPanel();
   }
 
@@ -766,7 +776,10 @@ if (!blockWeb) {
       }
     }
 
-    list.classList.toggle("mini-player-tiktok-stack", embeds.length > 1 && embeds.every(embed => embed.type === "tiktok"));
+    // Any list of multiple media items becomes a vertical, TikTok-style feed.
+    // The player shell itself is not resized when moving between tracks.
+    list.classList.toggle("mini-player-tiktok-stack", embeds.length > 1);
+    list.scrollTop = 0;
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
@@ -797,6 +810,9 @@ if (!blockWeb) {
     if (toggle) toggle.hidden = !playersEnabled || embeds.length === 0;
     // Re-read the media ratio immediately when switching workspace files.
     // Expanded layout is owned by the mini-player controller below.
+    // Let the geometry controller resize only the embedded content to the
+    // current shell dimensions; never reset the user's current player size.
+    player.dispatchEvent(new CustomEvent("darkstudio:media-updated"));
     if (player.classList.contains("is-expanded")) {
       requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
     }
@@ -824,16 +840,32 @@ if (!blockWeb) {
     }
   }
 
-  document.getElementById("mini-player-list")?.addEventListener("scroll", (event) => {
+  const miniPlayerList = document.getElementById("mini-player-list");
+  miniPlayerList?.addEventListener("scroll", (event) => {
     const list = event.currentTarget;
     if (!list.classList.contains("mini-player-tiktok-stack")) return;
     const items = [...list.querySelectorAll(".mini-player-item")];
     if (!items.length) return;
-    const activeIndex = Math.max(0, Math.min(items.length - 1, Math.round(list.scrollTop / Math.max(1, items[0].getBoundingClientRect().height))));
+    const itemHeight = Math.max(1, items[0].getBoundingClientRect().height);
+    const activeIndex = Math.max(0, Math.min(items.length - 1, Math.round(list.scrollTop / itemHeight)));
     items.forEach((item, index) => {
       if (index !== activeIndex) pauseMiniPlayerItem(item);
     });
   }, { passive: true });
+
+  // Make a wheel gesture advance exactly one media item, like a TikTok feed.
+  // This operates on the scrollable list and keeps the outer player geometry intact.
+  miniPlayerList?.addEventListener("wheel", (event) => {
+    const list = event.currentTarget;
+    if (!list.classList.contains("mini-player-tiktok-stack") || Math.abs(event.deltaY) < 2) return;
+    const items = [...list.querySelectorAll(".mini-player-item")];
+    if (!items.length) return;
+    event.preventDefault();
+    const itemHeight = Math.max(1, items[0].getBoundingClientRect().height);
+    const currentIndex = Math.round(list.scrollTop / itemHeight);
+    const nextIndex = Math.max(0, Math.min(items.length - 1, currentIndex + (event.deltaY > 0 ? 1 : -1)));
+    list.scrollTo({ top: nextIndex * itemHeight, behavior: "smooth" });
+  }, { passive: false });
 
   const miniPlayerEnabledCheckbox = document.getElementById("mini-player-enabled-checkbox");
   if (miniPlayerEnabledCheckbox) {
@@ -958,6 +990,18 @@ if (!blockWeb) {
       player.style.setProperty("--mini-player-content-width", Math.round(width) + "px");
       player.style.setProperty("--mini-player-content-height", Math.round(height) + "px");
     };
+
+    player.addEventListener("darkstudio:media-updated", () => {
+      requestAnimationFrame(() => {
+        if (!player.isConnected) return;
+        const r = player.getBoundingClientRect();
+        if (isExpanded()) {
+          fitExpandedPlayer();
+          return;
+        }
+        syncMiniPlayerContent(r.width || DEFAULT.width, r.height || DEFAULT.height);
+      });
+    });
     const savePosition = () => {
       const r = player.getBoundingClientRect();
       try {
@@ -1046,9 +1090,10 @@ if (!blockWeb) {
       const savedPos = JSON.parse(localStorage.getItem(positionKey) || "null");
       const savedSize = JSON.parse(localStorage.getItem(sizeKey) || "null");
       const bounds = editorSurface.getBoundingClientRect();
-      // Keep the last position, but do not restore an old expanded/custom size on startup.
+      // Keep the last position, but always start at the minimum shell size.
+      // Spotify's compact player is 80px tall; other providers start at 90px.
       const width = clamp(DEFAULT.width, 120, Math.max(120, bounds.width));
-      const height = clamp(DEFAULT.height, 90, Math.max(90, bounds.height));
+      const height = clamp(isSpotify() ? 80 : DEFAULT.height, isSpotify() ? 80 : 90, Math.max(isSpotify() ? 80 : 90, bounds.height));
       const left = clamp(Number(savedPos?.left) || bounds.left, bounds.left, Math.max(bounds.left, bounds.right - width));
       const top = clamp(Number(savedPos?.top) || bounds.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
       setRect(left, top, width, height);
