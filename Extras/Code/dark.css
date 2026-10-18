@@ -2234,3 +2234,42 @@ body {
 #mini-player.collapsed { width: 48px; height: 48px; min-width: 48px; min-height: 48px; }
 #mini-player.is-expanded { width: auto !important; height: auto !important; }
 #mini-player .mini-player-resize-handle { display: none !important; }
+
+
+/* TikTok-style stacked mini-player navigation and long-press drag feedback. */
+#mini-player[hidden] { display: none !important; }
+#mini-player-list.mini-player-tiktok-stack {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  height: min(600px, calc(100vh - 80px));
+  width: max-content;
+  max-width: calc(100vw - 24px);
+}
+#mini-player-list.mini-player-tiktok-stack .mini-player-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  flex: 0 0 auto;
+  width: 338px;
+  height: 600px;
+  min-height: 0;
+  max-width: calc(100vw - 24px);
+}
+#mini-player-list.mini-player-tiktok-stack .mini-player-item iframe {
+  width: 100% !important;
+  height: 100% !important;
+}
+#mini-player.mini-player-holding {
+  animation: mini-player-hold-wiggle .13s ease-in-out infinite alternate;
+  box-shadow: 0 0 0 2px var(--secondary-color), 0 8px 28px rgba(0,0,0,.45);
+}
+@keyframes mini-player-hold-wiggle {
+  from { transform: rotate(-0.45deg) scale(1.005); }
+  to { transform: rotate(0.45deg) scale(1.005); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #mini-player.mini-player-holding { animation: none; }
+}
