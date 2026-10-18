@@ -1016,7 +1016,7 @@ if (!blockWeb) {
         const height = Math.min(80, bounds.height);
         player.classList.remove("is-expanded-portrait", "is-expanded-landscape");
         const left = bounds.left;
-        const top = bounds.top;
+        const top = Math.max(bounds.top, bounds.bottom - height);
         setRect(left, top, width, height);
         syncMiniPlayerContent(width, height);
         return;
