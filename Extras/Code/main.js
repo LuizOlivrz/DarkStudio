@@ -707,13 +707,21 @@ if (!blockWeb) {
     return t("startWriting");
   }
 
+  function isEditorSurfaceVisible() {
+    const surface = document.getElementById("Editor");
+    if (!surface || surface.hidden) return false;
+    const style = getComputedStyle(surface);
+    const rect = surface.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  }
+
   function updateMediaPlayer(code) {
     const player = document.getElementById("mini-player");
     const list = document.getElementById("mini-player-list");
     const toggle = document.getElementById("mini-player-toggle");
     if (!player || !list) return;
     const enabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
-    player.hidden = !enabled;
+    player.hidden = !enabled || !isEditorSurfaceVisible();
 
     const text = typeof code === "string" ? code.trim() : "";
     // URLs are also found inside pasted iframe/embed HTML (src="...").
@@ -743,7 +751,7 @@ if (!blockWeb) {
           const isShort = /^\/shorts\//.test(url.pathname);
           embed = {
             type: "youtube",
-            src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin),
+            src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin) + (isShort ? "&mute=1" : ""),
             ratio: isShort ? "9 / 16" : "16 / 9",
             width: isShort ? 300 : 480,
             height: isShort ? 533 : 270,
@@ -768,7 +776,7 @@ if (!blockWeb) {
           const match = url.pathname.match(/\/video\/(\d+)/);
           if (match) embed = {
             type: "tiktok",
-            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&music_info=1&description=1",
+            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&muted=1&music_info=1&description=1",
             ratio: "9 / 16",
             width: 338,
             height: 600,
@@ -837,8 +845,8 @@ if (!blockWeb) {
     }));
 
     const playersEnabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
-    player.hidden = !playersEnabled;
-    player.classList.toggle("visible", playersEnabled && embeds.length > 0);
+    player.hidden = !playersEnabled || !isEditorSurfaceVisible();
+    player.classList.toggle("visible", playersEnabled && isEditorSurfaceVisible() && embeds.length > 0);
     if (toggle) toggle.hidden = !playersEnabled || embeds.length === 0;
     // Re-read the media ratio immediately when switching workspace files.
     // Expanded layout is owned by the mini-player controller below.
@@ -1127,11 +1135,9 @@ if (!blockWeb) {
       }
       const ratio = getRatio(item);
       const portrait = ratio < 1;
-      // Vertical videos stay compact in expanded mode instead of filling the editor.
-      // Align them to the right edge so the code/editor remains visible on the left.
-      const width = portrait
-        ? Math.max(1, Math.min(bounds.width, 270, bounds.height * ratio))
-        : Math.max(1, Math.min(bounds.width, bounds.height * ratio));
+      // Expanded portrait videos use the editor height, capped by both editor dimensions.
+      // Keep them aligned to the right edge and preserve their native aspect ratio.
+      const width = Math.max(1, Math.min(bounds.width, bounds.height * ratio));
       const height = Math.max(1, Math.min(bounds.height, width / ratio));
       const fittedWidth = Math.min(width, height * ratio);
       const fittedHeight = fittedWidth / ratio;
