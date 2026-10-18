@@ -24,7 +24,15 @@ let currentEditingNode = null;
 let connectMode = false;
 let connectSource = null;
 let activeDrag = null;
+let activeResize = null;
 let activePan = null;
+const WORKSPACE_GRID = 24;
+const MIN_NODE_WIDTH = WORKSPACE_GRID * 5;
+const MIN_NODE_HEIGHT = WORKSPACE_GRID * 2;
+
+function snapToGrid(value) {
+  return Math.round(Number(value) / WORKSPACE_GRID) * WORKSPACE_GRID;
+}
 let workspacePan = { x: 0, y: 0 };
 let folderClickTimer = null;
 let previousDisplays = {};
@@ -217,6 +225,10 @@ async function restoreStateFromIndexedDB() {
       node.type = node.type || "text";
       if (!Number.isFinite(node.x)) node.x = 120;
       if (!Number.isFinite(node.y)) node.y = 120;
+      node.x = snapToGrid(node.x);
+      node.y = snapToGrid(node.y);
+      node.width = Math.max(MIN_NODE_WIDTH, snapToGrid(Number(node.width) || 144));
+      node.height = Math.max(MIN_NODE_HEIGHT, snapToGrid(Number(node.height) || 48));
       if (!Number.isFinite(node.zIndex)) node.zIndex = 0;
       if (node.type === "folder") node.isOpen = node.isOpen !== false;
     }
@@ -259,6 +271,10 @@ function loadState() {
 
       if (!Number.isFinite(node.x)) node.x = 120;
       if (!Number.isFinite(node.y)) node.y = 120;
+      node.x = snapToGrid(node.x);
+      node.y = snapToGrid(node.y);
+      node.width = Math.max(MIN_NODE_WIDTH, snapToGrid(Number(node.width) || 144));
+      node.height = Math.max(MIN_NODE_HEIGHT, snapToGrid(Number(node.height) || 48));
 
       if (!Number.isFinite(node.vx)) node.vx = 0;
       if (!Number.isFinite(node.vy)) node.vy = 0;
@@ -314,6 +330,7 @@ function injectStyles() {
       position: relative;
       isolation: isolate;
       overflow: hidden;
+      background-color: #090909;
     }
 
     #mindmap-svg {
@@ -331,14 +348,24 @@ function injectStyles() {
       inset: 0;
       z-index: 1;
       overflow: hidden;
+      background-image:
+        linear-gradient(rgba(150,150,150,.11) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(150,150,150,.11) 1px, transparent 1px),
+        linear-gradient(rgba(150,150,150,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(150,150,150,.045) 1px, transparent 1px);
+      background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+      background-position: 0 0;
     }
 
     .mm-node {
       position: absolute;
       box-sizing: border-box;
-      min-height: 44px;
-      max-width: 270px;
-      padding: 9px 12px;
+      width: 144px;
+      height: 48px;
+      min-width: 120px;
+      min-height: 48px;
+      max-width: none;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       gap: 9px;
@@ -351,10 +378,8 @@ function injectStyles() {
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
-      transition:
-        border-color .12s,
-        box-shadow .12s,
-        background .12s;
+      transition: border-color .12s, box-shadow .12s, background .12s;
+      overflow: visible;
     }
 
     .mm-node:active {
@@ -366,7 +391,7 @@ function injectStyles() {
     }
 
     .mm-node.mm-folder {
-      min-width: 135px;
+      min-width: 144px;
       border-color: rgba(255,177,65,.48);
       background: rgba(43,34,20,.97);
     }
@@ -390,10 +415,14 @@ function injectStyles() {
     }
 
     .mm-node .name {
-      max-width: 215px;
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      max-height: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
       font-size: 13px;
       line-height: 1.4;
     }
@@ -401,6 +430,49 @@ function injectStyles() {
     .mm-node.mm-folder .name {
       font-weight: 600;
     }
+
+    .mm-node .mm-resize-handle {
+      position: absolute;
+      z-index: 5;
+      display: block;
+      touch-action: none;
+      opacity: 0;
+      background: var(--secondary-color, #5d00ff);
+      border-radius: 3px;
+    }
+    .mm-node:hover .mm-resize-handle,
+    .mm-node:focus-within .mm-resize-handle,
+    .mm-node.resizing .mm-resize-handle {
+      opacity: .9;
+    }
+    .mm-resize-handle.n, .mm-resize-handle.s {
+      left: 10px;
+      right: 10px;
+      height: 5px;
+      cursor: ns-resize;
+    }
+    .mm-resize-handle.n { top: -2px; }
+    .mm-resize-handle.s { bottom: -2px; }
+    .mm-resize-handle.e, .mm-resize-handle.w {
+      top: 10px;
+      bottom: 10px;
+      width: 5px;
+      cursor: ew-resize;
+    }
+    .mm-resize-handle.e { right: -2px; }
+    .mm-resize-handle.w { left: -2px; }
+    .mm-resize-handle.ne, .mm-resize-handle.nw,
+    .mm-resize-handle.se, .mm-resize-handle.sw {
+      width: 9px;
+      height: 9px;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+    }
+    .mm-resize-handle.ne { top: -4px; right: -4px; cursor: nesw-resize; }
+    .mm-resize-handle.nw { top: -4px; left: -4px; cursor: nwse-resize; }
+    .mm-resize-handle.se { bottom: -4px; right: -4px; cursor: nwse-resize; }
+    .mm-resize-handle.sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
+    .mm-node.resizing { outline: 1px solid var(--secondary-color, #5d00ff); }
 
     .mm-node img.thumb {
       width: 36px;
@@ -668,8 +740,10 @@ function addNode(name, content = "", type = "text", position = null) {
     content: typeof content === "string" ? content : "",
     filePath: name || tr("newFile"),
     type,
-    x: point.x,
-    y: point.y,
+    x: snapToGrid(point.x),
+    y: snapToGrid(point.y),
+    width: 144,
+    height: 48,
     vx: 0,
     vy: 0,
   };
@@ -727,6 +801,8 @@ function createNodeElement(node) {
   element.dataset.id = node.id;
   element.style.left = `${node.x}px`;
   element.style.top = `${node.y}px`;
+  element.style.width = `${Number(node.width) || 144}px`;
+  element.style.height = `${Number(node.height) || 48}px`;
   element.style.zIndex = String(Number(node.zIndex) || (node.type === "folder" ? 2 : 3));
 
   if (node.type === "folder") {
@@ -756,7 +832,18 @@ function createNodeElement(node) {
   label.textContent = node.name;
   element.appendChild(label);
 
+  for (const edge of ["n", "e", "s", "w", "ne", "nw", "se", "sw"]) {
+    const handle = document.createElement("span");
+    handle.className = `mm-resize-handle ${edge}`;
+    handle.dataset.edge = edge;
+    handle.setAttribute("role", "separator");
+    handle.setAttribute("aria-label", "Resize workspace item");
+    handle.addEventListener("pointerdown", (event) => beginNodeResize(event, node, element, edge));
+    element.appendChild(handle);
+  }
+
   element.addEventListener("pointerdown", (event) => {
+    if (event.target.closest(".mm-resize-handle")) return;
     // Raise the active node without changing its coordinates or graph edges.
     highestNodeZIndex = Math.max(highestNodeZIndex, 10) + 1;
     element.style.zIndex = String(highestNodeZIndex);
@@ -995,8 +1082,8 @@ function onPointerMove(event) {
   const drag = activeDrag;
   const rect = mind.getBoundingClientRect();
 
-  const x = event.clientX - rect.left - drag.offsetX - workspacePan.x;
-  const y = event.clientY - rect.top - drag.offsetY - workspacePan.y;
+  const x = snapToGrid(event.clientX - rect.left - drag.offsetX - workspacePan.x);
+  const y = snapToGrid(event.clientY - rect.top - drag.offsetY - workspacePan.y);
 
   if (
     Math.abs(event.clientX - drag.startX) +
@@ -1114,6 +1201,75 @@ function onPointerUp(event) {
   hideDeleteZone();
   saveState();
   updateFolderVisibility();
+  updateConnections();
+}
+
+function beginNodeResize(event, node, element, edge) {
+  if (event.button !== 0 || connectMode) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  activeResize = {
+    node, element, edge, pointerId: event.pointerId,
+    startX: event.clientX, startY: event.clientY,
+    x: node.x, y: node.y,
+    width: Number(node.width) || element.getBoundingClientRect().width || 144,
+    height: Number(node.height) || element.getBoundingClientRect().height || 48,
+  };
+  element.classList.add("resizing");
+  element.setPointerCapture?.(event.pointerId);
+  document.body.style.userSelect = "none";
+  document.addEventListener("pointermove", onNodeResizeMove, { passive: false });
+  document.addEventListener("pointerup", endNodeResize);
+  document.addEventListener("pointercancel", endNodeResize);
+}
+
+function onNodeResizeMove(event) {
+  const resize = activeResize;
+  if (!resize || event.pointerId !== resize.pointerId) return;
+  event.preventDefault();
+
+  const dx = event.clientX - resize.startX;
+  const dy = event.clientY - resize.startY;
+  const edge = resize.edge;
+  let x = resize.x;
+  let y = resize.y;
+  let width = resize.width;
+  let height = resize.height;
+
+  if (edge.includes("e")) width = snapToGrid(Math.max(MIN_NODE_WIDTH, resize.width + dx));
+  if (edge.includes("s")) height = snapToGrid(Math.max(MIN_NODE_HEIGHT, resize.height + dy));
+  if (edge.includes("w")) {
+    width = snapToGrid(Math.max(MIN_NODE_WIDTH, resize.width - dx));
+    x = snapToGrid(resize.x + resize.width - width);
+  }
+  if (edge.includes("n")) {
+    height = snapToGrid(Math.max(MIN_NODE_HEIGHT, resize.height - dy));
+    y = snapToGrid(resize.y + resize.height - height);
+  }
+
+  width = Math.max(MIN_NODE_WIDTH, width);
+  height = Math.max(MIN_NODE_HEIGHT, height);
+  resize.node.x = x;
+  resize.node.y = y;
+  resize.node.width = width;
+  resize.node.height = height;
+  resize.element.style.left = `${x}px`;
+  resize.element.style.top = `${y}px`;
+  resize.element.style.width = `${width}px`;
+  resize.element.style.height = `${height}px`;
+  updateConnections();
+}
+
+function endNodeResize(event) {
+  if (!activeResize || (event?.pointerId != null && event.pointerId !== activeResize.pointerId)) return;
+  document.removeEventListener("pointermove", onNodeResizeMove);
+  document.removeEventListener("pointerup", endNodeResize);
+  document.removeEventListener("pointercancel", endNodeResize);
+  activeResize.element.classList.remove("resizing");
+  document.body.style.userSelect = "";
+  activeResize = null;
+  saveState();
   updateConnections();
 }
 
