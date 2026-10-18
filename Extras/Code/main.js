@@ -779,6 +779,7 @@ if (!blockWeb) {
     // Any list of multiple media items becomes a vertical, TikTok-style feed.
     // The player shell itself is not resized when moving between tracks.
     list.classList.toggle("mini-player-tiktok-stack", embeds.length > 1);
+    player.classList.toggle("has-spotify-media", embeds.some(embed => embed.type === "spotify"));
     list.scrollTop = 0;
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
