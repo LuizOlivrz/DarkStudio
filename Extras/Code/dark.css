@@ -2659,3 +2659,7 @@ body {
   max-width: 100% !important;
   height: auto !important;
 }
+#mini-player:not(.is-expanded) #mini-player-list .mini-player-item.spotify {
+  height: 152px !important;
+  aspect-ratio: auto !important;
+}
