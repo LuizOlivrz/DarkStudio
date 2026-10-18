@@ -1015,6 +1015,7 @@ if (!blockWeb) {
       player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
       player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
       player.classList.toggle("mini-player-resizing", !animate);
+      updateToolbarPlacement();
     };
     const refreshSpotifyEmbedsForLayout = () => {
       list.querySelectorAll(".mini-player-item.spotify iframe").forEach((iframe) => {
@@ -1129,6 +1130,20 @@ if (!blockWeb) {
     const getEditorBounds = () => {
       const r = editorSurface.getBoundingClientRect();
       return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+    };
+    const updateToolbarPlacement = () => {
+      if (!toolbar || !player.isConnected) return;
+      const bounds = getEditorBounds();
+      const rect = player.getBoundingClientRect();
+      const toolbarHeight = toolbar.getBoundingClientRect().height || 30;
+      const edgeTolerance = 28;
+      const touchesTop = rect.top <= bounds.top + edgeTolerance;
+      const touchesBottom = rect.bottom >= bounds.bottom - edgeTolerance;
+      const roomAbove = rect.top - bounds.top >= toolbarHeight + 4;
+      // At the editor's top edge the bar belongs below; near the bottom it belongs above.
+      const placeAbove = !touchesTop && roomAbove && (touchesBottom || !touchesTop);
+      player.classList.toggle("mini-player-toolbar-above", placeAbove);
+      player.classList.toggle("mini-player-toolbar-below", !placeAbove);
     };
     const fitExpandedPlayer = () => {
       if (!isExpanded()) return;
@@ -1283,6 +1298,12 @@ if (!blockWeb) {
     window.addEventListener("pointermove", moveDrag, { passive: false });
     window.addEventListener("pointerup", endDrag);
     window.addEventListener("pointercancel", endDrag);
+    window.addEventListener("resize", updateToolbarPlacement);
+    if (typeof ResizeObserver === "function") {
+      const toolbarPlacementObserver = new ResizeObserver(updateToolbarPlacement);
+      toolbarPlacementObserver.observe(editorSurface);
+      toolbarPlacementObserver.observe(player);
+    }
 
     // Resize from every edge/corner, always clamped to the editor's visible rectangle.
     // Spotify is intentionally free-form; other embeds preserve their platform aspect ratio.
