@@ -1760,7 +1760,7 @@ function onOutsideMenuClick(event) {
   closeAddMenu();
 }
 
-function createAddMenu() {
+function createAddMenu(position = null) {
   closeAddMenu();
 
   const button = document.getElementById("mindmap-add-files");
@@ -1791,6 +1791,24 @@ function createAddMenu() {
       label: `✎ ${tr("workspaceRename")}`,
       action: renameWorkspace,
     },
+    {
+      label: `↔ ${tr("mindMapConnectTitle")}`,
+      action: () => {
+        connectMode = !connectMode;
+        connectSource = null;
+        nodeLayer?.querySelectorAll(".selected").forEach((element) => {
+          element.classList.remove("selected");
+        });
+        const connectButton = document.getElementById("mindmap-connect");
+        if (connectButton) {
+          connectButton.textContent = connectMode ? tr("connectPrompt") : tr("connect");
+        }
+      },
+    },
+    {
+      label: `⌫ ${tr("mindMapClearTitle")}`,
+      action: clearMap,
+    },
   ];
 
   for (const option of options) {
@@ -1815,15 +1833,17 @@ function createAddMenu() {
   document.body.appendChild(menu);
 
   const rect = button.getBoundingClientRect();
+  const menuX = Number.isFinite(position?.x) ? position.x : rect.left;
+  const menuY = Number.isFinite(position?.y) ? position.y : rect.bottom + 6;
 
   menu.style.left = `${Math.max(
     12,
-    Math.min(rect.left, window.innerWidth - menu.offsetWidth - 12),
+    Math.min(menuX, window.innerWidth - menu.offsetWidth - 12),
   )}px`;
 
   menu.style.top = `${Math.max(
     12,
-    Math.min(rect.bottom + 6, window.innerHeight - menu.offsetHeight - 12),
+    Math.min(menuY, window.innerHeight - menu.offsetHeight - 12),
   )}px`;
 
   setTimeout(() => {
@@ -2159,6 +2179,15 @@ function wireUI() {
   const clearButton = document.getElementById("mindmap-clear");
 
   mind?.addEventListener("pointerdown", beginWorkspacePan);
+
+  mind?.addEventListener("contextmenu", (event) => {
+    if (event.target.closest(".mm-node")) return;
+    if (event.target !== mind && event.target !== nodeLayer && event.target !== svg) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    createAddMenu({ x: event.clientX, y: event.clientY });
+  });
 
   if (mapButton) {
     mapButton.addEventListener("click", () => {
