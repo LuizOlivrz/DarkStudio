@@ -2970,3 +2970,17 @@ body {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
+
+
+/* Never show Monaco scrollbars; mouse wheel, keyboard and touch scrolling still work. */
+#Editor-Input .monaco-editor .scrollbar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Keep the old Link Reader logic available for automatic URL metadata, but hide its UI. */
+#link-reader {
+  display: none !important;
+}
