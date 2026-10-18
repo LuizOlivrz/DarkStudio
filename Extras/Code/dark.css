@@ -2890,3 +2890,15 @@ body {
   width: 16px !important;
   height: 16px !important;
 }
+
+/* Show the fullscreen button only while the mini-player is hovered or keyboard-focused. */
+#mini-player #mini-player-expand {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+#mini-player:hover #mini-player-expand,
+#mini-player:focus-within #mini-player-expand {
+  opacity: 1;
+  pointer-events: auto;
+}
