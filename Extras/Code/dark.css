@@ -2793,3 +2793,64 @@ body {
   opacity: 0 !important;
   visibility: hidden !important;
 }
+
+
+/* Minimal resize affordances: transparent hit areas and subtle corner guides. */
+#mini-player:hover,
+#mini-player:focus-within {
+  outline: 1px solid color-mix(in srgb, var(--green, #18ff72) 42%, transparent) !important;
+  outline-offset: -1px;
+}
+#mini-player .mini-player-resize-handle {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#mini-player .mini-player-resize-handle::after {
+  content: none !important;
+}
+#mini-player .mini-player-resize-handle.resize-ne::after,
+#mini-player .mini-player-resize-handle.resize-nw::after,
+#mini-player .mini-player-resize-handle.resize-se::after,
+#mini-player .mini-player-resize-handle.resize-sw::after {
+  content: "" !important;
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 0 !important;
+  border-color: var(--green, #18ff72) !important;
+  border-style: solid !important;
+  opacity: .72;
+}
+#mini-player .mini-player-resize-handle.resize-nw::after {
+  top: 4px; left: 4px;
+  border-top: 1px solid var(--green, #18ff72) !important;
+  border-left: 1px solid var(--green, #18ff72) !important;
+}
+#mini-player .mini-player-resize-handle.resize-ne::after {
+  top: 4px; right: 4px;
+  border-top: 1px solid var(--green, #18ff72) !important;
+  border-right: 1px solid var(--green, #18ff72) !important;
+}
+#mini-player .mini-player-resize-handle.resize-sw::after {
+  bottom: 4px; left: 4px;
+  border-bottom: 1px solid var(--green, #18ff72) !important;
+  border-left: 1px solid var(--green, #18ff72) !important;
+}
+#mini-player .mini-player-resize-handle.resize-se::after {
+  bottom: 4px; right: 4px;
+  border-bottom: 1px solid var(--green, #18ff72) !important;
+  border-right: 1px solid var(--green, #18ff72) !important;
+}
+#mini-player .mini-player-resize-handle.resize-n,
+#mini-player .mini-player-resize-handle.resize-s {
+  height: 8px !important;
+}
+#mini-player .mini-player-resize-handle.resize-e,
+#mini-player .mini-player-resize-handle.resize-w {
+  width: 8px !important;
+}
+#mini-player.collapsed:hover,
+#mini-player.collapsed:focus-within {
+  outline: none !important;
+}
