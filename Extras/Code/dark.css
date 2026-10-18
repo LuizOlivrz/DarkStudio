@@ -2902,3 +2902,14 @@ body {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* Allow every platform to render inside the mini-player's minimum startup size. */
+#mini-player:not(.is-expanded) #mini-player-list,
+#mini-player:not(.is-expanded) .mini-player-item,
+#mini-player:not(.is-expanded) .mini-player-item iframe {
+  min-height: 0 !important;
+}
+#mini-player:not(.is-expanded) .mini-player-item {
+  max-height: 100% !important;
+  overflow: hidden;
+}
