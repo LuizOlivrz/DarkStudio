@@ -1191,32 +1191,20 @@ if (!blockWeb) {
       }
       width = clamp(width, 120, bounds.right - left);
       height = clamp(height, getMinHeight(), bounds.bottom - top);
+      if (isSpotify()) {
+        height = snapSpotifyHeight(height, bounds.bottom - top);
+        if (direction.includes("n")) top = bottom - height;
+        else bottom = top + height;
+        top = clamp(top, bounds.top, bounds.bottom - height);
+        height = Math.min(height, bounds.bottom - top);
+      }
       setRect(left, top, width, height, false);
       syncMiniPlayerContent(width, height);
       event.preventDefault();
     };
     const stopResize = event => {
       if (!resize || resize.id !== event.pointerId) return;
-      const finishedResize = resize;
       resize = null;
-
-      if (isSpotify()) {
-        const bounds = editorSurface.getBoundingClientRect();
-        const rect = player.getBoundingClientRect();
-        const height = snapSpotifyHeight(rect.height, bounds.height);
-        const top = finishedResize.direction.includes("n")
-          ? rect.bottom - height
-          : rect.top;
-        const safeTop = clamp(top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
-        const safeHeight = Math.min(height, bounds.bottom - safeTop);
-        setRect(
-          clamp(rect.left, bounds.left, Math.max(bounds.left, bounds.right - rect.width)),
-          safeTop,
-          rect.width,
-          safeHeight
-        );
-        syncMiniPlayerContent(rect.width, safeHeight);
-      }
 
       player.classList.remove("mini-player-resizing");
       savePosition();
