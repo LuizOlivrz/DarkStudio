@@ -74,7 +74,7 @@
   "workspaceTagPlaceholder": "Digite uma tag e pressione Enter",
   "workspaceAddTag": "Adicionar tag",
   "workspaceRemoveTag": "Remover tag",
-  "mindMapTitle": "Workspace",
+  "mindMapTitle": "Workspaces",
   "mindMapAddTitle": "Adicionar ao Workspace",
   "mindMapConnectTitle": "Conectar itens do workspace",
   "mindMapClearTitle": "Limpar workspace",
@@ -172,5 +172,6 @@
   "inlineSummaryFallback": "O trecho selecionado foi atualizado conforme sua solicitação.",
   "resizeOptions": "Redimensionar largura das opções",
   "resizeEditor": "Redimensionar altura do editor",
-  "resizeChat": "Redimensionar largura do chat da IA"
+  "resizeChat": "Redimensionar largura do chat da IA",
+  "manageWorkspaces": "Gerenciar Workspaces"
 }
