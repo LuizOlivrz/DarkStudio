@@ -867,6 +867,45 @@ if (!blockWeb) {
 
     restorePosition();
 
+    const websiteContainer = document.getElementById("Website-Container");
+    const editorSurface = document.getElementById("Editor");
+
+    function clearEditorFit() {
+      websiteContainer?.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
+      websiteContainer?.style.removeProperty("--mini-player-fit-width");
+      websiteContainer?.style.removeProperty("--mini-player-fit-height");
+      player.classList.remove("is-expanded-portrait", "is-expanded-landscape");
+      player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
+    }
+
+    function fitEditorToVideo() {
+      if (!player.classList.contains("is-expanded")) return;
+      const item = list.querySelector(".mini-player-item");
+      if (!item) return;
+      const ratio = item.style.aspectRatio || "";
+      const portrait = item.classList.contains("tiktok") || /9\s*\/\s*16/.test(ratio);
+      const optionsWidth = websiteContainer?.querySelector("#options")?.getBoundingClientRect().width || 120;
+      const availableWidth = Math.max(280, window.innerWidth - optionsWidth - 24);
+      const availableHeight = Math.max(240, window.innerHeight - 48);
+      const editorWidth = Math.max(280, editorSurface?.getBoundingClientRect().width || availableWidth);
+      const fitWidth = portrait ? Math.min(availableHeight * 9 / 16, availableWidth, 520) : editorWidth;
+      const fitHeight = portrait ? availableHeight : Math.min(availableHeight, fitWidth * 9 / 16);
+      websiteContainer?.classList.toggle("mini-player-fit-portrait", portrait);
+      websiteContainer?.classList.toggle("mini-player-fit-landscape", !portrait);
+      websiteContainer?.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
+      websiteContainer?.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
+      player.classList.toggle("is-expanded-portrait", portrait);
+      player.classList.toggle("is-expanded-landscape", !portrait);
+      player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
+      for (const position of (portrait ? ["left", "right"] : ["top", "bottom"])) {
+        const tape = document.createElement("div");
+        tape.className = "mini-player-caution-tape " + position;
+        tape.setAttribute("aria-hidden", "true");
+        tape.textContent = "⚠ VOCÊ ESTÁ NO MODO MINI-PLAYER! FOQUE NO CÓDIGO... ⚠ VOCÊ ESTÁ NO MODO MINI-PLAYER! FOQUE NO CÓDIGO... ";
+        player.appendChild(tape);
+      }
+    }
+
     expandButton.addEventListener("click", () => {
       const expanded = player.classList.toggle("is-expanded");
       if (expanded) {
@@ -880,10 +919,15 @@ if (!blockWeb) {
         player.style.top = "";
         player.style.right = "";
         player.style.bottom = "";
+        player.style.position = "";
+        player.style.width = "";
+        player.style.height = "";
         expandButton.textContent = "↙";
         expandButton.title = "Restore mini-player";
         expandButton.setAttribute("aria-label", "Restore mini-player");
+        requestAnimationFrame(fitEditorToVideo);
       } else {
+        clearEditorFit();
         player.style.position = "fixed";
         player.style.width = defaultSize.width + "px";
         player.style.height = defaultSize.height + "px";
@@ -897,6 +941,8 @@ if (!blockWeb) {
         savePosition();
       }
     });
+
+    window.addEventListener("resize", fitEditorToVideo);
 
     toolbar.style.cursor = "grab";
     toolbar.addEventListener("pointerdown", (event) => {
