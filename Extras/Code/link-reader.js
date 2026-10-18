@@ -193,3 +193,81 @@ copyButton?.addEventListener("click", async () => {
     statusElement.textContent = "Clipboard access was blocked by the browser.";
   }
 });
+
+
+// Automatic site context for the editor status panel. This is metadata extraction,
+// not AI. If CORS blocks the request, the URL/domain still remains useful context.
+const editorStatus = document.getElementById("dynamic-panel-text");
+let activeAnalysisUrl = "";
+let analysisSequence = 0;
+
+function showEditorStatus(message) {
+  if (editorStatus) editorStatus.textContent = message;
+}
+
+async function analyzeDetectedUrl(rawUrl) {
+  let url;
+  try {
+    url = new URL(rawUrl);
+    if (!["http:", "https:"].includes(url.protocol)) return;
+  } catch {
+    return;
+  }
+  if (url.href === activeAnalysisUrl) return;
+  activeAnalysisUrl = url.href;
+  const sequence = ++analysisSequence;
+  showEditorStatus(`Link detectado: ${url.hostname} — analisando título e descrição…`);
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 6500);
+  try {
+    const response = await fetch(url.href, {
+      method: "GET",
+      mode: "cors",
+      credentials: "omit",
+      redirect: "follow",
+      signal: controller.signal,
+      headers: { Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5" },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const type = response.headers.get("content-type") || "";
+    if (!/html|xhtml/i.test(type)) {
+      showEditorStatus(`Link detectado: ${url.hostname} — conteúdo ${type || "não HTML"}; visualização disponível se o site permitir iframe.`);
+      return;
+    }
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html.slice(0, 1_000_000), "text/html");
+    const title = doc.querySelector("meta[property='og:title']")?.content?.trim()
+      || doc.querySelector("title")?.textContent?.trim()
+      || url.hostname;
+    const description = doc.querySelector("meta[name='description']")?.content?.trim()
+      || doc.querySelector("meta[property='og:description']")?.content?.trim()
+      || "";
+    const headings = [...doc.querySelectorAll("h1,h2")]
+      .map((node) => node.textContent.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+    if (sequence !== analysisSequence) return;
+    const details = [title, description, headings.length ? `Seções: ${headings.join(" · ")}` : ""].filter(Boolean);
+    showEditorStatus(`Site: ${details.join(" — ")}`);
+  } catch {
+    if (sequence !== analysisSequence) return;
+    showEditorStatus(`Link detectado: ${url.hostname} — o site bloqueou a leitura automática (CORS/acesso). A prévia pode não abrir se bloquear iframe; o link continua identificado.`);
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+window.addEventListener("darkstudio:url-detected", (event) => {
+  const url = event.detail?.url;
+  if (typeof url === "string") analyzeDetectedUrl(url);
+});
+
+window.addEventListener("darkstudio:preview-loaded", (event) => {
+  const url = event.detail?.url;
+  if (typeof url !== "string") return;
+  let host = url;
+  try { host = new URL(url).hostname; } catch {}
+  // A loaded iframe event does not guarantee that the remote site permits framing.
+  if (!activeAnalysisUrl) showEditorStatus(`Prévia solicitada para ${host}; se a página estiver em branco, o site pode bloquear iframe.`);
+});
