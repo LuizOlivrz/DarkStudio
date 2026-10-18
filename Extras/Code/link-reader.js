@@ -232,7 +232,8 @@ async function analyzeDetectedUrl(rawUrl) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const type = response.headers.get("content-type") || "";
     if (!/html|xhtml/i.test(type)) {
-      showEditorStatus(`Link detectado: ${url.hostname} — conteúdo ${type || "não HTML"}; visualização disponível se o site permitir iframe.`);
+      window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: false } }));
+      showEditorStatus(`Link detectado: ${url.hostname} — conteúdo ${type || "não HTML"}; prévia ocultada.`);
       return;
     }
     const html = await response.text();
