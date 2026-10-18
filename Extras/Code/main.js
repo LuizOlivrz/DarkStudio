@@ -913,6 +913,11 @@ if (!blockWeb) {
     }, 0);
     const nextIndex = Math.max(0, Math.min(items.length - 1, currentIndex + (event.deltaY > 0 ? 1 : -1)));
     const nextItem = items[nextIndex];
+
+    // Pause the currently visible media immediately, before the smooth scroll starts.
+    // The scroll listener also pauses every item that is no longer active.
+    if (nextIndex !== currentIndex) pauseMiniPlayerItem(items[currentIndex]);
+
     list.scrollTo({ top: list.scrollTop + nextItem.getBoundingClientRect().top - listTop, behavior: "smooth" });
   }, { passive: false });
 
