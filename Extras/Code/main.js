@@ -488,7 +488,12 @@ if (!blockWeb) {
           metadata.author && `Autor: ${metadata.author}`,
           metadata.keywords && `Palavras-chave: ${metadata.keywords}`,
           metadata.canonical && `Canonical: ${metadata.canonical}`,
+          metadata.ogTitle && `Título OG: ${metadata.ogTitle}`,
+          metadata.ogDescription && `Descrição OG: ${metadata.ogDescription}`,
+          metadata.ogUrl && `URL OG: ${metadata.ogUrl}`,
           metadata.ogImage && `Imagem OG: ${metadata.ogImage}`,
+          metadata.robots && `Robots: ${metadata.robots}`,
+          metadata.verification && `Verificação Google: ${metadata.verification}`,
         ].filter(Boolean);
       }
       panelIndex = 0;
