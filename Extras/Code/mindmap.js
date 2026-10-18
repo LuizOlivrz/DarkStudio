@@ -1318,8 +1318,18 @@ function attachNodeToFolder(node, folder) {
   if (!validFolderTarget(node, folder)) return;
 
   node.parentFolderId = folder.id;
+  // Posiciona o item logo abaixo da pasta para que o vínculo fique visível
+  // e a pasta não seja encoberta pelo elemento recém-solto.
+  node.x = snapToGrid(folder.x + 24);
+  node.y = snapToGrid(folder.y + (Number(folder.height) || MIN_NODE_HEIGHT) + 24);
   node.folderOffsetX = node.x - folder.x;
   node.folderOffsetY = node.y - folder.y;
+
+  const element = getNodeElement(node.id);
+  if (element) {
+    element.style.left = `${node.x}px`;
+    element.style.top = `${node.y}px`;
+  }
 
   folder.isOpen = true;
 }
@@ -1760,12 +1770,7 @@ function closeAddMenu() {
 
 function onOutsideMenuClick(event) {
   const menu = document.getElementById("mindmap-add-menu");
-  const button = document.getElementById("mindmap-add-files");
-
-  if (menu?.contains(event.target) || button?.contains(event.target)) {
-    return;
-  }
-
+  if (menu?.contains(event.target)) return;
   closeAddMenu();
 }
 
@@ -1785,7 +1790,7 @@ function createAddMenu(position = null) {
       action: addFolder,
     },
     {
-      label: `⇧ ${tr("importFiles")}`,
+      label: `⇧ ${tr("importFiles")} / ${tr("importFolder")}`,
       action: () => {
         const chooser = document.createElement("div");
         chooser.id = "mindmap-import-choice";
@@ -2208,8 +2213,6 @@ function setupFileInputs() {
 
 function wireUI() {
   const mapButton = document.getElementById("mindmap-button");
-  const connectButton = document.getElementById("mindmap-connect");
-  const clearButton = document.getElementById("mindmap-clear");
 
   mind?.addEventListener("pointerdown", beginWorkspacePan);
 
@@ -2235,23 +2238,6 @@ function wireUI() {
     });
   }
 
-  if (connectButton) {
-    connectButton.addEventListener("click", () => {
-      connectMode = !connectMode;
-      connectSource = null;
-
-      nodeLayer?.querySelectorAll(".selected").forEach((element) => {
-        element.classList.remove("selected");
-      });
-
-      connectButton.textContent = connectMode ? tr("connectPrompt") : tr("connect");
-    });
-  }
-
-  if (clearButton) {
-    clearButton.addEventListener("click", clearMap);
-  }
-
   nodeLayer?.addEventListener("click", (event) => {
     if (event.target !== nodeLayer || !connectSource) return;
 
@@ -2261,10 +2247,6 @@ function wireUI() {
 
   window.addEventListener("resize", updateConnections);
   window.addEventListener("darkstudio:languagechange", () => {
-    const connectButton = document.getElementById("mindmap-connect");
-    if (connectButton) {
-      connectButton.textContent = connectMode ? tr("connectPrompt") : tr("connect");
-    }
     const menu = document.getElementById("mindmap-add-menu");
     if (menu) createAddMenu();
   });
