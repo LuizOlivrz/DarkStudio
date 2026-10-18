@@ -2369,3 +2369,45 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #Website-Container, #Editor { transition: none; }
 }
+
+
+/* Final overrides: expanded preview remains movable and its corner resize handle stays usable. */
+#mini-player.is-expanded-portrait,
+#mini-player.is-expanded-landscape {
+  position: fixed !important;
+  inset: var(--mini-player-editor-top, 80px) auto auto var(--mini-player-editor-left, 160px) !important;
+  width: var(--mini-player-fit-width, 480px) !important;
+  height: var(--mini-player-fit-height, 270px) !important;
+  max-width: calc(100vw - 16px) !important;
+  max-height: calc(100vh - 16px) !important;
+  transition: left .28s ease, top .28s ease, width .28s ease, height .28s ease;
+}
+#mini-player.is-expanded-portrait .mini-player-resize-handle.resize-se,
+#mini-player.is-expanded-landscape .mini-player-resize-handle.resize-se {
+  display: block !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  cursor: nwse-resize !important;
+  pointer-events: auto !important;
+  z-index: 9999 !important;
+}
+#Editor.mini-player-fit-portrait,
+#Editor.mini-player-fit-landscape {
+  margin-inline: auto;
+  transition: width .3s ease, height .3s ease, margin .3s ease;
+}
+#mini-player.is-expanded-portrait #mini-player-list,
+#mini-player.is-expanded-landscape #mini-player-list {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+#mini-player.is-expanded-portrait #mini-player-list .mini-player-item:first-child,
+#mini-player.is-expanded-landscape #mini-player-list .mini-player-item:first-child {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
