@@ -2854,3 +2854,17 @@ body {
 #mini-player.collapsed:focus-within {
   outline: none !important;
 }
+
+
+/* Normalize the bottom-right resize marker to match the other corner handles. */
+#mini-player:not(.collapsed):not(.is-expanded) .mini-player-resize-handle.resize-se::after {
+  width: 7px !important;
+  height: 7px !important;
+  right: 4px !important;
+  bottom: 4px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--green, #18ff72) !important;
+  border-bottom: 1px solid var(--green, #18ff72) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
