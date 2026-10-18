@@ -74,7 +74,7 @@
   "workspaceTagPlaceholder": "输入标签并按 Enter",
   "workspaceAddTag": "添加标签",
   "workspaceRemoveTag": "删除标签",
-  "mindMapTitle": "工作区",
+  "mindMapTitle": "Workspaces",
   "mindMapAddTitle": "添加到工作区",
   "mindMapConnectTitle": "Connect workspace items",
   "mindMapClearTitle": "Clear workspace",
@@ -175,5 +175,6 @@
   "resizeChat": "Resize AI chat width",
   "addEditorContent": "添加当前编辑器内容",
   "editorContentFileName": "编辑器内容",
-  "editorContentEmpty": "编辑器为空。请先输入内容。"
+  "editorContentEmpty": "编辑器为空。请先输入内容。",
+  "manageWorkspaces": "管理 Workspaces"
 }
