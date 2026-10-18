@@ -911,7 +911,8 @@ if (!blockWeb) {
 
     function fitEditorToVideo() {
       if (!player.classList.contains("is-expanded")) return;
-      const item = list.querySelector(".mini-player-item");
+      const list = player.querySelector("#mini-player-list") || player.querySelector(".mini-player-list");
+      const item = list?.querySelector(".mini-player-item");
       if (!item) return;
       const ratio = item.style.aspectRatio || "";
       const portrait = item.classList.contains("tiktok") || /9\s*\/\s*16/.test(ratio);
