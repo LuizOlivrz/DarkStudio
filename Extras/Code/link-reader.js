@@ -250,10 +250,12 @@ async function analyzeDetectedUrl(rawUrl) {
       .slice(0, 3);
     if (sequence !== analysisSequence) return;
     const details = [title, description, headings.length ? `Seções: ${headings.join(" · ")}` : ""].filter(Boolean);
+    window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: true, title, description } }));
     showEditorStatus(`Site: ${details.join(" — ")}`);
   } catch {
     if (sequence !== analysisSequence) return;
-    showEditorStatus(`Link detectado: ${url.hostname} — o site bloqueou a leitura automática (CORS/acesso). A prévia pode não abrir se bloquear iframe; o link continua identificado.`);
+    window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: false } }));
+    showEditorStatus(`Link detectado: ${url.hostname} — leitura bloqueada por CORS/acesso; prévia ocultada. O link continua identificado.`);
   } finally {
     window.clearTimeout(timeoutId);
   }
