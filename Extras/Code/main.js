@@ -994,77 +994,96 @@ if (!blockWeb) {
       if (player.classList.contains("is-expanded")) fitEditorToVideo();
     });
 
-    // Long-press the expand control to move the expanded preview.
+    // Long-press the expand control, Android-style, to move the expanded preview.
+    expandButton.style.touchAction = "none";
     expandButton.addEventListener("pointerdown", (event) => {
       if (!player.classList.contains("is-expanded") || event.button !== 0) return;
       const rect = player.getBoundingClientRect();
-      expandLongPress = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false, timer: setTimeout(() => {
-        player.classList.add("mini-player-holding");
-        expandButton.setPointerCapture?.(event.pointerId);
-      }, 280) };
+      expandLongPress = {
+        pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+        left: rect.left, top: rect.top, active: false, moved: false,
+        timer: setTimeout(() => {
+          if (!expandLongPress) return;
+          expandLongPress.active = true;
+          player.classList.add("mini-player-holding");
+          player.classList.add("mini-player-dragging");
+        }, 350)
+      };
+      try { expandButton.setPointerCapture(event.pointerId); } catch (_) {}
+      event.preventDefault();
     });
     expandButton.addEventListener("pointermove", (event) => {
-      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
+      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId || !expandLongPress.active) return;
       const dx = event.clientX - expandLongPress.x;
       const dy = event.clientY - expandLongPress.y;
-      if (Math.abs(dx) + Math.abs(dy) > 6) {
-        clearTimeout(expandLongPress.timer);
+      if (Math.abs(dx) + Math.abs(dy) > 3) {
         expandLongPress.moved = true;
         suppressExpandClick = true;
-        const width = player.getBoundingClientRect().width;
-        const height = player.getBoundingClientRect().height;
-        const left = Math.max(8, Math.min(window.innerWidth - width - 8, expandLongPress.left + dx));
-        const top = Math.max(8, Math.min(window.innerHeight - height - 8, expandLongPress.top + dy));
+        const rect = player.getBoundingClientRect();
+        const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, expandLongPress.left + dx));
+        const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, expandLongPress.top + dy));
         player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
         player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
+        player.style.transition = "none";
       }
     });
     const stopExpandLongPress = (event) => {
       if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
       clearTimeout(expandLongPress.timer);
-      player.classList.remove("mini-player-holding");
-      if (!expandLongPress.moved) suppressExpandClick = false;
+      player.classList.remove("mini-player-holding", "mini-player-dragging");
+      player.style.removeProperty("transition");
+      if (expandLongPress.moved) {
+        setTimeout(() => { suppressExpandClick = false; }, 0);
+      }
       expandLongPress = null;
     };
     expandButton.addEventListener("pointerup", stopExpandLongPress);
     expandButton.addEventListener("pointercancel", stopExpandLongPress);
 
-    const resizeHandle = player.querySelector(".mini-player-resize-handle.resize-se");
+    // Resize from any edge/corner while keeping the media's aspect ratio.
     let resizeState = null;
-    resizeHandle?.addEventListener("pointerdown", (event) => {
+    player.addEventListener("pointerdown", (event) => {
       if (!player.classList.contains("is-expanded")) return;
+      if (event.target.closest("#mini-player-expand, #mini-player-toolbar, iframe, button, a")) return;
       const rect = player.getBoundingClientRect();
+      const edge = 16;
+      const right = rect.right - event.clientX <= edge;
+      const bottom = rect.bottom - event.clientY <= edge;
+      const left = event.clientX - rect.left <= edge;
+      const top = event.clientY - rect.top <= edge;
+      if (!(right || bottom || left || top)) return;
       const item = player.querySelector("#mini-player-list .mini-player-item");
-      const portrait = !!item && (item.classList.contains("tiktok") || (item.style.aspectRatio || "").replaceAll(" ", "") === "9/16");
-      resizeState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, width: rect.width, height: rect.height, ratio: portrait ? 9 / 16 : rect.width / Math.max(1, rect.height) };
-      resizeHandle.setPointerCapture(event.pointerId);
+      const ratioText = (item?.style.aspectRatio || "").replaceAll(" ", "");
+      const portrait = item?.classList.contains("tiktok") || ratioText === "9/16";
+      const ratio = portrait ? 9 / 16 : rect.width / Math.max(1, rect.height);
+      resizeState = { id: event.pointerId, x: event.clientX, y: event.clientY, rect, ratio, left, top };
+      try { player.setPointerCapture(event.pointerId); } catch (_) {}
+      player.classList.add("mini-player-resizing");
       event.preventDefault();
       event.stopPropagation();
     });
-    resizeHandle?.addEventListener("pointermove", (event) => {
-      if (!resizeState || resizeState.pointerId !== event.pointerId) return;
+    player.addEventListener("pointermove", (event) => {
+      if (!resizeState || resizeState.id !== event.pointerId) return;
       const dx = event.clientX - resizeState.x;
       const dy = event.clientY - resizeState.y;
-      const ratio = resizeState.ratio;
-      const widthFromX = resizeState.width + dx;
-      const widthFromY = (resizeState.height + dy) * ratio;
-      const width = Math.max(240, Math.min(window.innerWidth - 24, Math.abs(widthFromX - resizeState.width) > Math.abs(widthFromY - resizeState.width) ? widthFromX : widthFromY));
-      const height = width / ratio;
-      const rect = player.getBoundingClientRect();
+      let width = Math.abs(dx) > Math.abs(dy * resizeState.ratio) ? resizeState.rect.width + (resizeState.left ? -dx : dx) : resizeState.rect.width + (resizeState.top ? -dy * resizeState.ratio : dy * resizeState.ratio);
+      width = Math.max(220, Math.min(window.innerWidth - 16, width));
+      const height = width / resizeState.ratio;
+      const left = resizeState.left ? resizeState.rect.right - width : resizeState.rect.left;
+      const top = resizeState.top ? resizeState.rect.bottom - height : resizeState.rect.top;
       player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
       player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
-      player.style.setProperty("--mini-player-editor-left", Math.round(Math.max(8, Math.min(window.innerWidth - width - 8, rect.left))) + "px");
-      player.style.setProperty("--mini-player-editor-top", Math.round(Math.max(8, Math.min(window.innerHeight - height - 8, rect.top))) + "px");
-      editorSurface?.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
-      editorSurface?.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+      player.style.setProperty("--mini-player-editor-left", Math.round(Math.max(8, Math.min(window.innerWidth - width - 8, left))) + "px");
+      player.style.setProperty("--mini-player-editor-top", Math.round(Math.max(8, Math.min(window.innerHeight - height - 8, top))) + "px");
+      event.preventDefault();
     });
-    const stopResize = (event) => {
-      if (resizeState?.pointerId !== event.pointerId) return;
+    const finishResize = (event) => {
+      if (!resizeState || resizeState.id !== event.pointerId) return;
       resizeState = null;
+      player.classList.remove("mini-player-resizing");
     };
-    resizeHandle?.addEventListener("pointerup", stopResize);
-    resizeHandle?.addEventListener("pointercancel", stopResize);
-
+    player.addEventListener("pointerup", finishResize);
+    player.addEventListener("pointercancel", finishResize);
 
     toolbar.style.cursor = "grab";
     toolbar.addEventListener("pointerdown", (event) => {
