@@ -860,23 +860,40 @@ if (!blockWeb) {
     if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
   }
 
-  // Pause every off-screen embed when scrolling through a stacked feed.
+  // Pause off-screen embeds. TikTok may ignore pause messages, so unload its
+  // iframe when it leaves the active slot; restoring it reloads the video paused.
   function pauseMiniPlayerItem(item) {
     const iframe = item?.querySelector("iframe");
-    if (!iframe?.contentWindow) return;
+    if (!iframe) return;
     try {
-      if (item.classList.contains("youtube")) {
-        iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "pauseVideo", args: "" }), "*");
-      } else if (item.classList.contains("tiktok")) {
-        iframe.contentWindow.postMessage({ type: "pause" }, "*");
-        iframe.contentWindow.postMessage(JSON.stringify({ type: "pause" }), "*");
-      } else if (item.classList.contains("vimeo")) {
-        iframe.contentWindow.postMessage({ method: "pause" }, "*");
-      } else if (item.classList.contains("dailymotion")) {
-        iframe.contentWindow.postMessage({ command: "pause" }, "*");
+      if (item.classList.contains("tiktok")) {
+        if (!iframe.dataset.originalSrc) iframe.dataset.originalSrc = iframe.src;
+        if (iframe.dataset.pausedByFeed !== "true") {
+          iframe.contentWindow?.postMessage({ type: "pause" }, "*");
+          iframe.contentWindow?.postMessage(JSON.stringify({ type: "pause" }), "*");
+          iframe.dataset.pausedByFeed = "true";
+          iframe.src = "about:blank";
+        }
+      } else if (iframe.contentWindow) {
+        if (item.classList.contains("youtube")) {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "pauseVideo", args: "" }), "*");
+        } else if (item.classList.contains("vimeo")) {
+          iframe.contentWindow.postMessage({ method: "pause" }, "*");
+        } else if (item.classList.contains("dailymotion")) {
+          iframe.contentWindow.postMessage({ command: "pause" }, "*");
+        }
       }
     } catch (error) {
       console.debug("Não foi possível pausar o mini-player anterior.", error);
+    }
+  }
+
+  function activateMiniPlayerItem(item) {
+    const iframe = item?.querySelector("iframe");
+    if (!iframe || !item.classList.contains("tiktok")) return;
+    if (iframe.dataset.pausedByFeed === "true" && iframe.dataset.originalSrc) {
+      iframe.src = iframe.dataset.originalSrc;
+      delete iframe.dataset.pausedByFeed;
     }
   }
 
@@ -894,6 +911,7 @@ if (!blockWeb) {
     }, 0);
     items.forEach((item, index) => {
       if (index !== activeIndex) pauseMiniPlayerItem(item);
+      else activateMiniPlayerItem(item);
     });
   }, { passive: true });
 
