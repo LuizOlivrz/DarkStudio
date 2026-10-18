@@ -964,11 +964,19 @@ input[type="text"] {
 
 .mini-player-item {
   flex: 0 0 auto;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100%;
   overflow: hidden;
   border-radius: 10px;
   background: #090909;
   aspect-ratio: 16 / 9;
+  height: auto !important;
+}
+#mini-player .mini-player-item iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
 }
 
 .mini-player-item.spotify {
@@ -2639,4 +2647,15 @@ body {
   #mini-player .mini-player-orientation-caption {
     transition: none !important;
   }
+}
+
+/* Provider cards must always follow the resized player box. */
+#mini-player:not(.is-expanded) #mini-player-list {
+  width: 100%;
+  max-width: 100%;
+}
+#mini-player:not(.is-expanded) #mini-player-list .mini-player-item:not(.spotify) {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
 }
