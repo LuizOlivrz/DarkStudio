@@ -2002,8 +2002,17 @@ function ensureCurrentEditorInWorkspace() {
   };
   const extension = extensionByLanguage[languageLabel] || "txt";
   const name = `${tr("newFile")}.${extension}`;
-  const node = addNode(name, window.editor.getValue(), "text");
-  currentEditingNode = node;
+  const existingNode = nodes.find((node) =>
+    node.type !== "folder" && getWorkspacePath(node) === name
+  );
+
+  if (existingNode) {
+    existingNode.content = window.editor.getValue();
+    currentEditingNode = existingNode;
+  } else {
+    currentEditingNode = addNode(name, window.editor.getValue(), "text");
+  }
+
   updateSelectedNodeUI();
   saveState();
 }
