@@ -2917,9 +2917,9 @@ body {
 }
 
 
-/* Reliable minimum geometry and TikTok-style vertical navigation for all media feeds. */
+/* Keep the general mini-player flexible; the 340px minimum is Spotify-only. */
 #mini-player:not(.collapsed):not(.is-expanded) {
-  min-width: min(340px, 100%) !important;
+  min-width: 0 !important;
   min-height: 90px !important;
   box-sizing: border-box !important;
 }
