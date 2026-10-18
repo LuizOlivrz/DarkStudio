@@ -109,6 +109,7 @@
           height: 100%;
           position: relative;
           overflow: hidden;
+          background: #090909;
         ">
       <svg id="mindmap-svg" style="
             position: absolute;
@@ -135,9 +136,20 @@
         onclick="newIframe()">
         Iframe
       </button>
+      <button id="mindmap-add-files" title="Add to workspace" data-i18n-title="mindMapAddTitle" style="display: none">
+        Add
+      </button>
+      <button id="mindmap-connect" title="Connect workspace items" data-i18n-title="mindMapConnectTitle"
+        style="display: none">
+        Connect
+      </button>
+      <button id="mindmap-clear" title="Clear workspace" data-i18n-title="mindMapClearTitle" style="display: none">
+        Clear
+      </button>
+
       <button id="extensions-button" type="button" data-i18n="extensions">Extensions</button>
-      <button id="workspace-details-button" type="button" title="Manage Workspaces" data-i18n-title="manageWorkspaces" data-i18n="manageWorkspaces" style="display:none">Manage Workspaces</button>
-      <button id="mindmap-button" title="Workspaces" data-i18n-title="mindMapTitle" data-i18n="mindMapTitle">Workspaces</button>
+      <button id="mindmap-button" title="Workspace" data-i18n-title="mindMapTitle"
+        data-i18n="mindMapTitle">Workspace</button>
       <div id="options-resize-handle" class="panel-resize-handle resize-width" role="separator"
         aria-label="Resize options width" data-i18n-aria-label="resizeOptions" aria-orientation="vertical" tabindex="0">
       </div>
@@ -265,7 +277,7 @@
       <!-- ====== SOCIAL LINKS / REDES SOCIAIS ====== -->
       <h3 data-i18n="socialLinks">Social</h3>
       <div id="social-medias">
-        <a href="http://github.com/LuizCDP">
+        <a href="http://github.com/LuizOlivrz">
           <img src="Extras\Assets\github-mark-white.svg" alt="GitHub" width="32" height="32" />
         </a>
         <a href="https://discord.gg/6bByN2QDZ4">
@@ -323,11 +335,13 @@
         <form id="link-reader-form">
           <label for="link-reader-url">Read content from a URL</label>
           <div class="link-reader-controls">
-            <input id="link-reader-url" type="url" inputmode="url" placeholder="https://example.com or a GitHub link" autocomplete="url" required />
+            <input id="link-reader-url" type="url" inputmode="url" placeholder="https://example.com or a GitHub link"
+              autocomplete="url" required />
             <button id="link-reader-submit" type="submit">Read link</button>
           </div>
         </form>
-        <p id="link-reader-status" role="status" aria-live="polite">Paste a public link to extract its readable content.</p>
+        <p id="link-reader-status" role="status" aria-live="polite">Paste a public link to extract its readable content.
+        </p>
         <div id="link-reader-result" hidden>
           <h3 id="link-reader-title"></h3>
           <p id="link-reader-source"></p>
