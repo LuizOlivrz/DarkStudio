@@ -492,78 +492,25 @@ if (!blockWeb) {
     // 👉 código limpo (sem inline/block code do Markdown)
     const cleanCode = stripMarkdownCode(code);
 
-    // 🔗 Detect common URLs / Detecta links e plataformas
-    function detectLink(url) {
-      const u = url.toLowerCase();
-
-      if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//.test(u))
-        return "Link (YouTube)";
-
-      if (/^(https?:\/\/)?(www\.)?github\.com\//.test(u))
-        return "Link (GitHub)";
-
-      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?track\//i.test(u))
-        return t("Spotifysong");
-
-      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?album\//i.test(u))
-        return t("SpotifyAlbumLink");
-
-      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?playlist\//i.test(u))
-        return t("SpotifyPlaylistLink");
-
-      if (/spotify\.com\/(?:intl-[a-z]{2}\/)?artist\//i.test(u))
-        return t("SpotifyArtistLink");
-
-      if (/^(https?:\/\/)?(open\.spotify\.com|spotify\.link)/.test(u))
-        return "Link (Spotify)";
-
-      if (/^(https?:\/\/)?drive\.google\.com\//.test(u))
-        return "Link (Google Drive)";
-
-      if (/^(https?:\/\/)?pastebin\.com\//.test(u)) return "Link (Pastebin)";
-
-      if (/^(https?:\/\/)?(chatgpt\.com|openai\.com)\//.test(u))
-        return "Link (ChatGPT/OpenAI)";
-
-      if (/^(https?:\/\/)?(www\.)?facebook\.com\//.test(u))
-        return "Link (Facebook)";
-
-      if (/^(https?:\/\/)?(www\.)?instagram\.com\//.test(u))
-        return "Link (Instagram)";
-
-      if (/^(https?:\/\/)?(twitter\.com|x\.com)\//.test(u))
-        return "Link (Twitter/X)";
-
-      if (/^(https?:\/\/)?(www\.)?tiktok\.com\//.test(u))
-        return "Link (TikTok)";
-
-      if (/^(https?:\/\/)?(www\.)?reddit\.com\//.test(u))
-        return "Link (Reddit)";
-
-      if (/^(https?:\/\/)?(discord\.com|discord\.gg)\//.test(u))
-        return "Link (Discord)";
-
+    // 🔗 Detecção genérica de URL: não exige lista de domínios.
+    // Só classifica como link quando o conteúdo inteiro é uma URL, para não
+    // confundir código-fonte que contém URLs com um link isolado.
+    const linkCandidate = code.trim().replace(/[),.;!?]+$/, "");
+    try {
+      const parsedUrl = new URL(
+        /^https?:\/\//i.test(linkCandidate)
+          ? linkCandidate
+          : `https://${linkCandidate}`
+      );
       if (
-        /^(https?:\/\/)?(steamcommunity\.com|store\.steampowered\.com)\//.test(
-          u,
-        )
-      )
-        return "Link (Steam)";
-
-      if (/^(https?:\/\/)?docs\.google\.com\//.test(u))
-        return "Link (Google Docs)";
-
-      if (/^(https?:\/\/)?(www\.)?whatsapp\.com\//.test(u))
-        return "Link (WhatsApp)";
-
-      if (/^(https?:\/\/)?(t\.me|telegram\.org)\//.test(u))
-        return "Link (Telegram)";
-
-      return "Link (URL)";
-    }
-
-    if (/^https?:\/\/\S+$/i.test(code.trim())) {
-      return detectLink(code.trim());
+        /^(https?:\/\/)/i.test(linkCandidate) &&
+        ["http:", "https:"].includes(parsedUrl.protocol) &&
+        parsedUrl.hostname.includes(".")
+      ) {
+        return "Link (URL)";
+      }
+    } catch {
+      // Não é uma URL válida; continue a detecção normal da linguagem.
     }
 
     const isGit =
