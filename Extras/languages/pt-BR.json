@@ -150,5 +150,8 @@
   "inlineSummaryFallback": "O trecho selecionado foi atualizado conforme sua solicitação.",
   "resizeOptions": "Redimensionar largura das opções",
   "resizeEditor": "Redimensionar altura do editor",
-  "resizeChat": "Redimensionar largura do chat da IA"
+  "resizeChat": "Redimensionar largura do chat da IA",
+  "addEditorContent": "Adicionar conteúdo atual do editor",
+  "editorContentFileName": "conteudo-do-editor",
+  "editorContentEmpty": "O editor está vazio. Adicione algum conteúdo primeiro."
 }
