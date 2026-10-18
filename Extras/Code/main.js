@@ -696,7 +696,15 @@ if (!blockWeb) {
           }
         }
         if (/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-          embed = { type: "youtube", src: "https://www.youtube.com/embed/" + videoId, height: 203, title: "YouTube video player" };
+          const isShort = /^\/shorts\//.test(url.pathname);
+          embed = {
+            type: "youtube",
+            src: "https://www.youtube.com/embed/" + videoId,
+            ratio: isShort ? "9 / 16" : "16 / 9",
+            width: isShort ? 300 : 480,
+            height: isShort ? 533 : 270,
+            title: "YouTube video player"
+          };
         }
 
         // Spotify track/album/playlist/artist embeds; keep the official Spotify card.
@@ -717,6 +725,8 @@ if (!blockWeb) {
           if (match) embed = {
             type: "tiktok",
             src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&music_info=1&description=1",
+            ratio: "9 / 16",
+            width: 338,
             height: 600,
             title: "TikTok video player"
           };
@@ -725,21 +735,21 @@ if (!blockWeb) {
         // Other platforms with documented iframe players.
         if (!embed && ["vimeo.com", "player.vimeo.com"].includes(host)) {
           const match = url.pathname.match(/(?:video\/)?(\d+)/);
-          if (match) embed = { type: "vimeo", src: "https://player.vimeo.com/video/" + match[1], height: 203, title: "Vimeo video player" };
+          if (match) embed = { type: "vimeo", src: "https://player.vimeo.com/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Vimeo video player" };
         }
         if (!embed && host === "dailymotion.com") {
           const match = url.pathname.match(/\/(?:video|embed\/video)\/([a-zA-Z0-9]+)/);
-          if (match) embed = { type: "dailymotion", src: "https://www.dailymotion.com/embed/video/" + match[1], height: 203, title: "Dailymotion video player" };
+          if (match) embed = { type: "dailymotion", src: "https://www.dailymotion.com/embed/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Dailymotion video player" };
         }
         if (!embed && host === "twitch.tv") {
           const clip = url.pathname.match(/^\/(?:[^/]+\/clip|clip)\/([A-Za-z0-9_-]+)/);
           const video = url.pathname.match(/^\/videos\/(\d+)/);
           if (clip) {
             const parent = encodeURIComponent(location.hostname || "localhost");
-            embed = { type: "twitch", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, height: 203, title: "Twitch clip player" };
+            embed = { type: "twitch", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch clip player" };
           } else if (video) {
             const parent = encodeURIComponent(location.hostname || "localhost");
-            embed = { type: "twitch", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, height: 203, title: "Twitch video player" };
+            embed = { type: "twitch", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch video player" };
           }
         }
         if (embed) {
@@ -756,6 +766,10 @@ if (!blockWeb) {
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
+      if (embed.ratio) item.style.aspectRatio = embed.ratio;
+      if (embed.width) item.style.width = embed.width + "px";
+      if (embed.height && embed.type !== "spotify") item.style.height = embed.height + "px";
+      item.style.flex = "0 0 auto";
       const iframe = document.createElement("iframe");
       iframe.src = embed.src;
       iframe.title = embed.title || (embed.type + " player " + (index + 1));
@@ -763,7 +777,10 @@ if (!blockWeb) {
       iframe.referrerPolicy = embed.type === "youtube" ? "strict-origin-when-cross-origin" : "strict-origin-when-cross-origin";
       iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share";
       iframe.allowFullscreen = true;
-      iframe.style.height = embed.height + "px";
+      if (embed.height) iframe.style.height = embed.height + "px";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.display = "block";
       item.appendChild(iframe);
       if (embed.spotify) updateSpotifyTheme(embed.spotify);
       return item;
