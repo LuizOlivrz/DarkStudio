@@ -493,6 +493,7 @@ if (!blockWeb) {
           metadata.ogUrl && `URL OG: ${metadata.ogUrl}`,
           metadata.ogType && `Tipo OG: ${metadata.ogType}`,
           metadata.ogSiteName && `Site OG: ${metadata.ogSiteName}`,
+          metadata.ogLocale && `Idioma OG: ${metadata.ogLocale}`,
           metadata.ogImage && `Imagem OG: ${metadata.ogImage}`,
           metadata.ogImageAlt && `Descrição da imagem OG: ${metadata.ogImageAlt}`,
           metadata.twitterCard && `Cartão Twitter: ${metadata.twitterCard}`,
