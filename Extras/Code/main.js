@@ -1011,6 +1011,16 @@ if (!blockWeb) {
       const item = getMedia();
       if (!item) return;
       const bounds = getEditorBounds();
+      if (item.classList.contains("spotify")) {
+        const width = bounds.width;
+        const height = Math.min(80, bounds.height);
+        player.classList.remove("is-expanded-portrait", "is-expanded-landscape");
+        const left = bounds.left;
+        const top = bounds.top;
+        setRect(left, top, width, height);
+        syncMiniPlayerContent(width, height);
+        return;
+      }
       const ratio = getRatio(item);
       const portrait = ratio < 1;
       const width = Math.max(1, Math.min(bounds.width, bounds.height * ratio));
@@ -1084,7 +1094,17 @@ if (!blockWeb) {
     const moveDrag = (event) => {
       if (!drag || drag.id !== event.pointerId) return;
       const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
-      if (Math.abs(dx) + Math.abs(dy) > 3) suppressClick = true;
+      if (Math.abs(dx) + Math.abs(dy) > 3) {
+        suppressClick = true;
+        if (isExpanded() && isSpotify()) {
+          clearExpandedState();
+          player.classList.remove("is-expanded");
+          restoreRect = null;
+          expandButton.textContent = "⛶";
+          expandButton.title = "Expandir mini-player";
+          expandButton.setAttribute("aria-label", "Expandir mini-player");
+        }
+      }
       const bounds = editorSurface.getBoundingClientRect();
       const left = clamp(drag.left + dx, bounds.left, Math.max(bounds.left, bounds.right - drag.width));
       const top = clamp(drag.top + dy, bounds.top, Math.max(bounds.top, bounds.bottom - drag.height));
