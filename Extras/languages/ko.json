@@ -175,5 +175,6 @@
   "resizeChat": "Resize AI chat width",
   "addEditorContent": "현재 편집기 내용 추가",
   "editorContentFileName": "편집기-내용",
-  "editorContentEmpty": "편집기가 비어 있습니다. 먼저 내용을 입력하세요."
+  "editorContentEmpty": "편집기가 비어 있습니다. 먼저 내용을 입력하세요.",
+  "manageWorkspaces": "워크스페이스 관리"
 }
