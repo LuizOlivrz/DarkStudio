@@ -74,7 +74,7 @@
   "workspaceTagPlaceholder": "Введите тег и нажмите Enter",
   "workspaceAddTag": "Добавить тег",
   "workspaceRemoveTag": "Удалить тег",
-  "mindMapTitle": "Рабочее пространство",
+  "mindMapTitle": "Workspaces",
   "mindMapAddTitle": "Добавить в рабочее пространство",
   "mindMapConnectTitle": "Связать элементы",
   "mindMapClearTitle": "Очистить рабочее пространство",
@@ -172,5 +172,6 @@
   "inlineSummaryFallback": "Выбранный код изменён согласно вашему запросу.",
   "resizeOptions": "Изменить ширину панели параметров",
   "resizeEditor": "Изменить высоту редактора",
-  "resizeChat": "Изменить ширину чата ИИ"
+  "resizeChat": "Изменить ширину чата ИИ",
+  "manageWorkspaces": "Управление Workspaces"
 }
