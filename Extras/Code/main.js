@@ -895,10 +895,11 @@ if (!blockWeb) {
     const getMedia = () => list.querySelector(".mini-player-item");
     const getRatio = (item) => {
       if (!item) return 16 / 9;
-      const raw = (item.style.aspectRatio || "").replace(/\s/g, "");
-      if (item.classList.contains("tiktok") || raw === "9/16") return 9 / 16;
+      // Platform ratios must take precedence over a stale inline aspect-ratio.
+      if (item.classList.contains("tiktok")) return 9 / 16;
       if (item.classList.contains("spotify")) return 1;
-      if (raw && raw.includes("/")) {
+      const raw = (item.style.aspectRatio || "").replace(/\s/g, "");
+      if (raw) {
         const [w, h] = raw.split("/").map(Number);
         if (w > 0 && h > 0) return w / h;
       }
@@ -916,6 +917,8 @@ if (!blockWeb) {
       player.style.height = Math.round(height) + "px";
       player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
       player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+      player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
+      player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
       player.classList.toggle("mini-player-resizing", !animate);
     };
     const syncMiniPlayerContent = (width, height) => {
@@ -924,7 +927,9 @@ if (!blockWeb) {
         item.style.width = "100%";
         if (!item.classList.contains("spotify")) {
           item.style.height = "auto";
-          item.style.aspectRatio = item.style.aspectRatio || "16 / 9";
+          item.style.aspectRatio = item.classList.contains("tiktok")
+            ? "9 / 16"
+            : item.style.aspectRatio || "16 / 9";
         }
       });
       player.style.setProperty("--mini-player-content-width", Math.round(width) + "px");
@@ -991,11 +996,10 @@ if (!blockWeb) {
         height: Math.max(180, Math.min(editorRect.height || window.innerHeight - 100, window.innerHeight - 16))
       };
       const preferredWidth = portrait ? Math.min(bounds.width, bounds.height * ratio) : bounds.width;
-      const preferredHeight = preferredWidth / ratio;
-      const width = Math.max(180, Math.min(preferredWidth, bounds.width, bounds.height * ratio));
+      // Keep the media's native ratio. A hard minimum width can make portrait video
+      // taller than the available editor area and cause the iframe to look stretched.
+      const width = Math.max(1, Math.min(preferredWidth, bounds.width, bounds.height * ratio));
       const height = width / ratio;
-      const left = clamp(bounds.left + (bounds.width - width) / 2, 8, window.innerWidth - width - 8);
-      const top = clamp(bounds.top + (bounds.height - height) / 2, 8, window.innerHeight - height - 8);
 
       player.classList.toggle("is-expanded-portrait", portrait);
       player.classList.toggle("is-expanded-landscape", !portrait);
@@ -1003,6 +1007,13 @@ if (!blockWeb) {
       editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
       editorSurface.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
       editorSurface.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+
+      // Fitting the editor can center it in its grid track, changing its X coordinate.
+      // Measure after applying the fitted dimensions, then anchor the player to that
+      // actual viewport rectangle (important when the app/browser is fullscreen).
+      const fittedEditorRect = editorSurface.getBoundingClientRect();
+      const left = clamp(fittedEditorRect.left, 8, window.innerWidth - width - 8);
+      const top = clamp(fittedEditorRect.top, 8, window.innerHeight - height - 8);
       setRect(left, top, width, height);
       addCaption(portrait);
       devLog("layout expanded", {
