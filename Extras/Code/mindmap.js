@@ -854,6 +854,11 @@ function createNodeElement(node) {
   element.addEventListener("click", (event) => {
     event.stopPropagation();
 
+    if (element.dataset.wasResized === "true") {
+      element.dataset.wasResized = "false";
+      return;
+    }
+
     if (element.dataset.wasDragged === "true") {
       element.dataset.wasDragged = "false";
       return;
@@ -1267,6 +1272,7 @@ function endNodeResize(event) {
   document.removeEventListener("pointerup", endNodeResize);
   document.removeEventListener("pointercancel", endNodeResize);
   activeResize.element.classList.remove("resizing");
+  activeResize.element.dataset.wasResized = "true";
   document.body.style.userSelect = "";
   activeResize = null;
   saveState();
