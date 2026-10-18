@@ -971,9 +971,9 @@ if (!blockWeb) {
       const item = getMedia();
       if (item?.classList.contains("spotify")) return { width: 340, height: 80 };
       if (item?.classList.contains("tiktok") || getRatio(item) < 1) {
-        return { width: 270, height: 480 };
+        return { width: 119.25, height: 212 };
       }
-      return { width: 480, height: 270 };
+      return { width: 212, height: 119.25 };
     };
     const getRatio = (item) => {
       if (!item) return 16 / 9;
@@ -1061,12 +1061,24 @@ if (!blockWeb) {
     player.addEventListener("darkstudio:media-updated", () => {
       requestAnimationFrame(() => {
         if (!player.isConnected) return;
-        const r = player.getBoundingClientRect();
         if (isExpanded()) {
           fitExpandedPlayer();
           return;
         }
-        syncMiniPlayerContent(r.width || DEFAULT.width, r.height || DEFAULT.height);
+
+        // Every newly detected media type starts at its minimum practical size.
+        const bounds = getEditorBounds();
+        const size = getDefaultSize();
+        const minWidth = isSpotify() ? Math.min(340, bounds.width) : 1;
+        const minHeight = isSpotify() ? Math.min(80, bounds.height) : 1;
+        const width = clamp(size.width, minWidth, Math.max(minWidth, bounds.width));
+        const height = clamp(size.height, minHeight, Math.max(minHeight, bounds.height));
+        const current = player.getBoundingClientRect();
+        const left = clamp(current.left, bounds.left, Math.max(bounds.left, bounds.right - width));
+        const top = clamp(current.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
+        setRect(left, top, width, height);
+        syncMiniPlayerContent(width, height);
+        savePosition();
       });
     });
     const savePosition = () => {
