@@ -1022,6 +1022,9 @@ if (!blockWeb) {
     const isExpanded = () => player.classList.contains("is-expanded");
     const SPOTIFY_HEIGHTS = [80, 152, 352];
     const isSpotify = () => Boolean(getMedia()?.classList.contains("spotify"));
+    const isYouTube = (item = getMedia()) => Boolean(item?.classList.contains("youtube"));
+    const getMaxWidth = (width, item = getMedia()) =>
+      isYouTube(item) ? Math.min(width, 340) : width;
     const getMinHeight = () => isSpotify() ? 80 : 1;
     const getMaxHeight = (height) =>
       isSpotify() ? Math.min(height, 352) : height;
@@ -1033,6 +1036,11 @@ if (!blockWeb) {
       );
     };
     const setRect = (left, top, width, height, animate = true) => {
+      if (!isExpanded()) {
+        const cappedWidth = getMaxWidth(width);
+        if (cappedWidth < width && !isSpotify()) height = cappedWidth / (getRatio(getMedia()) || (width / height));
+        width = cappedWidth;
+      }
       height = getMaxHeight(height);
       player.style.setProperty("position", "fixed", "important");
       player.style.setProperty("inset", "auto", "important");
@@ -1427,6 +1435,14 @@ if (!blockWeb) {
           width = height * ratio;
           if (direction.includes("w")) left = resize.left + resize.width - width;
           else right = left + width;
+        }
+        if (isYouTube() && width > 340) {
+          width = 340;
+          height = width / ratio;
+          if (direction.includes("w")) left = resize.left + resize.width - width;
+          else right = left + width;
+          if (direction.includes("n")) top = resize.top + resize.height - height;
+          else bottom = top + height;
         }
         left = clamp(left, bounds.left, bounds.right - width);
         top = clamp(top, bounds.top, bounds.bottom - height);
