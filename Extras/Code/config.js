@@ -61,6 +61,17 @@ export function setDevMode(value) {
   localStorage.setItem("devMode", String(value));
 }
 
+/**
+ * Centralized developer feedback.
+ * Keep application diagnostics in config.js so feature modules do not
+ * write directly to the browser console.
+ */
+export function devLog(label, data) {
+  if (!getDevMode()) return;
+  if (data === undefined) console.log(label);
+  else console.log(label, data);
+}
+
 if (getDevMode()) console.log("🧪 Dev Mode ativo / active");
 
 // ─────────────────────────────────────────────
