@@ -3074,3 +3074,42 @@ body {
   border: 1px solid color-mix(in srgb, var(--secondary-color, #5d00ff) 65%, white 35%) !important;
   cursor: pointer !important;
 }
+
+/* Feed vertical tipo TikTok quando há mais de um link de mídia. */
+#mini-player-list {
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+}
+#mini-player-list.mini-player-tiktok-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-y;
+}
+#mini-player-list.mini-player-tiktok-stack::-webkit-scrollbar {
+  display: none;
+}
+#mini-player-list.mini-player-tiktok-stack > .mini-player-item {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+#mini-player-list.mini-player-tiktok-stack > .mini-player-item iframe {
+  width: 100% !important;
+  height: 100% !important;
+}
