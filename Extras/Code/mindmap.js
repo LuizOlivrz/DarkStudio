@@ -47,6 +47,15 @@ function getWorkspaceLanguage(label) {
 function getWorkspaceLanguageForFile(filename) {
   const extension = getFileExtension(filename);
   if (extension === "txt") return getWorkspaceLanguage("Texto");
+
+  const aliases = {
+    mjs: "JavaScript", cjs: "JavaScript", jsx: "JavaScript",
+    htm: "HTML", ts: "JavaScript", tsx: "JavaScript",
+    cmd: "Batch (BAT/CMD)", ino: "Arduino", h: "C", hpp: "C++",
+    markdown: "Markdown", bash: "Batch (BAT/CMD)",
+  };
+  const alias = aliases[extension];
+  if (alias) return getWorkspaceLanguage(alias);
   return WORKSPACE_LANGUAGES.find((item) => item.extension === extension) || null;
 }
 
@@ -90,7 +99,11 @@ function syncDetectedWorkspaceLanguage(label) {
   const node = currentEditingNode;
   if (!node || node.type === "folder" || node.languageOverride) return;
   const language = getWorkspaceLanguage(label);
-  if (language) applyLanguageToNode(node, language, false);
+  if (!language) return;
+
+  // Não redesenhe nem salve o Workspace a cada análise se a extensão já está correta.
+  if (getFileExtension(node.name) === language.extension) return;
+  applyLanguageToNode(node, language, false);
 }
 window.darkStudioWorkspaceSyncExtension = syncDetectedWorkspaceLanguage;
 
@@ -2167,6 +2180,7 @@ function ensureCurrentEditorInWorkspace() {
 
   // Se o arquivo atual já está representado no Workspace, apenas sincroniza o conteúdo.
   if (currentEditingNode && nodes.some((node) => node.id === currentEditingNode.id)) {
+    window.darkStudioWorkspaceCurrentFile = currentEditingNode;
     syncCurrentEditorToMap();
     return;
   }
@@ -2192,6 +2206,7 @@ function ensureCurrentEditorInWorkspace() {
     currentEditingNode = addNode(name, window.editor.getValue(), "text");
   }
 
+  window.darkStudioWorkspaceCurrentFile = currentEditingNode;
   updateSelectedNodeUI();
   saveState();
 }
