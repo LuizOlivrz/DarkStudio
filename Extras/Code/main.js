@@ -883,7 +883,8 @@ if (!blockWeb) {
     const editorSurface = document.getElementById("Editor");
     if (!player || !toolbar || !expandButton || !list || !editorSurface) return;
 
-    const DEFAULT = { width: 360, height: 240 };
+    // Every newly loaded mini-player starts at the smallest supported shell size.
+    const DEFAULT = { width: 120, height: 90 };
     const positionKey = "darkstudio-mini-player-position";
     const sizeKey = "darkstudio-mini-player-size";
     let restoreRect = null;
@@ -1045,8 +1046,9 @@ if (!blockWeb) {
       const savedPos = JSON.parse(localStorage.getItem(positionKey) || "null");
       const savedSize = JSON.parse(localStorage.getItem(sizeKey) || "null");
       const bounds = editorSurface.getBoundingClientRect();
-      const width = clamp(Number(savedSize?.width) || DEFAULT.width, 120, Math.max(120, bounds.width));
-      const height = clamp(Number(savedSize?.height) || DEFAULT.height, 90, Math.max(90, bounds.height));
+      // Keep the last position, but do not restore an old expanded/custom size on startup.
+      const width = clamp(DEFAULT.width, 120, Math.max(120, bounds.width));
+      const height = clamp(DEFAULT.height, 90, Math.max(90, bounds.height));
       const left = clamp(Number(savedPos?.left) || bounds.left, bounds.left, Math.max(bounds.left, bounds.right - width));
       const top = clamp(Number(savedPos?.top) || bounds.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
       setRect(left, top, width, height);
