@@ -68,6 +68,7 @@ if (!blockWeb) {
   let isTyping = false;
   let weatherKey = "loadingWeather";
   let weatherTemperature = null;
+  let detectedSiteStatusItems = [];
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -264,7 +265,7 @@ if (!blockWeb) {
   }
 
   function getAvailablePanels() {
-    return [...(isAppFullscreen() ? [getClockText] : []), getWeatherText, getUptimeText];
+    return [...(isAppFullscreen() ? [getClockText] : []), ...detectedSiteStatusItems.map((item) => () => item), getWeatherText, getUptimeText];
   }
 
   function setPanelText(text) {
@@ -470,6 +471,26 @@ if (!blockWeb) {
       localStorage.setItem("darkstudio-hide-dynamic-panel", String(dynamicPanelCheckbox.checked));
     });
     document.addEventListener("fullscreenchange", () => {
+      panelIndex = 0;
+      updateDynamicPanel();
+    });
+    window.addEventListener("darkstudio:site-analysis", (event) => {
+      const detail = event.detail || {};
+      const metadata = detail.metadata || {};
+      if (!detail.ok) {
+        let host = detail.url || "";
+        try { host = new URL(host).hostname; } catch {}
+        detectedSiteStatusItems = host ? [`Link: ${host} — metadados indisponíveis`] : [];
+      } else {
+        detectedSiteStatusItems = [
+          metadata.title && `Título: ${metadata.title}`,
+          metadata.description && `Descrição: ${metadata.description}`,
+          metadata.author && `Autor: ${metadata.author}`,
+          metadata.keywords && `Palavras-chave: ${metadata.keywords}`,
+          metadata.canonical && `Canonical: ${metadata.canonical}`,
+          metadata.ogImage && `Imagem OG: ${metadata.ogImage}`,
+        ].filter(Boolean);
+      }
       panelIndex = 0;
       updateDynamicPanel();
     });
