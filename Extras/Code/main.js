@@ -779,6 +779,128 @@ if (!blockWeb) {
     if (!player.classList.contains("collapsed") || event.target !== player) return;
     setMiniPlayersCollapsed(player, document.getElementById("mini-player-toggle"), false);
   });
+  
+  // Drag the detached mini-player by its title bar.
+  (function initMiniPlayerResize() {
+    const player = document.getElementById("mini-player");
+    const toolbar = document.getElementById("mini-player-toolbar");
+    const expandButton = document.getElementById("mini-player-expand");
+    if (!player || !toolbar || !expandButton) return;
+
+    const defaultSize = { width: 360, height: 240 };
+    let previousRect = null;
+    let activePointer = null;
+
+    expandButton.addEventListener("click", () => {
+      const expanded = player.classList.toggle("is-expanded");
+      if (expanded) {
+        previousRect = {
+          width: player.offsetWidth,
+          height: player.offsetHeight,
+          left: player.getBoundingClientRect().left,
+          top: player.getBoundingClientRect().top,
+        };
+        player.style.left = "";
+        player.style.top = "";
+        player.style.right = "";
+        player.style.bottom = "";
+        expandButton.textContent = "↙";
+        expandButton.title = "Restore mini-player size";
+        expandButton.setAttribute("aria-label", "Restore mini-player size");
+      } else {
+        player.style.position = "absolute";
+        player.style.width = `${previousRect?.width || defaultSize.width}px`;
+        player.style.height = `${previousRect?.height || defaultSize.height}px`;
+        player.style.left = "";
+        player.style.top = "";
+        player.style.right = "9px";
+        player.style.bottom = "";
+        expandButton.textContent = "⛶";
+        expandButton.title = "Expand preview into editor area";
+        expandButton.setAttribute("aria-label", "Expand preview");
+      }
+    });
+
+    toolbar.addEventListener("pointerdown", (event) => {
+      if (event.target.closest("button") || player.classList.contains("is-expanded")) return;
+      const rect = player.getBoundingClientRect();
+      activePointer = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+      player.style.position = "fixed";
+      player.style.left = `${rect.left}px`;
+      player.style.top = `${rect.top}px`;
+      player.style.right = "auto";
+      player.style.bottom = "auto";
+      toolbar.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    toolbar.addEventListener("pointermove", (event) => {
+      if (!activePointer || activePointer.id !== event.pointerId) return;
+      const x = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, activePointer.left + event.clientX - activePointer.x));
+      const y = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, activePointer.top + event.clientY - activePointer.y));
+      player.style.left = `${x}px`;
+      player.style.top = `${y}px`;
+    });
+    const stopDrag = (event) => {
+      if (activePointer?.id === event.pointerId) activePointer = null;
+    };
+    toolbar.addEventListener("pointerup", stopDrag);
+    toolbar.addEventListener("pointercancel", stopDrag);
+
+    player.querySelectorAll(".mini-player-resize-handle").forEach((handle) => {
+      handle.addEventListener("pointerdown", (event) => {
+        if (player.classList.contains("is-expanded") || player.classList.contains("collapsed")) return;
+        const rect = player.getBoundingClientRect();
+        activePointer = {
+          id: event.pointerId, mode: handle.dataset.resize, x: event.clientX, y: event.clientY,
+          left: rect.left, top: rect.top, width: rect.width, height: rect.height,
+        };
+        player.style.position = "fixed";
+        player.style.left = `${rect.left}px`;
+        player.style.top = `${rect.top}px`;
+        player.style.right = "auto";
+        player.style.bottom = "auto";
+        handle.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      handle.addEventListener("pointermove", (event) => {
+        if (!activePointer || activePointer.id !== event.pointerId || !activePointer.mode) return;
+        const dx = event.clientX - activePointer.x;
+        const dy = event.clientY - activePointer.y;
+        let { left, top, width, height } = activePointer;
+        const mode = activePointer.mode;
+        const minW = 260, minH = 170;
+        if (mode.includes("e")) width = Math.max(minW, activePointer.width + dx);
+        if (mode.includes("s")) height = Math.max(minH, activePointer.height + dy);
+        if (mode.includes("w")) { width = Math.max(minW, activePointer.width - dx); left = activePointer.left + activePointer.width - width; }
+        if (mode.includes("n")) { height = Math.max(minH, activePointer.height - dy); top = activePointer.top + activePointer.height - height; }
+        width = Math.min(width, window.innerWidth - Math.max(0, left));
+        height = Math.min(height, window.innerHeight - Math.max(0, top));
+        player.style.left = `${Math.max(0, left)}px`;
+        player.style.top = `${Math.max(0, top)}px`;
+        player.style.width = `${width}px`;
+        player.style.height = `${height}px`;
+      });
+      const stopResize = (event) => {
+        if (activePointer?.id === event.pointerId) activePointer = null;
+      };
+      handle.addEventListener("pointerup", stopResize);
+      handle.addEventListener("pointercancel", stopResize);
+    });
+
+    // Double-click the toolbar to restore the original compact dimensions.
+    toolbar.addEventListener("dblclick", () => {
+      if (player.classList.contains("is-expanded")) expandButton.click();
+      player.style.width = `${defaultSize.width}px`;
+      player.style.height = `${defaultSize.height}px`;
+      player.style.left = "";
+      player.style.top = "";
+      player.style.right = "9px";
+      player.style.bottom = "";
+      player.style.position = "absolute";
+    });
+  })();
+
 
   // ─────────────────────────────────────────────
   // 💾 File Download / Download de Arquivo
