@@ -920,7 +920,8 @@ if (!blockWeb) {
       if (!item || !editorSurface || !websiteContainer) return;
 
       const editorRect = editorSurface.getBoundingClientRect();
-      const portrait = item.classList.contains("tiktok") || /9\\s*\\/\\s*16/.test(item.style.aspectRatio || "");
+      const ratio = (item.style.aspectRatio || "").replaceAll(" ", "");
+      const portrait = item.classList.contains("tiktok") || ratio === "9/16";
       const availableWidth = Math.max(280, Math.min(editorRect.width || window.innerWidth - 40, window.innerWidth - 32));
       const availableHeight = Math.max(240, Math.min(editorRect.height || window.innerHeight - 120, window.innerHeight - 32));
       // Portrait video follows editor height; landscape video follows editor width.
