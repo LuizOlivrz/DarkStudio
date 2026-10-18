@@ -906,8 +906,18 @@ if (!blockWeb) {
       return 16 / 9;
     };
     const isExpanded = () => player.classList.contains("is-expanded");
+    const SPOTIFY_HEIGHTS = [80, 152, 352];
+    const isSpotify = () => Boolean(getMedia()?.classList.contains("spotify"));
+    const getMinHeight = () => isSpotify() ? 80 : 90;
     const getMaxHeight = (height) =>
-      getMedia()?.classList.contains("spotify") ? Math.min(height, 352) : height;
+      isSpotify() ? Math.min(height, 352) : height;
+    const snapSpotifyHeight = (height, availableHeight) => {
+      const options = SPOTIFY_HEIGHTS.filter(value => value <= availableHeight);
+      if (!options.length) return Math.max(1, availableHeight);
+      return options.reduce((closest, value) =>
+        Math.abs(value - height) < Math.abs(closest - height) ? value : closest
+      );
+    };
     const setRect = (left, top, width, height, animate = true) => {
       height = getMaxHeight(height);
       player.style.setProperty("position", "fixed", "important");
@@ -1143,8 +1153,9 @@ if (!blockWeb) {
       // Never let any edge escape the editor bounds.
       left = clamp(left, bounds.left, bounds.right - 120);
       right = clamp(right, left + 120, bounds.right);
-      top = clamp(top, bounds.top, bounds.bottom - 90);
-      bottom = clamp(bottom, top + 90, bounds.bottom);
+      const minHeight = getMinHeight();
+      top = clamp(top, bounds.top, bounds.bottom - minHeight);
+      bottom = clamp(bottom, top + minHeight, bounds.bottom);
       let width = right - left;
       let height = bottom - top;
 
@@ -1179,14 +1190,34 @@ if (!blockWeb) {
         top = clamp(top, bounds.top, bounds.bottom - height);
       }
       width = clamp(width, 120, bounds.right - left);
-      height = clamp(height, 90, bounds.bottom - top);
+      height = clamp(height, getMinHeight(), bounds.bottom - top);
       setRect(left, top, width, height, false);
       syncMiniPlayerContent(width, height);
       event.preventDefault();
     };
     const stopResize = event => {
       if (!resize || resize.id !== event.pointerId) return;
+      const finishedResize = resize;
       resize = null;
+
+      if (isSpotify()) {
+        const bounds = editorSurface.getBoundingClientRect();
+        const rect = player.getBoundingClientRect();
+        const height = snapSpotifyHeight(rect.height, bounds.height);
+        const top = finishedResize.direction.includes("n")
+          ? rect.bottom - height
+          : rect.top;
+        const safeTop = clamp(top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
+        const safeHeight = Math.min(height, bounds.bottom - safeTop);
+        setRect(
+          clamp(rect.left, bounds.left, Math.max(bounds.left, bounds.right - rect.width)),
+          safeTop,
+          rect.width,
+          safeHeight
+        );
+        syncMiniPlayerContent(rect.width, safeHeight);
+      }
+
       player.classList.remove("mini-player-resizing");
       savePosition();
       devLog("resize complete", player.getBoundingClientRect().toJSON());
