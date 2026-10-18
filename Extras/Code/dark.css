@@ -2411,3 +2411,21 @@ body {
   height: 100% !important;
   min-height: 0 !important;
 }
+
+
+/* Expanded mini-player interaction feedback and edge-resize affordances. */
+#mini-player.is-expanded-portrait,
+#mini-player.is-expanded-landscape { touch-action: none; }
+#mini-player.is-expanded-portrait.mini-player-holding,
+#mini-player.is-expanded-landscape.mini-player-holding {
+  animation: mini-player-hold-wiggle .12s ease-in-out infinite alternate !important;
+  box-shadow: 0 0 0 2px var(--secondary-color), 0 8px 28px rgba(0,0,0,.5) !important;
+}
+#mini-player.is-expanded-portrait.mini-player-dragging,
+#mini-player.is-expanded-landscape.mini-player-dragging { cursor: grabbing !important; }
+#mini-player.is-expanded-portrait.mini-player-resizing,
+#mini-player.is-expanded-landscape.mini-player-resizing { transition: none !important; }
+#mini-player.is-expanded-portrait #mini-player-list,
+#mini-player.is-expanded-landscape #mini-player-list { pointer-events: none; }
+#mini-player.is-expanded-portrait #mini-player-expand,
+#mini-player.is-expanded-landscape #mini-player-expand { pointer-events: auto; touch-action: none; }
