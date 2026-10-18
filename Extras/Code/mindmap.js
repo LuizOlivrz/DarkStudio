@@ -313,6 +313,11 @@ function applyWorkspacePan() {
   const transform = `translate(${workspacePan.x}px, ${workspacePan.y}px)`;
   if (nodeLayer) nodeLayer.style.transform = transform;
   if (svg) svg.style.transform = transform;
+  // A grade pertence ao viewport, não à camada dos nós: só a área visível é pintada.
+  if (mind) {
+    const position = `${workspacePan.x}px ${workspacePan.y}px`;
+    mind.style.backgroundPosition = `${position}, ${position}, ${position}, ${position}`;
+  }
 }
 
 // ============================================================
@@ -447,7 +452,7 @@ function setWorkspaceManagerView(enabled) {
   if (svg) svg.style.display = workspaceManagerView ? "none" : "";
   if (nodeLayer) nodeLayer.style.display = workspaceManagerView ? "none" : "";
   const detailsButton = document.getElementById("workspace-details-button");
-  if (detailsButton) detailsButton.style.display = workspaceManagerView ? "none" : "block";
+  if (detailsButton) detailsButton.style.display = mind && getComputedStyle(mind).display !== "none" ? "block" : "none";
   let panel = document.getElementById("workspace-manager-view");
   if (workspaceManagerView) {
     if (!panel) {
@@ -544,6 +549,13 @@ function injectStyles() {
       isolation: isolate;
       overflow: hidden;
       background-color: #090909;
+      background-image:
+        linear-gradient(rgba(150,150,150,.11) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(150,150,150,.11) 1px, transparent 1px),
+        linear-gradient(rgba(150,150,150,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(150,150,150,.045) 1px, transparent 1px);
+      background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+      background-position: 0 0;
     }
 
     #mindmap-svg {
@@ -561,13 +573,7 @@ function injectStyles() {
       inset: 0;
       z-index: 1;
       overflow: hidden;
-      background-image:
-        linear-gradient(rgba(150,150,150,.11) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(150,150,150,.11) 1px, transparent 1px),
-        linear-gradient(rgba(150,150,150,.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(150,150,150,.045) 1px, transparent 1px);
-      background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-      background-position: 0 0;
+      background: transparent;
     }
 
     .mm-node {
@@ -2603,7 +2609,12 @@ function wireUI() {
   const mapButton = document.getElementById("mindmap-button");
   const detailsButton = document.getElementById("workspace-details-button");
   if (detailsButton) detailsButton.style.display = "none";
-  detailsButton?.addEventListener("click", () => showWorkspaceSettings(workspaceId));
+  detailsButton?.addEventListener("click", () => {
+    const isOpen = mind && getComputedStyle(mind).display !== "none";
+    if (!isOpen) showMap();
+    closeAddMenu();
+    setWorkspaceManagerView(true);
+  });
 
   mind?.addEventListener("pointerdown", beginWorkspacePan);
 
@@ -2620,11 +2631,12 @@ function wireUI() {
     mapButton.addEventListener("click", () => {
       const isOpen = mind && getComputedStyle(mind).display !== "none";
 
-      if (isOpen) {
-        closeAddMenu();
-        setWorkspaceManagerView(!workspaceManagerView);
+      if (isOpen && !workspaceManagerView) {
+        showEditor();
       } else {
+        closeAddMenu();
         showMap();
+        setWorkspaceManagerView(false);
       }
     });
   }
