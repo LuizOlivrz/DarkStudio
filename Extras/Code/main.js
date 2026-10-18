@@ -886,8 +886,12 @@ if (!blockWeb) {
     if (!list.classList.contains("mini-player-tiktok-stack")) return;
     const items = [...list.querySelectorAll(".mini-player-item")];
     if (!items.length) return;
-    const itemHeight = Math.max(1, items[0].getBoundingClientRect().height);
-    const activeIndex = Math.max(0, Math.min(items.length - 1, Math.round(list.scrollTop / itemHeight)));
+    const listTop = list.getBoundingClientRect().top;
+    const activeIndex = items.reduce((bestIndex, item, index) => {
+      const distance = Math.abs(item.getBoundingClientRect().top - listTop);
+      const bestDistance = Math.abs(items[bestIndex].getBoundingClientRect().top - listTop);
+      return distance < bestDistance ? index : bestIndex;
+    }, 0);
     items.forEach((item, index) => {
       if (index !== activeIndex) pauseMiniPlayerItem(item);
     });
@@ -901,10 +905,15 @@ if (!blockWeb) {
     const items = [...list.querySelectorAll(".mini-player-item")];
     if (!items.length) return;
     event.preventDefault();
-    const itemHeight = Math.max(1, items[0].getBoundingClientRect().height);
-    const currentIndex = Math.round(list.scrollTop / itemHeight);
+    const listTop = list.getBoundingClientRect().top;
+    const currentIndex = items.reduce((bestIndex, item, index) => {
+      const distance = Math.abs(item.getBoundingClientRect().top - listTop);
+      const bestDistance = Math.abs(items[bestIndex].getBoundingClientRect().top - listTop);
+      return distance < bestDistance ? index : bestIndex;
+    }, 0);
     const nextIndex = Math.max(0, Math.min(items.length - 1, currentIndex + (event.deltaY > 0 ? 1 : -1)));
-    list.scrollTo({ top: nextIndex * itemHeight, behavior: "smooth" });
+    const nextItem = items[nextIndex];
+    list.scrollTo({ top: list.scrollTop + nextItem.getBoundingClientRect().top - listTop, behavior: "smooth" });
   }, { passive: false });
 
   const miniPlayerEnabledCheckbox = document.getElementById("mini-player-enabled-checkbox");
