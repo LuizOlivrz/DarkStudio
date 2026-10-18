@@ -968,6 +968,24 @@ if (!blockWeb) {
       player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
       player.classList.toggle("mini-player-resizing", !animate);
     };
+    const refreshSpotifyEmbedsForLayout = () => {
+      list.querySelectorAll(".mini-player-item.spotify iframe").forEach((iframe) => {
+        const src = iframe.getAttribute("src");
+        if (!src) return;
+        // Spotify chooses its internal compact/large layout during iframe load.
+        // Recreate only the embed on fullscreen exit so it reads the restored size.
+        const replacement = iframe.cloneNode(false);
+        replacement.setAttribute("src", src);
+        replacement.style.cssText = iframe.style.cssText;
+        for (const attr of iframe.attributes) {
+          if (attr.name !== "src" && attr.name !== "style") {
+            replacement.setAttribute(attr.name, attr.value);
+          }
+        }
+        iframe.replaceWith(replacement);
+      });
+    };
+
     const syncMiniPlayerContent = (width, height) => {
       height = getMaxHeight(height);
       const items = [...list.querySelectorAll(".mini-player-item")];
@@ -1130,6 +1148,9 @@ if (!blockWeb) {
         // Expanded Spotify is forced to 80px. Restore the iframe/item dimensions
         // immediately and once layout has settled, without reloading the track.
         syncMiniPlayerContent(restoredWidth, restoredHeight);
+        // Force Spotify to recalculate its internal compact/large layout at the
+        // restored dimensions. Spotify may restart the current embed on reload.
+        refreshSpotifyEmbedsForLayout();
         requestAnimationFrame(() => {
           if (!isExpanded()) {
             const restored = player.getBoundingClientRect();
