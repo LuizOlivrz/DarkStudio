@@ -932,6 +932,24 @@ if (!blockWeb) {
       }
       caption.classList.toggle("portrait", portrait);
       caption.classList.toggle("landscape", !portrait);
+      const messages = portrait
+        ? ["DARKSTUDIO • MINI-PLAYER", "FOQUE NO CÓDIGO • VÍDEO ATIVO", "ARRASTE PARA MOVER • CANTO PARA REDIMENSIONAR"]
+        : ["DARKSTUDIO • MINI-PLAYER", "VÍDEO ATIVO • EDITOR INDEPENDENTE", "ARRASTE PARA MOVER • CANTO PARA REDIMENSIONAR"];
+      if (!caption.dataset.rotating) {
+        caption.dataset.rotating = "true";
+        let index = 0;
+        caption.textContent = messages[index];
+        window.setInterval(() => {
+          if (!caption.isConnected || !isExpanded()) return;
+          index = (index + 1) % messages.length;
+          caption.classList.add("is-changing");
+          window.setTimeout(() => {
+            if (!caption.isConnected) return;
+            caption.textContent = messages[index];
+            caption.classList.remove("is-changing");
+          }, 140);
+        }, 2600);
+      }
     };
     const clearExpandedState = () => {
       editorSurface.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
