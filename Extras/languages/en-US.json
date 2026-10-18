@@ -74,7 +74,7 @@
   "workspaceTagPlaceholder": "Type a tag and press Enter",
   "workspaceAddTag": "Add tag",
   "workspaceRemoveTag": "Remove tag",
-  "mindMapTitle": "Workspace",
+  "mindMapTitle": "Workspaces",
   "mindMapAddTitle": "Add to Workspace",
   "mindMapConnectTitle": "Connect workspace items",
   "mindMapClearTitle": "Clear workspace",
@@ -172,5 +172,6 @@
   "inlineSummaryFallback": "The selected code was updated based on your request.",
   "resizeOptions": "Resize options width",
   "resizeEditor": "Resize editor height",
-  "resizeChat": "Resize AI chat width"
+  "resizeChat": "Resize AI chat width",
+  "manageWorkspaces": "Manage Workspaces"
 }
