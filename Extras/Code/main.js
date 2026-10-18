@@ -943,8 +943,8 @@ if (!blockWeb) {
       player.classList.toggle("is-expanded-landscape", !portrait);
       player.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
       player.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
-      player.style.setProperty("--mini-player-editor-left", Math.round(editorRect.left) + "px");
-      player.style.setProperty("--mini-player-editor-top", Math.round(editorRect.top) + "px");
+      player.style.setProperty("--mini-player-editor-left", Math.round(editorRect.left + Math.max(0, (editorRect.width - fitWidth) / 2)) + "px");
+      player.style.setProperty("--mini-player-editor-top", Math.round(editorRect.top + Math.max(0, (editorRect.height - fitHeight) / 2)) + "px");
       player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
       for (const position of (portrait ? ["left", "right"] : ["top", "bottom"])) {
         const tape = document.createElement("div");
