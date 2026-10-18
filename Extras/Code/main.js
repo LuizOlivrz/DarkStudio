@@ -906,7 +906,10 @@ if (!blockWeb) {
       return 16 / 9;
     };
     const isExpanded = () => player.classList.contains("is-expanded");
+    const getMaxHeight = (height) =>
+      getMedia()?.classList.contains("spotify") ? Math.min(height, 548) : height;
     const setRect = (left, top, width, height, animate = true) => {
+      height = getMaxHeight(height);
       player.style.setProperty("position", "fixed", "important");
       player.style.setProperty("inset", "auto", "important");
       player.style.setProperty("left", Math.round(left) + "px", "important");
@@ -922,6 +925,7 @@ if (!blockWeb) {
       player.classList.toggle("mini-player-resizing", !animate);
     };
     const syncMiniPlayerContent = (width, height) => {
+      height = getMaxHeight(height);
       const items = [...list.querySelectorAll(".mini-player-item")];
       items.forEach(item => {
         item.style.setProperty("width", "100%", "important");
