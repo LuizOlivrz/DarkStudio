@@ -907,7 +907,7 @@ if (!blockWeb) {
     };
     const isExpanded = () => player.classList.contains("is-expanded");
     const getMaxHeight = (height) =>
-      getMedia()?.classList.contains("spotify") ? Math.min(height, 548) : height;
+      getMedia()?.classList.contains("spotify") ? Math.min(height, 352) : height;
     const setRect = (left, top, width, height, animate = true) => {
       height = getMaxHeight(height);
       player.style.setProperty("position", "fixed", "important");
