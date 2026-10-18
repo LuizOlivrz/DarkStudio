@@ -314,6 +314,24 @@
         <textarea id="input" placeholder="Type your message..." data-i18n-placeholder="chatPlaceholder"></textarea>
         <button id="send" data-i18n="send">Send</button>
       </div>
+
+      <section id="link-reader" aria-labelledby="link-reader-heading">
+        <h2 id="link-reader-heading">Link Reader <span>no AI</span></h2>
+        <form id="link-reader-form">
+          <label for="link-reader-url">Read content from a URL</label>
+          <div class="link-reader-controls">
+            <input id="link-reader-url" type="url" inputmode="url" placeholder="https://example.com or a GitHub link" autocomplete="url" required />
+            <button id="link-reader-submit" type="submit">Read link</button>
+          </div>
+        </form>
+        <p id="link-reader-status" role="status" aria-live="polite">Paste a public link to extract its readable content.</p>
+        <div id="link-reader-result" hidden>
+          <h3 id="link-reader-title"></h3>
+          <p id="link-reader-source"></p>
+          <pre id="link-reader-content" tabindex="0"></pre>
+          <button id="link-reader-copy" type="button">Copy content</button>
+        </div>
+      </section>
     </div>
 
     <div id="inline-chat">
@@ -357,6 +375,7 @@
     <!-- ====== MAIN SCRIPTS / SCRIPTS PRINCIPAIS ====== -->
     <script src="Extras/Code/config.js" type="module"></script>
     <script src="Extras/Code/mindmap.js" type="module"></script>
+    <script src="Extras/Code/link-reader.js" type="module"></script>
   </div>
 </body>
 
