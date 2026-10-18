@@ -867,250 +867,240 @@ if (!blockWeb) {
     setMiniPlayersCollapsed(player, document.getElementById("mini-player-toggle"), false);
   });
   
-  // Move the mini-player without resizing; keep its position across media changes and reloads.
+  // Mini-player geometry: isolate player layout from the app grid and AI panel.
   (function initMiniPlayerMovement() {
     const player = document.getElementById("mini-player");
     const toolbar = document.getElementById("mini-player-toolbar");
     const expandButton = document.getElementById("mini-player-expand");
-    if (!player || !toolbar || !expandButton) return;
-
-    const defaultSize = { width: 360, height: 240 };
-    let previousRect = null;
-    let activePointer = null;
-    let holdTimer = null;
-    let expandLongPress = null;
-    let suppressExpandClick = false;
-    const positionKey = "darkstudio-mini-player-position";
-
-    function restorePosition() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(positionKey) || "null");
-        if (!saved || !Number.isFinite(saved.left) || !Number.isFinite(saved.top)) return;
-        player.style.position = "fixed";
-        player.style.left = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, saved.left)) + "px";
-        player.style.top = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, saved.top)) + "px";
-        player.style.right = "auto";
-        player.style.bottom = "auto";
-      } catch {}
-    }
-    function savePosition() {
-      const rect = player.getBoundingClientRect();
-      try { localStorage.setItem(positionKey, JSON.stringify({ left: rect.left, top: rect.top })); } catch {}
-    }
-
-    restorePosition();
-
-    const websiteContainer = document.getElementById("Website-Container");
+    const list = document.getElementById("mini-player-list");
     const editorSurface = document.getElementById("Editor");
+    if (!player || !toolbar || !expandButton || !list || !editorSurface) return;
 
-    function clearEditorFit() {
-      websiteContainer?.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
-      websiteContainer?.style.removeProperty("--mini-player-fit-width");
-      websiteContainer?.style.removeProperty("--mini-player-fit-height");
-      editorSurface?.style.removeProperty("--mini-player-fit-width");
-      editorSurface?.style.removeProperty("--mini-player-fit-height");
-      editorSurface?.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
-      player.classList.remove("is-expanded-portrait", "is-expanded-landscape");
-      player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
-    }
+    const DEFAULT = { width: 360, height: 240 };
+    const positionKey = "darkstudio-mini-player-position";
+    const sizeKey = "darkstudio-mini-player-size";
+    let restoreRect = null;
+    let drag = null;
+    let resize = null;
+    let suppressClick = false;
 
-    function fitEditorToVideo() {
-      if (!player.classList.contains("is-expanded")) return;
-      const list = player.querySelector("#mini-player-list");
-      const items = [...(list?.querySelectorAll(".mini-player-item") || [])];
-      const item = items[0];
-      if (!item || !editorSurface || !websiteContainer) return;
-
+    const devLog = (label, data = {}) => {
+      if (getDevMode()) console.debug("[DarkStudio MiniPlayer]", label, data);
+    };
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const getMedia = () => list.querySelector(".mini-player-item");
+    const getRatio = (item) => {
+      if (!item) return 16 / 9;
+      const raw = (item.style.aspectRatio || "").replace(/\s/g, "");
+      if (item.classList.contains("tiktok") || raw === "9/16") return 9 / 16;
+      if (item.classList.contains("spotify")) return 1;
+      if (raw && raw.includes("/")) {
+        const [w, h] = raw.split("/").map(Number);
+        if (w > 0 && h > 0) return w / h;
+      }
+      return 16 / 9;
+    };
+    const isExpanded = () => player.classList.contains("is-expanded");
+    const setRect = (left, top, width, height, animate = true) => {
+      player.style.position = "fixed";
+      player.style.inset = "auto";
+      player.style.left = Math.round(left) + "px";
+      player.style.top = Math.round(top) + "px";
+      player.style.right = "auto";
+      player.style.bottom = "auto";
+      player.style.width = Math.round(width) + "px";
+      player.style.height = Math.round(height) + "px";
+      player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
+      player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+      player.classList.toggle("mini-player-resizing", !animate);
+    };
+    const savePosition = () => {
+      const r = player.getBoundingClientRect();
+      try {
+        localStorage.setItem(positionKey, JSON.stringify({ left: r.left, top: r.top }));
+        localStorage.setItem(sizeKey, JSON.stringify({ width: r.width, height: r.height }));
+      } catch {}
+    };
+    const addCaption = (portrait) => {
+      let caption = player.querySelector(".mini-player-orientation-caption");
+      if (!caption) {
+        caption = document.createElement("div");
+        caption.className = "mini-player-orientation-caption";
+        caption.setAttribute("aria-live", "polite");
+        caption.textContent = "DARKSTUDIO • MINI-PLAYER";
+        player.appendChild(caption);
+      }
+      caption.classList.toggle("portrait", portrait);
+      caption.classList.toggle("landscape", !portrait);
+    };
+    const clearExpandedState = () => {
+      editorSurface.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
+      editorSurface.style.removeProperty("--mini-player-fit-width");
+      editorSurface.style.removeProperty("--mini-player-fit-height");
+      player.classList.remove("is-expanded-portrait", "is-expanded-landscape", "mini-player-resizing");
+      player.querySelector(".mini-player-orientation-caption")?.remove();
+      player.querySelectorAll(".mini-player-caution-tape").forEach(el => el.remove());
+    };
+    const fitExpandedPlayer = () => {
+      if (!isExpanded()) return;
+      const item = getMedia();
+      if (!item) return;
+      const ratio = getRatio(item);
+      const portrait = ratio < 1;
+      // Use the editor's visible rectangle as a reference only. Never change Website-Container
+      // or its grid tracks: options/chat keep their own columns and cannot be pushed around.
       const editorRect = editorSurface.getBoundingClientRect();
-      const ratio = (item.style.aspectRatio || "").replaceAll(" ", "");
-      const portrait = item.classList.contains("tiktok") || ratio === "9/16";
-      const availableWidth = Math.max(280, Math.min(editorRect.width || window.innerWidth - 40, window.innerWidth - 32));
-      const availableHeight = Math.max(240, Math.min(editorRect.height || window.innerHeight - 120, window.innerHeight - 32));
-      // Portrait video follows editor height; landscape video follows editor width.
-      const fitHeight = portrait ? availableHeight : Math.min(availableHeight, availableWidth * 9 / 16);
-      const fitWidth = portrait ? Math.min(availableWidth, fitHeight * 9 / 16) : Math.min(availableWidth, fitHeight * 16 / 9);
-      const left = editorRect.left + (editorRect.width - fitWidth) / 2;
-      const top = editorRect.top + (editorRect.height - fitHeight) / 2;
+      const bounds = {
+        left: Math.max(8, editorRect.left),
+        top: Math.max(8, editorRect.top),
+        width: Math.max(240, Math.min(editorRect.width || window.innerWidth - 32, window.innerWidth - 16)),
+        height: Math.max(180, Math.min(editorRect.height || window.innerHeight - 100, window.innerHeight - 16))
+      };
+      const preferredWidth = portrait ? Math.min(bounds.width, bounds.height * ratio) : bounds.width;
+      const preferredHeight = preferredWidth / ratio;
+      const width = Math.max(180, Math.min(preferredWidth, bounds.width, bounds.height * ratio));
+      const height = width / ratio;
+      const left = clamp(bounds.left + (bounds.width - width) / 2, 8, window.innerWidth - width - 8);
+      const top = clamp(bounds.top + (bounds.height - height) / 2, 8, window.innerHeight - height - 8);
 
-      editorSurface.classList.toggle("mini-player-fit-portrait", portrait);
-      editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
-      editorSurface.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
-      editorSurface.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
       player.classList.toggle("is-expanded-portrait", portrait);
       player.classList.toggle("is-expanded-landscape", !portrait);
-      player.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
-      player.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
-      player.style.setProperty("--mini-player-editor-left", Math.round(Math.max(8, left)) + "px");
-      player.style.setProperty("--mini-player-editor-top", Math.round(Math.max(8, top)) + "px");
-      player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
-      for (const position of (portrait ? ["left", "right"] : ["top", "bottom"])) {
-        const tape = document.createElement("div");
-        tape.className = "mini-player-caution-tape " + position;
-        tape.setAttribute("aria-hidden", "true");
-        tape.textContent = "⚠ VOCÊ ESTÁ NO MODO MINI-PLAYER! FOQUE NO CÓDIGO... ⚠ ";
-        player.appendChild(tape);
-      }
-    }
+      editorSurface.classList.toggle("mini-player-fit-portrait", portrait);
+      editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
+      editorSurface.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
+      editorSurface.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+      setRect(left, top, width, height);
+      addCaption(portrait);
+      devLog("layout expanded", {
+        media: item.className, portrait, ratio, editor: { width: Math.round(editorRect.width), height: Math.round(editorRect.height) },
+        player: { left: Math.round(left), top: Math.round(top), width: Math.round(width), height: Math.round(height) }
+      });
+    };
+
+    try {
+      const savedPos = JSON.parse(localStorage.getItem(positionKey) || "null");
+      const savedSize = JSON.parse(localStorage.getItem(sizeKey) || "null");
+      const width = clamp(Number(savedSize?.width) || DEFAULT.width, 220, window.innerWidth - 16);
+      const height = clamp(Number(savedSize?.height) || DEFAULT.height, 150, window.innerHeight - 16);
+      const left = clamp(Number(savedPos?.left) || 20, 0, window.innerWidth - width);
+      const top = clamp(Number(savedPos?.top) || 90, 0, window.innerHeight - height);
+      setRect(left, top, width, height);
+    } catch {}
 
     expandButton.addEventListener("click", () => {
-      if (suppressExpandClick) { suppressExpandClick = false; return; }
-      const wasExpanded = player.classList.contains("is-expanded");
-      if (!wasExpanded) {
-        const before = player.getBoundingClientRect();
-        previousRect = { width: before.width || defaultSize.width, height: before.height || defaultSize.height, left: before.left, top: before.top };
-      }
-      const expanded = player.classList.toggle("is-expanded");
-      if (expanded) {
-        player.style.left = "";
-        player.style.top = "";
-        player.style.right = "";
-        player.style.bottom = "";
-        player.style.position = "";
-        player.style.width = "";
-        player.style.height = "";
+      if (suppressClick) { suppressClick = false; return; }
+      if (!isExpanded()) {
+        const r = player.getBoundingClientRect();
+        restoreRect = { left: r.left, top: r.top, width: r.width, height: r.height };
+        player.classList.add("is-expanded");
         expandButton.textContent = "↙";
-        expandButton.title = "Restore mini-player";
-        expandButton.setAttribute("aria-label", "Restore mini-player");
-        requestAnimationFrame(fitEditorToVideo);
+        expandButton.title = "Restaurar mini-player";
+        expandButton.setAttribute("aria-label", "Restaurar mini-player");
+        requestAnimationFrame(() => requestAnimationFrame(fitExpandedPlayer));
       } else {
-        clearEditorFit();
-        player.style.position = "fixed";
-        player.style.removeProperty("--mini-player-fit-width");
-        player.style.removeProperty("--mini-player-fit-height");
-        player.style.width = (previousRect?.width || defaultSize.width) + "px";
-        player.style.height = (previousRect?.height || defaultSize.height) + "px";
-        player.style.left = Math.max(0, previousRect?.left ?? 20) + "px";
-        player.style.top = Math.max(0, previousRect?.top ?? 20) + "px";
-        player.style.right = "auto";
-        player.style.bottom = "auto";
+        clearExpandedState();
+        player.classList.remove("is-expanded");
+        const r = restoreRect || { left: 20, top: 90, ...DEFAULT };
+        setRect(clamp(r.left, 0, window.innerWidth-r.width), clamp(r.top, 0, window.innerHeight-r.height), r.width, r.height);
         expandButton.textContent = "⛶";
-        expandButton.title = "Expand preview into editor area";
-        expandButton.setAttribute("aria-label", "Expand preview");
+        expandButton.title = "Expandir mini-player";
+        expandButton.setAttribute("aria-label", "Expandir mini-player");
         savePosition();
+        devLog("layout restored", player.getBoundingClientRect().toJSON());
       }
     });
 
-    window.addEventListener("resize", () => {
-      if (player.classList.contains("is-expanded")) fitEditorToVideo();
-    });
-
-    // Drag the expanded preview directly by its expand/restore button.
-    expandButton.style.touchAction = "none";
-    expandButton.addEventListener("pointerdown", (event) => {
-      if (!player.classList.contains("is-expanded") || event.button !== 0) return;
-      const rect = player.getBoundingClientRect();
-      expandLongPress = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false };
-      try { expandButton.setPointerCapture(event.pointerId); } catch (_) {}
+    // Drag from toolbar in floating mode; in expanded mode drag via the expand button.
+    const startDrag = (event, handle) => {
+      if (event.button !== 0 || event.target.closest("button") && handle === toolbar) return;
+      if (handle === toolbar && isExpanded()) return;
+      const r = player.getBoundingClientRect();
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: r.left, top: r.top, handle };
+      handle.setPointerCapture?.(event.pointerId);
+      handle.style.touchAction = "none";
       event.preventDefault();
-    });
-    expandButton.addEventListener("pointermove", (event) => {
-      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
-      const dx = event.clientX - expandLongPress.x;
-      const dy = event.clientY - expandLongPress.y;
-      if (Math.abs(dx) + Math.abs(dy) > 3) {
-        expandLongPress.moved = true;
-        suppressExpandClick = true;
-        const rect = player.getBoundingClientRect();
-        const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, expandLongPress.left + dx));
-        const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, expandLongPress.top + dy));
+    };
+    const moveDrag = (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 3) suppressClick = true;
+      const r = player.getBoundingClientRect();
+      const left = clamp(drag.left + dx, 8, window.innerWidth - r.width - 8);
+      const top = clamp(drag.top + dy, 8, window.innerHeight - r.height - 8);
+      if (isExpanded()) {
         player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
         player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
       }
-    });
-    const stopExpandDrag = (event) => {
-      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
-      if (expandLongPress.moved) setTimeout(() => { suppressExpandClick = false; }, 50);
-      expandLongPress = null;
+      setRect(left, top, r.width, r.height, false);
+      event.preventDefault();
     };
-    expandButton.addEventListener("pointerup", stopExpandDrag);
-    expandButton.addEventListener("pointercancel", stopExpandDrag);
-
-    // Resize from any edge/corner while keeping the media aspect ratio.
-    let resizeState = null;
-    player.addEventListener("pointerdown", (event) => {
-      if (!player.classList.contains("is-expanded")) return;
-      if (event.target.closest("#mini-player-expand, #mini-player-toolbar, iframe, button, a")) return;
-      const rect = player.getBoundingClientRect();
-      const edge = 16;
-      const right = rect.right - event.clientX <= edge;
-      const bottom = rect.bottom - event.clientY <= edge;
-      const left = event.clientX - rect.left <= edge;
-      const top = event.clientY - rect.top <= edge;
-      if (!(right || bottom || left || top)) return;
-      const item = player.querySelector("#mini-player-list .mini-player-item");
-      const ratioText = (item?.style.aspectRatio || "").replaceAll(" ", "");
-      const portrait = item?.classList.contains("tiktok") || ratioText === "9/16";
-      const ratio = portrait ? 9 / 16 : rect.width / Math.max(1, rect.height);
-      resizeState = { id: event.pointerId, x: event.clientX, y: event.clientY, rect, ratio, left, top };
-      try { player.setPointerCapture(event.pointerId); } catch (_) {}
-      player.classList.add("mini-player-resizing");
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    player.addEventListener("pointermove", (event) => {
-      if (!resizeState || resizeState.id !== event.pointerId) return;
-      const dx = event.clientX - resizeState.x;
-      const dy = event.clientY - resizeState.y;
-      let width = Math.abs(dx) > Math.abs(dy * resizeState.ratio) ? resizeState.rect.width + (resizeState.left ? -dx : dx) : resizeState.rect.width + (resizeState.top ? -dy * resizeState.ratio : dy * resizeState.ratio);
-      width = Math.max(220, Math.min(window.innerWidth - 16, width));
-      const height = width / resizeState.ratio;
-      const left = resizeState.left ? resizeState.rect.right - width : resizeState.rect.left;
-      const top = resizeState.top ? resizeState.rect.bottom - height : resizeState.rect.top;
-      player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
-      player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
-      player.style.setProperty("--mini-player-editor-left", Math.round(Math.max(8, Math.min(window.innerWidth - width - 8, left))) + "px");
-      player.style.setProperty("--mini-player-editor-top", Math.round(Math.max(8, Math.min(window.innerHeight - height - 8, top))) + "px");
-      event.preventDefault();
-    });
-    const finishResize = (event) => {
-      if (!resizeState || resizeState.id !== event.pointerId) return;
-      resizeState = null;
+    const endDrag = (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      drag = null;
       player.classList.remove("mini-player-resizing");
+      savePosition();
+      if (suppressClick) window.setTimeout(() => { suppressClick = false; }, 80);
     };
-    player.addEventListener("pointerup", finishResize);
-    player.addEventListener("pointercancel", finishResize);
+    toolbar.addEventListener("pointerdown", e => startDrag(e, toolbar));
+    toolbar.addEventListener("pointermove", moveDrag);
+    toolbar.addEventListener("pointerup", endDrag);
+    toolbar.addEventListener("pointercancel", endDrag);
+    expandButton.addEventListener("pointerdown", e => {
+      if (isExpanded()) startDrag(e, expandButton);
+    });
+    expandButton.addEventListener("pointermove", moveDrag);
+    expandButton.addEventListener("pointerup", endDrag);
+    expandButton.addEventListener("pointercancel", endDrag);
 
-    toolbar.style.cursor = "grab";
-    toolbar.addEventListener("pointerdown", (event) => {
-      if (event.target.closest("button") || player.classList.contains("is-expanded")) return;
-      const rect = player.getBoundingClientRect();
-      activePointer = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
-      clearTimeout(holdTimer);
-      holdTimer = setTimeout(() => player.classList.add("mini-player-holding"), 320);
-      player.style.position = "fixed";
-      player.style.left = rect.left + "px";
-      player.style.top = rect.top + "px";
-      player.style.right = "auto";
-      player.style.bottom = "auto";
-      toolbar.style.cursor = "grabbing";
-      toolbar.setPointerCapture(event.pointerId);
-      event.preventDefault();
-    });
-    toolbar.addEventListener("pointermove", (event) => {
-      if (!activePointer || activePointer.id !== event.pointerId) return;
-      if (Math.abs(event.clientX - activePointer.x) + Math.abs(event.clientY - activePointer.y) > 5) clearTimeout(holdTimer);
-      const x = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, activePointer.left + event.clientX - activePointer.x));
-      const y = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, activePointer.top + event.clientY - activePointer.y));
-      player.style.left = x + "px";
-      player.style.top = y + "px";
-    });
-    const stopDrag = (event) => {
-      if (activePointer?.id !== event.pointerId) return;
-      activePointer = null;
-      clearTimeout(holdTimer);
-      player.classList.remove("mini-player-holding");
-      toolbar.style.cursor = "grab";
-      savePosition();
-    };
-    toolbar.addEventListener("pointerup", stopDrag);
-    toolbar.addEventListener("pointercancel", stopDrag);
+    // One corner handle resizes both dimensions and preserves the media ratio.
+    const resizeHandle = player.querySelector('.mini-player-resize-handle[data-resize="se"]');
+    if (resizeHandle) {
+      resizeHandle.addEventListener("pointerdown", event => {
+        const r = player.getBoundingClientRect();
+        const item = getMedia();
+        resize = { id: event.pointerId, x: event.clientX, y: event.clientY, width: r.width, ratio: getRatio(item), left: r.left, top: r.top };
+        resizeHandle.setPointerCapture?.(event.pointerId);
+        player.classList.add("mini-player-resizing");
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      resizeHandle.addEventListener("pointermove", event => {
+        if (!resize || resize.id !== event.pointerId) return;
+        const dx = event.clientX - resize.x, dy = event.clientY - resize.y;
+        const ratio = resize.ratio;
+        const delta = Math.abs(dx) >= Math.abs(dy * ratio) ? dx : dy * ratio;
+        const maxW = Math.min(window.innerWidth - resize.left - 8, (window.innerHeight - resize.top - 8) * ratio);
+        const width = clamp(resize.width + delta, 180, Math.max(180, maxW));
+        const height = width / ratio;
+        setRect(resize.left, resize.top, width, height, false);
+        if (isExpanded()) {
+          editorSurface.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
+          editorSurface.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+        }
+        event.preventDefault();
+      });
+      const stopResize = event => {
+        if (!resize || resize.id !== event.pointerId) return;
+        resize = null;
+        player.classList.remove("mini-player-resizing");
+        savePosition();
+        devLog("resize complete", player.getBoundingClientRect().toJSON());
+      };
+      resizeHandle.addEventListener("pointerup", stopResize);
+      resizeHandle.addEventListener("pointercancel", stopResize);
+    }
+
+    // Recompute only on viewport/media changes, not on every AI panel/grid mutation.
     window.addEventListener("resize", () => {
-      if (player.classList.contains("is-expanded")) return;
-      const rect = player.getBoundingClientRect();
-      player.style.left = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, rect.left)) + "px";
-      player.style.top = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, rect.top)) + "px";
-      savePosition();
+      if (isExpanded()) fitExpandedPlayer();
+      else {
+        const r = player.getBoundingClientRect();
+        setRect(clamp(r.left, 0, window.innerWidth-r.width), clamp(r.top, 0, window.innerHeight-r.height), Math.min(r.width, window.innerWidth-16), Math.min(r.height, window.innerHeight-16));
+      }
     });
+    new ResizeObserver(() => {
+      if (isExpanded()) fitExpandedPlayer();
+    }).observe(editorSurface);
   })();
 
 
