@@ -670,6 +670,8 @@ if (!blockWeb) {
     const list = document.getElementById("mini-player-list");
     const toggle = document.getElementById("mini-player-toggle");
     if (!player || !list) return;
+    const enabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
+    player.hidden = !enabled;
 
     const text = typeof code === "string" ? code.trim() : "";
     // URLs are also found inside pasted iframe/embed HTML (src="...").
@@ -763,6 +765,7 @@ if (!blockWeb) {
       }
     }
 
+    list.classList.toggle("mini-player-tiktok-stack", embeds.length > 1 && embeds.every(embed => embed.type === "tiktok"));
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
@@ -786,10 +789,27 @@ if (!blockWeb) {
       return item;
     }));
 
-    player.classList.toggle("visible", embeds.length > 0);
-    if (toggle) toggle.hidden = embeds.length === 0;
+    const playersEnabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
+    player.hidden = !playersEnabled;
+    player.classList.toggle("visible", playersEnabled && embeds.length > 0);
+    if (toggle) toggle.hidden = !playersEnabled || embeds.length === 0;
     player.dataset.pendingWebsite = websiteUrl;
     if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
+  }
+
+  const miniPlayerEnabledCheckbox = document.getElementById("mini-player-enabled-checkbox");
+  if (miniPlayerEnabledCheckbox) {
+    miniPlayerEnabledCheckbox.checked = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
+    miniPlayerEnabledCheckbox.addEventListener("change", () => {
+      localStorage.setItem("darkstudio-mini-players-enabled", String(miniPlayerEnabledCheckbox.checked));
+      const player = document.getElementById("mini-player");
+      const toggle = document.getElementById("mini-player-toggle");
+      if (player) {
+        player.hidden = !miniPlayerEnabledCheckbox.checked;
+        player.classList.toggle("visible", miniPlayerEnabledCheckbox.checked && Boolean(player.querySelector("iframe")));
+      }
+      if (toggle) toggle.hidden = !miniPlayerEnabledCheckbox.checked || !Boolean(player?.querySelector("iframe"));
+    });
   }
 
   document.getElementById("mini-player-toggle")?.addEventListener("click", (event) => {
@@ -826,6 +846,7 @@ if (!blockWeb) {
     const defaultSize = { width: 360, height: 240 };
     let previousRect = null;
     let activePointer = null;
+    let holdTimer = null;
     const positionKey = "darkstudio-mini-player-position";
 
     function restorePosition() {
@@ -882,6 +903,8 @@ if (!blockWeb) {
       if (event.target.closest("button") || player.classList.contains("is-expanded")) return;
       const rect = player.getBoundingClientRect();
       activePointer = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => player.classList.add("mini-player-holding"), 320);
       player.style.position = "fixed";
       player.style.left = rect.left + "px";
       player.style.top = rect.top + "px";
@@ -893,6 +916,7 @@ if (!blockWeb) {
     });
     toolbar.addEventListener("pointermove", (event) => {
       if (!activePointer || activePointer.id !== event.pointerId) return;
+      if (Math.abs(event.clientX - activePointer.x) + Math.abs(event.clientY - activePointer.y) > 5) clearTimeout(holdTimer);
       const x = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, activePointer.left + event.clientX - activePointer.x));
       const y = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, activePointer.top + event.clientY - activePointer.y));
       player.style.left = x + "px";
@@ -901,6 +925,8 @@ if (!blockWeb) {
     const stopDrag = (event) => {
       if (activePointer?.id !== event.pointerId) return;
       activePointer = null;
+      clearTimeout(holdTimer);
+      player.classList.remove("mini-player-holding");
       toolbar.style.cursor = "grab";
       savePosition();
     };
