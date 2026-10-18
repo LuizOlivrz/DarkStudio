@@ -27,6 +27,7 @@ import {
   getDevice,
   EXECUTOR_CONFIG,
   loadLanguage,
+  devLog,
   getCurrentLanguage,
 } from "./config.js";
 
@@ -770,8 +771,10 @@ if (!blockWeb) {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
       if (embed.ratio) item.style.aspectRatio = embed.ratio;
-      if (embed.width) item.style.width = embed.width + "px";
-      if (embed.height && embed.type !== "spotify") item.style.height = embed.height + "px";
+      // The player controls the item size. Do not freeze each media card to its
+      // provider's default dimensions, otherwise resizing only changes the shell.
+      item.style.width = "100%";
+      item.style.height = embed.type === "spotify" ? (embed.height ? embed.height + "px" : "152px") : "auto";
       item.style.flex = "0 0 auto";
       const iframe = document.createElement("iframe");
       iframe.src = embed.src;
@@ -779,7 +782,6 @@ if (!blockWeb) {
       iframe.loading = "lazy";
       iframe.referrerPolicy = embed.type === "youtube" ? "strict-origin-when-cross-origin" : "strict-origin-when-cross-origin";
       iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share";
-      iframe.allowFullscreen = true;
       if (embed.height) iframe.style.height = embed.height + "px";
       iframe.style.width = "100%";
       iframe.style.height = "100%";
@@ -793,6 +795,8 @@ if (!blockWeb) {
     player.hidden = !playersEnabled;
     player.classList.toggle("visible", playersEnabled && embeds.length > 0);
     if (toggle) toggle.hidden = !playersEnabled || embeds.length === 0;
+    syncMiniPlayerContent(player.getBoundingClientRect().width, player.getBoundingClientRect().height);
+    if (isExpanded()) requestAnimationFrame(() => requestAnimationFrame(fitExpandedPlayer));
     player.dataset.pendingWebsite = websiteUrl;
     if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
   }
@@ -884,9 +888,6 @@ if (!blockWeb) {
     let resize = null;
     let suppressClick = false;
 
-    const devLog = (label, data = {}) => {
-      if (getDevMode()) console.debug("[DarkStudio MiniPlayer]", label, data);
-    };
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     const getMedia = () => list.querySelector(".mini-player-item");
     const getRatio = (item) => {
@@ -913,6 +914,18 @@ if (!blockWeb) {
       player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
       player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
       player.classList.toggle("mini-player-resizing", !animate);
+    };
+    const syncMiniPlayerContent = (width, height) => {
+      const items = [...list.querySelectorAll(".mini-player-item")];
+      items.forEach(item => {
+        item.style.width = "100%";
+        if (!item.classList.contains("spotify")) {
+          item.style.height = "auto";
+          item.style.aspectRatio = item.style.aspectRatio || "16 / 9";
+        }
+      });
+      player.style.setProperty("--mini-player-content-width", Math.round(width) + "px");
+      player.style.setProperty("--mini-player-content-height", Math.round(height) + "px");
     };
     const savePosition = () => {
       const r = player.getBoundingClientRect();
@@ -1094,6 +1107,7 @@ if (!blockWeb) {
         const width = clamp(resize.width + delta, 180, Math.max(180, maxW));
         const height = width / ratio;
         setRect(resize.left, resize.top, width, height, false);
+        syncMiniPlayerContent(width, height);
         event.preventDefault();
       };
       const stopResize = event => {
