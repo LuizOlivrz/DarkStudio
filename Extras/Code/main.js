@@ -1136,14 +1136,19 @@ if (!blockWeb) {
       const bounds = getEditorBounds();
       const rect = player.getBoundingClientRect();
       const toolbarHeight = toolbar.getBoundingClientRect().height || 30;
-      const edgeTolerance = 28;
-      const touchesTop = rect.top <= bounds.top + edgeTolerance;
-      const roomAbove = rect.top - bounds.top >= toolbarHeight + 4;
-      // Prefer the top of the video, except when the editor's top edge is reached
-      // or there is not enough room above it; bottom-aligned videos therefore show it above.
-      const placeAbove = !touchesTop && roomAbove;
+      const gap = 6;
+      const requiredSpace = toolbarHeight + gap;
+      const roomAbove = rect.top - bounds.top >= requiredSpace;
+      const roomBelow = bounds.bottom - rect.bottom >= requiredSpace;
+
+      // Keep the toolbar fully outside the video, with a small visual gap.
+      // Prefer above; use below when above does not fit. Never cover the video.
+      const placeAbove = roomAbove;
+      const placeBelow = !roomAbove && roomBelow;
+      const canPlace = placeAbove || placeBelow;
       player.classList.toggle("mini-player-toolbar-above", placeAbove);
-      player.classList.toggle("mini-player-toolbar-below", !placeAbove);
+      player.classList.toggle("mini-player-toolbar-below", placeBelow);
+      player.classList.toggle("mini-player-toolbar-hidden", !canPlace);
     };
     const fitExpandedPlayer = () => {
       if (!isExpanded()) return;
