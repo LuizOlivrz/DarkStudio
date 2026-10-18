@@ -1304,7 +1304,25 @@ if (!blockWeb) {
         left = clamp(left, bounds.left, bounds.right - width);
         top = clamp(top, bounds.top, bounds.bottom - height);
       }
-      width = clamp(width, Math.min(150, bounds.width), bounds.right - left);
+      if (resize.free) {
+        // Calculate Spotify width directly from pointer movement. This avoids
+        // fixed embed dimensions interfering with edge/corner resizing.
+        const minWidth = Math.min(150, bounds.right - bounds.left);
+        if (direction.includes("w")) {
+          width = clamp(resize.width - dx, minWidth, resize.left + resize.width - bounds.left);
+          left = resize.left + resize.width - width;
+        } else if (direction.includes("e")) {
+          width = clamp(resize.width + dx, minWidth, bounds.right - resize.left);
+          left = resize.left;
+        } else {
+          width = resize.width;
+          left = resize.left;
+        }
+        left = clamp(left, bounds.left, bounds.right - width);
+      } else {
+        width = clamp(width, Math.min(150, bounds.width), bounds.right - left);
+      }
+
       height = clamp(height, getMinHeight(), bounds.bottom - top);
       if (isSpotify()) {
         height = snapSpotifyHeight(height, bounds.bottom - top);
