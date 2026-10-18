@@ -2919,12 +2919,13 @@ body {
 
 /* Reliable minimum geometry and TikTok-style vertical navigation for all media feeds. */
 #mini-player:not(.collapsed):not(.is-expanded) {
-  min-width: 120px !important;
+  min-width: 150px !important;
   min-height: 90px !important;
   box-sizing: border-box !important;
 }
 #mini-player:not(.collapsed):not(.is-expanded).has-spotify-media {
   min-height: 80px !important;
+  min-width: 150px !important;
 }
 #mini-player-list.mini-player-tiktok-stack {
   display: flex !important;
