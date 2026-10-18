@@ -492,8 +492,20 @@ function renderWorkspaceManager() {
       Object.assign(deleteButton.style, { marginTop: "7px", width: "100%", padding: "8px", borderRadius: "6px", opacity: ".8" });
       deleteButton.addEventListener("click", () => {
         if (!confirm(tr("workspaceDeleteConfirm").replace("{name}", item.name || ""))) return;
-        const remaining = readWorkspaceRegistry().filter((entry) => entry.id !== item.id); localStorage.setItem(WORKSPACES_KEY, JSON.stringify(remaining));
-        if (item.id === workspaceId) activateWorkspace(remaining[0].id); else renderWorkspaceManager();
+        const remaining = readWorkspaceRegistry().filter((entry) => entry.id !== item.id);
+        localStorage.setItem(WORKSPACES_KEY, JSON.stringify(remaining));
+        if (item.id === workspaceId) {
+          const next = remaining[0];
+          workspaceId = next.id;
+          localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+          normalizeWorkspaceData(next);
+          currentEditingNode = null;
+          connectMode = false;
+          connectSource = null;
+          applyWorkspacePan();
+          saveState();
+        }
+        renderWorkspaceManager();
       }); card.appendChild(deleteButton);
     }
     list.appendChild(card);
@@ -2309,6 +2321,10 @@ function openNodeInEditor(node) {
 
 function showEditor() {
   setWorkspaceManagerView(false);
+  const switcher = document.getElementById("workspace-switcher-button");
+  const details = document.getElementById("workspace-details-button");
+  if (switcher) switcher.style.display = "none";
+  if (details) details.style.display = "none";
   document.getElementById("Website-Container")?.classList.remove("extensions-active");
   const extensionsPanel = document.getElementById("extensions-panel");
   if (extensionsPanel) extensionsPanel.hidden = true;
