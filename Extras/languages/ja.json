@@ -175,5 +175,6 @@
   "resizeChat": "Resize AI chat width",
   "addEditorContent": "現在のエディター内容を追加",
   "editorContentFileName": "エディター内容",
-  "editorContentEmpty": "エディターは空です。先に内容を入力してください。"
+  "editorContentEmpty": "エディターは空です。先に内容を入力してください。",
+  "manageWorkspaces": "ワークスペースを管理"
 }
