@@ -8,17 +8,13 @@
   "noInternet": "Нет подключения к интернету 😢",
   "onInternet": "Подключение к интернету восстановлено 😊",
   "online": "В сети",
-
   "JSBlocked": "JavaScript временно отключён для технического обслуживания!",
   "Errorhtmljs": "Содержимое не является ни HTML, ни JS!",
-
   "screenTooSmallTitle": "Недостаточная ширина или высота :(",
   "screenTooSmallText": "Измените размер окна или уменьшите масштаб для использования.",
-
   "text": "Текст",
   "gitText": "Текст (Git)",
   "markdown": "Markdown",
-
   "siteBlockedTitle": "Сайт заблокирован :(",
   "siteBlockedDesc": "Ваш любимый сайт для редактирования кода временно недоступен!",
   "reason": "Причина",
@@ -28,21 +24,17 @@
   "originPasswordSubmit": "Разблокировать сайт",
   "originPasswordInvalid": "Неверный пароль.",
   "originPasswordUnavailable": "Не удалось проверить пароль в этом браузере.",
-
   "upload": "Локальный файл",
   "clear": "Очистить редактор",
   "settings": "Настройки",
   "execute": "Выполнить код",
   "download": "Скачать код",
-
   "mathResult": "Математика:",
   "mathError": "Ошибка в математическом выражении.",
-
   "Spotifysong": "Ссылка (Spotify - Трек)",
   "SpotifyAlbumLink": "Ссылка (Spotify - Альбом)",
   "SpotifyPlaylistLink": "Ссылка (Spotify - Плейлист)",
   "SpotifyArtistLink": "Ссылка (Spotify - Исполнитель)",
-
   "mindMap": "Ментальная карта",
   "mindMapClear": "Очистить карту",
   "mindMapConnect": "Соединить",
@@ -158,5 +150,8 @@
   "inlineSummaryFallback": "Выбранный код изменён согласно вашему запросу.",
   "resizeOptions": "Изменить ширину панели параметров",
   "resizeEditor": "Изменить высоту редактора",
-  "resizeChat": "Изменить ширину чата ИИ"
+  "resizeChat": "Изменить ширину чата ИИ",
+  "addEditorContent": "Добавить текущее содержимое редактора",
+  "editorContentFileName": "содержимое-редактора",
+  "editorContentEmpty": "Редактор пуст. Сначала добавьте содержимое."
 }
