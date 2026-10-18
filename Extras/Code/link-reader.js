@@ -238,20 +238,38 @@ async function analyzeDetectedUrl(rawUrl) {
     }
     const html = await response.text();
     const doc = new DOMParser().parseFromString(html.slice(0, 1_000_000), "text/html");
-    const title = doc.querySelector("meta[property='og:title']")?.content?.trim()
-      || doc.querySelector("title")?.textContent?.trim()
-      || url.hostname;
-    const description = doc.querySelector("meta[name='description']")?.content?.trim()
-      || doc.querySelector("meta[property='og:description']")?.content?.trim()
-      || "";
-    const headings = [...doc.querySelectorAll("h1,h2")]
-      .map((node) => node.textContent.trim())
-      .filter(Boolean)
-      .slice(0, 3);
+    const readMeta = (selector) => doc.querySelector(selector)?.content?.trim() || "";
+    const title = readMeta("meta[property='og:title']") || doc.querySelector("title")?.textContent?.trim() || url.hostname;
+    const description = readMeta("meta[name='description']") || readMeta("meta[property='og:description']");
+    const metadata = {
+      title,
+      description,
+      keywords: readMeta("meta[name='keywords']"),
+      author: readMeta("meta[name='author']"),
+      robots: readMeta("meta[name='robots']"),
+      canonical: doc.querySelector("link[rel='canonical']")?.href || "",
+      ogTitle: readMeta("meta[property='og:title']"),
+      ogDescription: readMeta("meta[property='og:description']"),
+      ogUrl: readMeta("meta[property='og:url']"),
+      ogImage: readMeta("meta[property='og:image']"),
+      verification: readMeta("meta[name='google-site-verification']"),
+    };
     if (sequence !== analysisSequence) return;
-    const details = [title, description, headings.length ? `Seções: ${headings.join(" · ")}` : ""].filter(Boolean);
-    window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: true, title, description } }));
-    showEditorStatus(`Site: ${details.join(" — ")}`);
+    const statusItems = [
+      metadata.title && `Título: ${metadata.title}`,
+      metadata.description && `Descrição: ${metadata.description}`,
+      metadata.author && `Autor: ${metadata.author}`,
+    ].filter(Boolean);
+    window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", {
+      detail: { url: url.href, ok: true, title, description, metadata },
+    }));
+    if (editorStatus) {
+      editorStatus.title = Object.entries(metadata)
+        .filter(([, value]) => value)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n");
+    }
+    showEditorStatus(statusItems.join(" — ") || `Site: ${url.hostname}`);
   } catch {
     if (sequence !== analysisSequence) return;
     window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: false } }));
