@@ -917,7 +917,7 @@ if (!blockWeb) {
     if (!player || !toolbar || !expandButton || !list || !editorSurface) return;
 
     // Every newly loaded mini-player starts at the smallest supported shell size.
-    const DEFAULT = { width: 120, height: 90 };
+    const DEFAULT = { width: 150, height: 90 };
     const positionKey = "darkstudio-mini-player-position";
     const sizeKey = "darkstudio-mini-player-size";
     let restoreRect = null;
@@ -1093,7 +1093,7 @@ if (!blockWeb) {
       const bounds = editorSurface.getBoundingClientRect();
       // Keep the last position, but always start at the minimum shell size.
       // Spotify's compact player is 80px tall; other providers start at 90px.
-      const width = clamp(DEFAULT.width, 120, Math.max(120, bounds.width));
+      const width = clamp(DEFAULT.width, Math.min(150, bounds.width), Math.max(Math.min(150, bounds.width), bounds.width));
       const height = clamp(isSpotify() ? 80 : DEFAULT.height, isSpotify() ? 80 : 90, Math.max(isSpotify() ? 80 : 90, bounds.height));
       const left = clamp(Number(savedPos?.left) || bounds.left, bounds.left, Math.max(bounds.left, bounds.right - width));
       const top = clamp(Number(savedPos?.top) || bounds.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
@@ -1115,10 +1115,28 @@ if (!blockWeb) {
         clearExpandedState();
         player.classList.remove("is-expanded");
         const r = restoreRect || { left: 20, top: 90, ...DEFAULT };
-        setRect(clamp(r.left, 0, window.innerWidth-r.width), clamp(r.top, 0, window.innerHeight-r.height), r.width, r.height);
+        const bounds = editorSurface.getBoundingClientRect();
+        const restoredWidth = Math.max(Math.min(150, bounds.width), Math.min(r.width, bounds.width));
+        const restoredHeight = Math.min(getMaxHeight(r.height), bounds.height);
+        setRect(
+          clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - restoredWidth)),
+          clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - restoredHeight)),
+          restoredWidth,
+          restoredHeight
+        );
         expandButton.textContent = "⛶";
         expandButton.title = "Expandir mini-player";
         expandButton.setAttribute("aria-label", "Expandir mini-player");
+        // Expanded Spotify is forced to 80px. Restore the iframe/item dimensions
+        // immediately and once layout has settled, without reloading the track.
+        syncMiniPlayerContent(restoredWidth, restoredHeight);
+        requestAnimationFrame(() => {
+          if (!isExpanded()) {
+            const restored = player.getBoundingClientRect();
+            syncMiniPlayerContent(restored.width, restored.height);
+          }
+        });
+        restoreRect = null;
         savePosition();
         devLog("layout restored", player.getBoundingClientRect().toJSON());
       }
@@ -1257,7 +1275,7 @@ if (!blockWeb) {
         left = clamp(left, bounds.left, bounds.right - width);
         top = clamp(top, bounds.top, bounds.bottom - height);
       }
-      width = clamp(width, 120, bounds.right - left);
+      width = clamp(width, Math.min(150, bounds.width), bounds.right - left);
       height = clamp(height, getMinHeight(), bounds.bottom - top);
       if (isSpotify()) {
         height = snapSpotifyHeight(height, bounds.bottom - top);
@@ -1288,7 +1306,7 @@ if (!blockWeb) {
       if (isExpanded()) fitExpandedPlayer();
       else {
         const r = player.getBoundingClientRect();
-        const width = Math.min(r.width, bounds.width);
+        const width = Math.max(Math.min(150, bounds.width), Math.min(r.width, bounds.width));
         const height = Math.min(r.height, bounds.height);
         setRect(clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - width)), clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - height)), width, height);
         syncMiniPlayerContent(width, height);
@@ -1299,9 +1317,10 @@ if (!blockWeb) {
       const r = player.getBoundingClientRect();
       if (isExpanded()) fitExpandedPlayer();
       else {
-        const width = Math.min(r.width, bounds.width);
+        const width = Math.max(Math.min(150, bounds.width), Math.min(r.width, bounds.width));
         const height = Math.min(r.height, bounds.height);
         setRect(clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - width)), clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - height)), width, height);
+        syncMiniPlayerContent(width, height);
       }
     }).observe(editorSurface);
   })();
