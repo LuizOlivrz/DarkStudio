@@ -915,26 +915,20 @@ if (!blockWeb) {
     function fitEditorToVideo() {
       if (!player.classList.contains("is-expanded")) return;
       const list = player.querySelector("#mini-player-list");
-      const item = list?.querySelector(".mini-player-item");
+      const items = [...(list?.querySelectorAll(".mini-player-item") || [])];
+      const item = items[0];
       if (!item || !editorSurface || !websiteContainer) return;
 
-      const ratio = item.style.aspectRatio || "";
-      const portrait = item.classList.contains("tiktok") || /9\s*\/\s*16/.test(ratio);
-      const containerRect = websiteContainer.getBoundingClientRect();
       const editorRect = editorSurface.getBoundingClientRect();
-      const options = websiteContainer.querySelector("#options");
-      const chat = websiteContainer.querySelector("#chat, #dynamic-panel");
-      const optionsWidth = options?.getBoundingClientRect().width || 120;
-      const chatWidth = chat && getComputedStyle(chat).display !== "none"
-        ? chat.getBoundingClientRect().width : 0;
-      const availableWidth = Math.max(280, containerRect.width - optionsWidth - chatWidth - 32);
-      const availableHeight = Math.max(240, Math.min(editorRect.height || window.innerHeight - 120, window.innerHeight - 120));
-      const fitWidth = portrait
-        ? Math.min(availableHeight * 9 / 16, availableWidth, 520)
-        : Math.min(availableWidth, Math.max(280, editorRect.width));
-      const fitHeight = Math.min(availableHeight, portrait ? fitWidth * 16 / 9 : fitWidth * 9 / 16);
+      const portrait = item.classList.contains("tiktok") || /9\\s*\\/\\s*16/.test(item.style.aspectRatio || "");
+      const availableWidth = Math.max(280, Math.min(editorRect.width || window.innerWidth - 40, window.innerWidth - 32));
+      const availableHeight = Math.max(240, Math.min(editorRect.height || window.innerHeight - 120, window.innerHeight - 32));
+      // Portrait video follows editor height; landscape video follows editor width.
+      const fitHeight = portrait ? availableHeight : Math.min(availableHeight, availableWidth * 9 / 16);
+      const fitWidth = portrait ? Math.min(availableWidth, fitHeight * 9 / 16) : Math.min(availableWidth, fitHeight * 16 / 9);
+      const left = editorRect.left + (editorRect.width - fitWidth) / 2;
+      const top = editorRect.top + (editorRect.height - fitHeight) / 2;
 
-      // Keep the app's root grid untouched: only the editor surface receives fit dimensions.
       editorSurface.classList.toggle("mini-player-fit-portrait", portrait);
       editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
       editorSurface.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
@@ -943,14 +937,14 @@ if (!blockWeb) {
       player.classList.toggle("is-expanded-landscape", !portrait);
       player.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
       player.style.setProperty("--mini-player-fit-height", Math.round(fitHeight) + "px");
-      player.style.setProperty("--mini-player-editor-left", Math.round(editorRect.left + Math.max(0, (editorRect.width - fitWidth) / 2)) + "px");
-      player.style.setProperty("--mini-player-editor-top", Math.round(editorRect.top + Math.max(0, (editorRect.height - fitHeight) / 2)) + "px");
+      player.style.setProperty("--mini-player-editor-left", Math.round(Math.max(8, left)) + "px");
+      player.style.setProperty("--mini-player-editor-top", Math.round(Math.max(8, top)) + "px");
       player.querySelectorAll(".mini-player-caution-tape").forEach((tape) => tape.remove());
       for (const position of (portrait ? ["left", "right"] : ["top", "bottom"])) {
         const tape = document.createElement("div");
         tape.className = "mini-player-caution-tape " + position;
         tape.setAttribute("aria-hidden", "true");
-        tape.textContent = "⚠ VOCÊ ESTÁ NO MODO MINI-PLAYER! FOQUE NO CÓDIGO... ⚠ VOCÊ ESTÁ NO MODO MINI-PLAYER! FOQUE NO CÓDIGO... ";
+        tape.textContent = "⚠ VOCÊ ESTÁ NO MODO MINI-PLAYER! FOQUE NO CÓDIGO... ⚠ ";
         player.appendChild(tape);
       }
     }
