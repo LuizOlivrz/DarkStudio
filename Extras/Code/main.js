@@ -795,8 +795,11 @@ if (!blockWeb) {
     player.hidden = !playersEnabled;
     player.classList.toggle("visible", playersEnabled && embeds.length > 0);
     if (toggle) toggle.hidden = !playersEnabled || embeds.length === 0;
-    syncMiniPlayerContent(player.getBoundingClientRect().width, player.getBoundingClientRect().height);
-    if (isExpanded()) requestAnimationFrame(() => requestAnimationFrame(fitExpandedPlayer));
+    // Re-read the media ratio immediately when switching workspace files.
+    // Expanded layout is owned by the mini-player controller below.
+    if (player.classList.contains("is-expanded")) {
+      requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+    }
     player.dataset.pendingWebsite = websiteUrl;
     if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
   }
