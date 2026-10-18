@@ -2985,3 +2985,27 @@ body {
 #link-reader {
   display: none !important;
 }
+
+/* Vertical expanded videos stay compact on the right and remain resizable. */
+#mini-player.is-expanded-portrait .mini-player-resize-handle.resize-se {
+  display: block !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  z-index: 2000 !important;
+  cursor: nwse-resize !important;
+  pointer-events: auto !important;
+  touch-action: none !important;
+}
+#mini-player.is-expanded-portrait .mini-player-resize-handle.resize-se::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--green, #18ff72);
+  border-bottom: 2px solid var(--green, #18ff72);
+}
