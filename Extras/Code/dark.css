@@ -2189,3 +2189,11 @@ body {
 #mini-player.is-expanded { position:absolute !important; inset:0 0 0 var(--options-width,120px) !important; width:auto !important; height:100% !important; max-width:none !important; max-height:none !important; border-radius:8px; z-index:100 !important; }
 #mini-player.is-expanded #mini-player-list { height:100%; }
 #mini-player.is-expanded .mini-player-item.website { height:100%; }
+
+/* Media-specific sizing: keep YouTube playback controls visible in the mini-player. */
+#mini-player-list { min-width: 0; }
+.mini-player-item.youtube, .mini-player-item.vimeo, .mini-player-item.dailymotion, .mini-player-item.twitch { aspect-ratio: 16 / 9; min-height: 203px; }
+.mini-player-item.youtube iframe, .mini-player-item.vimeo iframe, .mini-player-item.dailymotion iframe, .mini-player-item.twitch iframe { width: 100%; height: 100%; min-height: 203px; }
+.mini-player-item.spotify { aspect-ratio: auto; min-height: 152px; }
+.mini-player-item.tiktok { aspect-ratio: auto; min-height: 400px; }
+.mini-player-item.tiktok iframe { width: 100%; }
