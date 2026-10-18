@@ -10,8 +10,155 @@ const TEXT_FILE_EXTENSIONS = new Set([
   "xml", "svg", "csv", "tsv", "yaml", "yml", "toml", "ini", "ts",
   "jsx", "tsx", "vue", "svelte", "scss", "sass", "less", "php", "py",
   "rb", "java", "c", "h", "cpp", "hpp", "cs", "go", "rs", "sh",
-  "bat", "ps1", "sql", "graphql", "webmanifest",
+  "bat", "ps1", "sql", "graphql", "webmanifest", "ino", "sbv", "vcf", "git",
 ]);
+
+const WORKSPACE_LANGUAGES = [
+  { label: "JavaScript", extension: "js", monaco: "javascript" },
+  { label: "Python", extension: "py", monaco: "python" },
+  { label: "Java", extension: "java", monaco: "java" },
+  { label: "HTML", extension: "html", monaco: "html" },
+  { label: "CSS", extension: "css", monaco: "css" },
+  { label: "Batch (BAT/CMD)", extension: "bat", monaco: "bat" },
+  { label: "Arduino", extension: "ino", monaco: "cpp" },
+  { label: "JSON", extension: "json", monaco: "json" },
+  { label: "C", extension: "c", monaco: "c" },
+  { label: "C++", extension: "cpp", monaco: "cpp" },
+  { label: "C#", extension: "cs", monaco: "csharp" },
+  { label: "SQL", extension: "sql", monaco: "sql" },
+  { label: "Kotlin", extension: "kt", monaco: "kotlin" },
+  { label: "ADB", extension: "txt", monaco: "bat" },
+  { label: "SBV", extension: "sbv", monaco: "plaintext" },
+  { label: "VCF", extension: "vcf", monaco: "plaintext" },
+  { label: "Markdown", extension: "md", monaco: "markdown" },
+  { label: "Git", extension: "git", monaco: "plaintext" },
+  { label: "Texto", extension: "txt", monaco: "plaintext" },
+  { label: "Rust", extension: "rs", monaco: "rust" },
+];
+
+function getWorkspaceLanguage(label) {
+  const normalized = String(label || "").trim().toLowerCase();
+  return WORKSPACE_LANGUAGES.find((item) =>
+    item.label.toLowerCase() === normalized ||
+    (normalized === "text" && item.label === "Texto")
+  ) || null;
+}
+
+function getWorkspaceLanguageForFile(filename) {
+  const extension = getFileExtension(filename);
+  if (extension === "txt") return getWorkspaceLanguage("Texto");
+  return WORKSPACE_LANGUAGES.find((item) => item.extension === extension) || null;
+}
+
+function applyLanguageToNode(node, language, manual = false) {
+  if (!node || node.type === "folder" || !language) return false;
+  const oldName = node.name || tr("newFile");
+  const dot = oldName.lastIndexOf(".");
+  const baseName = dot > 0 ? oldName.slice(0, dot) : oldName;
+  const newName = `${baseName}.${language.extension}`;
+  const parent = getParentFolder(node);
+  const parentPath = parent?.filePath || "";
+  const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+
+  if (nodes.some((item) => item.id !== node.id && item.filePath === newPath)) return false;
+
+  node.name = newName;
+  node.filePath = newPath;
+  if (manual) {
+    node.languageOverride = true;
+    node.languageOverrideLabel = language.label;
+  } else if (!node.languageOverride) {
+    node.languageOverrideLabel = "";
+  }
+
+  if (currentEditingNode?.id === node.id) {
+    window.darkStudioWorkspaceCurrentFile = node;
+    if (window.editor?.getModel() && window.monaco?.editor?.setModelLanguage) {
+      window.monaco.editor.setModelLanguage(window.editor.getModel(), language.monaco);
+    }
+    const display = document.querySelector("#code-language h4");
+    if (display) display.textContent = language.label;
+  }
+
+  saveState();
+  renderNodes();
+  updateSelectedNodeUI();
+  return true;
+}
+
+function syncDetectedWorkspaceLanguage(label) {
+  const node = currentEditingNode;
+  if (!node || node.type === "folder" || node.languageOverride) return;
+  const language = getWorkspaceLanguage(label);
+  if (language) applyLanguageToNode(node, language, false);
+}
+window.darkStudioWorkspaceSyncExtension = syncDetectedWorkspaceLanguage;
+
+function showLanguageContextMenu(node, x, y) {
+  document.getElementById("mindmap-language-menu")?.remove();
+  if (!node || node.type === "folder" || node.type === "image") return;
+
+  const menu = document.createElement("div");
+  menu.id = "mindmap-language-menu";
+  Object.assign(menu.style, {
+    position: "fixed",
+    left: `${Math.max(8, Math.min(x, window.innerWidth - 230))}px`,
+    top: `${Math.max(8, Math.min(y, window.innerHeight - 420))}px`,
+    zIndex: "1000003", width: "220px", maxHeight: "min(420px, 80vh)",
+    overflowY: "auto", padding: "6px", borderRadius: "9px",
+    border: "1px solid var(--secondary-color, #5d00ff)",
+    background: "#151515", color: "#fff", boxShadow: "0 12px 32px #0009",
+  });
+
+  const heading = document.createElement("div");
+  heading.textContent = "Definir linguagem / extensão";
+  Object.assign(heading.style, { padding: "8px 10px", fontSize: "12px", opacity: ".75" });
+  menu.appendChild(heading);
+
+  for (const language of WORKSPACE_LANGUAGES) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = `${language.label} (.${language.extension})`;
+    Object.assign(button.style, {
+      display: "block", width: "100%", padding: "8px 10px", border: "0",
+      borderRadius: "5px", background: "transparent", color: "inherit",
+      textAlign: "left", font: "inherit", fontSize: "13px", cursor: "pointer",
+    });
+    if (node.languageOverrideLabel === language.label) button.style.background = "rgba(120,90,255,.25)";
+    button.addEventListener("mouseenter", () => { button.style.background = "rgba(120,90,255,.2)"; });
+    button.addEventListener("mouseleave", () => {
+      button.style.background = node.languageOverrideLabel === language.label ? "rgba(120,90,255,.25)" : "transparent";
+    });
+    button.addEventListener("click", () => {
+      menu.remove();
+      if (!applyLanguageToNode(node, language, true)) {
+        alert(tr("fileExists"));
+        return;
+      }
+      if (currentEditingNode?.id === node.id) {
+        window.darkStudioWorkspaceCurrentFile = node;
+        if (window.editor && typeof window.editor.setValue === "function") {
+          window.editor.setValue(node.content || "");
+          if (window.editor.getModel() && window.monaco?.editor?.setModelLanguage) {
+            window.monaco.editor.setModelLanguage(window.editor.getModel(), language.monaco);
+          }
+        }
+        const display = document.querySelector("#code-language h4");
+        if (display) display.textContent = language.label;
+      }
+    });
+    menu.appendChild(button);
+  }
+
+  document.body.appendChild(menu);
+  const closeMenu = (event) => {
+    if (!menu.contains(event.target)) {
+      menu.remove();
+      document.removeEventListener("pointerdown", closeMenu, true);
+    }
+  };
+  setTimeout(() => document.addEventListener("pointerdown", closeMenu, true), 0);
+}
 
 const mind = document.getElementById("mindmap-container");
 const nodeLayer = document.getElementById("mindmap-nodes");
@@ -114,6 +261,10 @@ function getLanguageFromFile(filename) {
     rs: "rust",
     go: "go",
     kt: "kotlin",
+    ino: "cpp",
+    sbv: "plaintext",
+    vcf: "plaintext",
+    git: "plaintext",
     txt: "plaintext",
     log: "plaintext",
   };
@@ -875,6 +1026,13 @@ function createNodeElement(node) {
     }, 400);
   });
 
+  element.addEventListener("contextmenu", (event) => {
+    if (node.type === "folder" || node.type === "image") return;
+    event.preventDefault();
+    event.stopPropagation();
+    showLanguageContextMenu(node, event.clientX, event.clientY);
+  });
+
   element.addEventListener("dblclick", async (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -1032,8 +1190,21 @@ function renameFileNode(file, newName) {
     alert(tr("fileExists"));
     return;
   }
+  const extensionChanged = getFileExtension(file.name) !== getFileExtension(newName);
   file.name = newName;
   file.filePath = newPath;
+
+  if (extensionChanged) {
+    const selectedLanguage = getWorkspaceLanguageForFile(newName);
+    file.languageOverride = true;
+    file.languageOverrideLabel = selectedLanguage?.label || "Texto";
+  }
+
+  if (currentEditingNode?.id === file.id) {
+    window.darkStudioWorkspaceCurrentFile = file;
+    if (file.languageOverride) setEditorLanguage(file);
+  }
+
   saveState();
   renderNodes();
   updateSelectedNodeUI();
@@ -1906,13 +2077,20 @@ function updateSelectedNodeUI() {
 
 function setEditorLanguage(node) {
   const editor = window.editor;
-
   if (!editor || !editor.getModel()) return;
 
-  const language = getLanguageFromFile(getWorkspacePath(node));
+  const selected = node.languageOverride
+    ? getWorkspaceLanguage(node.languageOverrideLabel)
+    : getWorkspaceLanguageForFile(getWorkspacePath(node));
+  const language = selected?.monaco || getLanguageFromFile(getWorkspacePath(node));
 
   if (window.monaco?.editor?.setModelLanguage) {
     window.monaco.editor.setModelLanguage(editor.getModel(), language);
+  }
+
+  const display = document.querySelector("#code-language h4");
+  if (display && node.languageOverride) {
+    display.textContent = node.languageOverrideLabel || selected?.label || "Texto";
   }
 }
 
@@ -1942,6 +2120,7 @@ function openNodeInEditor(node) {
   syncCurrentEditorToMap();
 
   currentEditingNode = node;
+  window.darkStudioWorkspaceCurrentFile = node;
 
   if (window.editor && typeof window.editor.setValue === "function") {
     window.editor.setValue(node.content || "");
