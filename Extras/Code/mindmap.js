@@ -1983,11 +1983,36 @@ function showEditor() {
   }
 }
 
+function ensureCurrentEditorInWorkspace() {
+  if (!window.editor || typeof window.editor.getValue !== "function") return;
+
+  // Se o arquivo atual já está representado no Workspace, apenas sincroniza o conteúdo.
+  if (currentEditingNode && nodes.some((node) => node.id === currentEditingNode.id)) {
+    syncCurrentEditorToMap();
+    return;
+  }
+
+  const languageLabel = document.querySelector("#code-language h4")?.textContent?.trim().toLowerCase() || "";
+  const extensionByLanguage = {
+    javascript: "js", "veloscript - pqpcara": "txt", python: "py", java: "java",
+    html: "html", css: "css", "batch (bat/cmd)": "bat", arduino: "ino",
+    json: "json", c: "c", "c++": "cpp", "c#": "cs", sql: "sql",
+    kotlin: "kt", adb: "txt", sbv: "sbv", vcf: "vcf", markdown: "md",
+    git: "git", texto: "txt", rust: "rs"
+  };
+  const extension = extensionByLanguage[languageLabel] || "txt";
+  const name = `${tr("newFile")}.${extension}`;
+  const node = addNode(name, window.editor.getValue(), "text");
+  currentEditingNode = node;
+  updateSelectedNodeUI();
+  saveState();
+}
+
 function showMap() {
   document.getElementById("Website-Container")?.classList.remove("extensions-active");
   const extensionsPanel = document.getElementById("extensions-panel");
   if (extensionsPanel) extensionsPanel.hidden = true;
-  syncCurrentEditorToMap();
+  ensureCurrentEditorInWorkspace();
 
   const editor = document.getElementById("Editor");
 
