@@ -907,14 +907,14 @@ if (!blockWeb) {
     };
     const isExpanded = () => player.classList.contains("is-expanded");
     const setRect = (left, top, width, height, animate = true) => {
-      player.style.position = "fixed";
-      player.style.inset = "auto";
-      player.style.left = Math.round(left) + "px";
-      player.style.top = Math.round(top) + "px";
-      player.style.right = "auto";
-      player.style.bottom = "auto";
-      player.style.width = Math.round(width) + "px";
-      player.style.height = Math.round(height) + "px";
+      player.style.setProperty("position", "fixed", "important");
+      player.style.setProperty("inset", "auto", "important");
+      player.style.setProperty("left", Math.round(left) + "px", "important");
+      player.style.setProperty("top", Math.round(top) + "px", "important");
+      player.style.setProperty("right", "auto", "important");
+      player.style.setProperty("bottom", "auto", "important");
+      player.style.setProperty("width", Math.round(width) + "px", "important");
+      player.style.setProperty("height", Math.round(height) + "px", "important");
       player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
       player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
       player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
