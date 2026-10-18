@@ -924,19 +924,20 @@ if (!blockWeb) {
     const syncMiniPlayerContent = (width, height) => {
       const items = [...list.querySelectorAll(".mini-player-item")];
       items.forEach(item => {
-        item.style.setProperty("width", "100%", "important");
+        item.style.setProperty("width", Math.round(width) + "px", "important");
+        item.style.setProperty("height", Math.round(height) + "px", "important");
         if (!item.classList.contains("spotify")) {
           const ratio = getRatio(item);
-          item.style.setProperty("height", Math.round(height) + "px", "important");
           item.style.aspectRatio = item.classList.contains("tiktok")
             ? "9 / 16"
             : item.style.aspectRatio || "16 / 9";
           const iframe = item.querySelector("iframe");
-          if (iframe) {
-            iframe.style.setProperty("width", "100%", "important");
-            iframe.style.setProperty("height", Math.round(height) + "px", "important");
-            iframe.style.setProperty("aspect-ratio", ratio < 1 ? "9 / 16" : "16 / 9", "important");
-          }
+          if (iframe) iframe.style.setProperty("aspect-ratio", ratio < 1 ? "9 / 16" : "16 / 9", "important");
+        }
+        const iframe = item.querySelector("iframe");
+        if (iframe) {
+          iframe.style.setProperty("width", "100%", "important");
+          iframe.style.setProperty("height", Math.round(height) + "px", "important");
         }
       });
       player.style.setProperty("--mini-player-content-width", Math.round(width) + "px");
