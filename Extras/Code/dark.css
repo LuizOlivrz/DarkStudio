@@ -3219,3 +3219,8 @@ body {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+
+#options #workspace-switcher-button,
+#options #workspace-details-button { margin-top: 0; }
+#options .workspace-manager-primary { width: auto; max-width: 100%; padding: 10px 16px; border: 1px solid var(--secondary-color, #7654ff); border-radius: 7px; background: var(--primary-color, #5d00ff); color: #fff; cursor: pointer; }
