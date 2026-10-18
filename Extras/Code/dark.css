@@ -2972,12 +2972,13 @@ body {
 }
 
 
-/* Never show Monaco scrollbars; mouse wheel, keyboard and touch scrolling still work. */
-#Editor-Input .monaco-editor .scrollbar {
+/* Hide scrollbars on the parent editor container only; keep Monaco's own scrollbars visible. */
+#Editor {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#Editor::-webkit-scrollbar {
   display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
 }
 
 /* Keep the old Link Reader logic available for automatic URL metadata, but hide its UI. */
