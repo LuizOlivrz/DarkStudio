@@ -701,7 +701,7 @@ if (!blockWeb) {
           const isShort = /^\/shorts\//.test(url.pathname);
           embed = {
             type: "youtube",
-            src: "https://www.youtube.com/embed/" + videoId,
+            src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin),
             ratio: isShort ? "9 / 16" : "16 / 9",
             width: isShort ? 300 : 480,
             height: isShort ? 533 : 270,
@@ -797,6 +797,37 @@ if (!blockWeb) {
     if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
   }
 
+  // Pause every off-screen embed when scrolling through a stacked feed.
+  function pauseMiniPlayerItem(item) {
+    const iframe = item?.querySelector("iframe");
+    if (!iframe?.contentWindow) return;
+    try {
+      if (item.classList.contains("youtube")) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "pauseVideo", args: "" }), "*");
+      } else if (item.classList.contains("tiktok")) {
+        iframe.contentWindow.postMessage({ type: "pause" }, "*");
+        iframe.contentWindow.postMessage(JSON.stringify({ type: "pause" }), "*");
+      } else if (item.classList.contains("vimeo")) {
+        iframe.contentWindow.postMessage({ method: "pause" }, "*");
+      } else if (item.classList.contains("dailymotion")) {
+        iframe.contentWindow.postMessage({ command: "pause" }, "*");
+      }
+    } catch (error) {
+      console.debug("Não foi possível pausar o mini-player anterior.", error);
+    }
+  }
+
+  document.getElementById("mini-player-list")?.addEventListener("scroll", (event) => {
+    const list = event.currentTarget;
+    if (!list.classList.contains("mini-player-tiktok-stack")) return;
+    const items = [...list.querySelectorAll(".mini-player-item")];
+    if (!items.length) return;
+    const activeIndex = Math.max(0, Math.min(items.length - 1, Math.round(list.scrollTop / Math.max(1, items[0].getBoundingClientRect().height))));
+    items.forEach((item, index) => {
+      if (index !== activeIndex) pauseMiniPlayerItem(item);
+    });
+  }, { passive: true });
+
   const miniPlayerEnabledCheckbox = document.getElementById("mini-player-enabled-checkbox");
   if (miniPlayerEnabledCheckbox) {
     miniPlayerEnabledCheckbox.checked = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
@@ -887,9 +918,10 @@ if (!blockWeb) {
       const optionsWidth = websiteContainer?.querySelector("#options")?.getBoundingClientRect().width || 120;
       const availableWidth = Math.max(280, window.innerWidth - optionsWidth - 24);
       const availableHeight = Math.max(240, window.innerHeight - 48);
-      const editorWidth = Math.max(280, editorSurface?.getBoundingClientRect().width || availableWidth);
-      const fitWidth = portrait ? Math.min(availableHeight * 9 / 16, availableWidth, 520) : editorWidth;
-      const fitHeight = portrait ? availableHeight : Math.min(availableHeight, fitWidth * 9 / 16);
+      const fitWidth = portrait
+        ? Math.min(availableHeight * 9 / 16, availableWidth, 520)
+        : Math.min(availableWidth, Math.max(280, editorSurface?.getBoundingClientRect().width || availableWidth));
+      const fitHeight = Math.min(availableHeight, portrait ? fitWidth * 16 / 9 : fitWidth * 9 / 16);
       websiteContainer?.classList.toggle("mini-player-fit-portrait", portrait);
       websiteContainer?.classList.toggle("mini-player-fit-landscape", !portrait);
       websiteContainer?.style.setProperty("--mini-player-fit-width", Math.round(fitWidth) + "px");
