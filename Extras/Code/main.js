@@ -919,7 +919,7 @@ if (!blockWeb) {
       if (!item || !editorSurface || !websiteContainer) return;
 
       const ratio = item.style.aspectRatio || "";
-      const portrait = item.classList.contains("tiktok") || /9\\s*\\/\\s*16/.test(ratio);
+      const portrait = item.classList.contains("tiktok") || /9\s*\/\s*16/.test(ratio);
       const containerRect = websiteContainer.getBoundingClientRect();
       const editorRect = editorSurface.getBoundingClientRect();
       const options = websiteContainer.querySelector("#options");
