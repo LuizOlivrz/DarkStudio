@@ -2763,3 +2763,33 @@ body {
 #mini-player .mini-player-resize-handle.resize-sw::after {
   left: 3px; bottom: 3px; border-width: 0 0 2px 2px;
 }
+
+
+/* Final resize-handle visibility and unified color. Hovering the iframe also
+   keeps #mini-player in :hover because the iframe is inside the player. */
+#mini-player .mini-player-resize-handle {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  background-color: var(--green, #18ff72) !important;
+  border-color: var(--green, #18ff72) !important;
+  transition: opacity .12s ease, visibility .12s ease !important;
+}
+#mini-player:hover .mini-player-resize-handle,
+#mini-player:focus-within .mini-player-resize-handle {
+  opacity: .9 !important;
+  visibility: visible !important;
+}
+#mini-player .mini-player-resize-handle::after {
+  border-color: var(--green, #18ff72) !important;
+  background-color: transparent !important;
+}
+#mini-player .mini-player-resize-handle.resize-n,
+#mini-player .mini-player-resize-handle.resize-s,
+#mini-player .mini-player-resize-handle.resize-e,
+#mini-player .mini-player-resize-handle.resize-w {
+  border: 0 !important;
+}
+#mini-player.collapsed .mini-player-resize-handle {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
