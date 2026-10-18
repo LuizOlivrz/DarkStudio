@@ -1257,9 +1257,17 @@ if (!blockWeb) {
       if (direction.includes("n")) top += dy;
       if (direction.includes("s")) bottom += dy;
 
-      // Never let any edge escape the editor bounds.
-      left = clamp(left, bounds.left, bounds.right - 120);
-      right = clamp(right, left + 120, bounds.right);
+      // Keep a 150px minimum width while allowing Spotify to grow freely.
+      // Preserve the opposite edge when resizing from the west/east handles.
+      const minWidth = Math.min(150, bounds.right - bounds.left);
+      if (direction.includes("w")) {
+        right = clamp(right, bounds.left + minWidth, bounds.right);
+        left = clamp(left, bounds.left, right - minWidth);
+      } else {
+        left = clamp(left, bounds.left, bounds.right - minWidth);
+        right = clamp(right, left + minWidth, bounds.right);
+      }
+
       const minHeight = getMinHeight();
       top = clamp(top, bounds.top, bounds.bottom - minHeight);
       bottom = clamp(bottom, top + minHeight, bounds.bottom);
