@@ -202,6 +202,7 @@ let previousDisplays = {};
 let workspaceName = "workspace 1";
 let workspaceDescription = "";
 let workspaceTags = [];
+let workspacePhoto = "";
 let workspaceId = "";
 let workspaceManagerView = false;
 const WORKSPACES_KEY = "darkstudio_workspaces_v1";
@@ -320,7 +321,7 @@ function applyWorkspacePan() {
 
 function getWorkspaceSnapshot() {
   return { id: workspaceId, name: workspaceName, description: workspaceDescription,
-    tags: [...workspaceTags], nodes, connections, workspacePan: { ...workspacePan } };
+    tags: [...workspaceTags], photo: workspacePhoto, nodes, connections, workspacePan: { ...workspacePan } };
 }
 function readWorkspaceRegistry() {
   try {
@@ -404,6 +405,7 @@ function normalizeWorkspaceData(data = {}) {
   workspaceDescription = typeof data.description === "string" ? data.description : (typeof data.workspaceDescription === "string" ? data.workspaceDescription : "");
   const savedTags = Array.isArray(data.tags) ? data.tags : data.workspaceTags;
   workspaceTags = Array.isArray(savedTags) ? [...new Set(savedTags.filter((tag) => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))] : [];
+  workspacePhoto = typeof data.photo === "string" && data.photo.startsWith("data:image/") ? data.photo : "";
   workspacePan = Number.isFinite(data.workspacePan?.x) && Number.isFinite(data.workspacePan?.y) ? { x: data.workspacePan.x, y: data.workspacePan.y } : { x: 0, y: 0 };
   for (const node of nodes) {
     node.id = String(node.id || makeId()); node.name = node.name || tr("newFile");
@@ -428,7 +430,7 @@ function loadState() {
       try { legacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch {}
       workspaceId = makeId();
       active = { id: workspaceId, name: legacy.workspaceName || "workspace 1", description: legacy.workspaceDescription || "",
-        tags: legacy.workspaceTags || [], nodes: legacy.nodes || [], connections: legacy.connections || [], workspacePan: legacy.workspacePan || { x: 0, y: 0 } };
+        tags: legacy.workspaceTags || [], photo: "", nodes: legacy.nodes || [], connections: legacy.connections || [], workspacePan: legacy.workspacePan || { x: 0, y: 0 } };
       workspaces = [active];
       localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces)); localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
     } else if (!active) {
@@ -444,6 +446,8 @@ function setWorkspaceManagerView(enabled) {
   workspaceManagerView = Boolean(enabled);
   if (svg) svg.style.display = workspaceManagerView ? "none" : "";
   if (nodeLayer) nodeLayer.style.display = workspaceManagerView ? "none" : "";
+  const detailsButton = document.getElementById("workspace-details-button");
+  if (detailsButton) detailsButton.style.display = workspaceManagerView ? "none" : "block";
   let panel = document.getElementById("workspace-manager-view");
   if (workspaceManagerView) {
     if (!panel) {
@@ -467,51 +471,51 @@ function renderWorkspaceManager() {
   createButton.addEventListener("click", async () => {
     const name = await showNameDialog("", tr("workspaceCreate")); if (!name || !name.trim()) return;
     saveState();
-    const created = { id: makeId(), name: name.trim(), description: "", tags: [], nodes: [], connections: [], workspacePan: { x: 0, y: 0 } };
+    const created = { id: makeId(), name: name.trim(), description: "", tags: [], photo: "", nodes: [], connections: [], workspacePan: { x: 0, y: 0 } };
     const all = readWorkspaceRegistry(); all.push(created); localStorage.setItem(WORKSPACES_KEY, JSON.stringify(all)); activateWorkspace(created.id);
   }); panel.appendChild(createButton);
   const list = document.createElement("div");
-  Object.assign(list.style, { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 250px), 1fr))", gap: "12px", marginTop: "22px" });
+  Object.assign(list.style, { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 270px), 1fr))", gap: "16px", marginTop: "22px" });
   for (const item of workspaces) {
-    const card = document.createElement("article");
-    Object.assign(card.style, { minWidth: "0", padding: "16px", borderRadius: "10px", border: item.id === workspaceId ? "1px solid var(--secondary-color, #7654ff)" : "1px solid #333", background: item.id === workspaceId ? "rgba(100,70,210,.13)" : "#151515", boxSizing: "border-box" });
-    const title = document.createElement("h3"); title.textContent = item.name || tr("currentWorkspace");
-    Object.assign(title.style, { margin: "0 0 8px", fontSize: "17px", overflowWrap: "anywhere" }); card.appendChild(title);
-    const description = document.createElement("p"); description.textContent = item.description || tr("workspaceNoDescription");
-    Object.assign(description.style, { color: "#aaa", fontSize: "13px", lineHeight: "1.45", minHeight: "38px", overflowWrap: "anywhere" }); card.appendChild(description);
-    if (Array.isArray(item.tags) && item.tags.length) {
-      const tags = document.createElement("p"); tags.textContent = item.tags.map((tag) => "#" + tag).join("  ");
-      Object.assign(tags.style, { color: "var(--secondary-color, #a78bfa)", fontSize: "12px", overflowWrap: "anywhere" }); card.appendChild(tags);
+    const card = document.createElement("article"); card.className = "workspace-card";
+    card.style.borderColor = item.id === workspaceId ? "var(--secondary-color, #7654ff)" : "#333";
+    if (item.photo) {
+      const photoWrap = document.createElement("div"); photoWrap.className = "workspace-card-photo";
+      const photo = document.createElement("img"); photo.src = item.photo; photo.alt = tr("workspacePhoto"); photo.draggable = false;
+      const clip = document.createElement("span"); clip.className = "workspace-photo-clip"; clip.setAttribute("aria-hidden", "true");
+      photoWrap.append(photo, clip); card.appendChild(photoWrap);
     }
+    const title = document.createElement("h3"); title.className = "workspace-card-title"; title.textContent = item.name || tr("currentWorkspace"); card.appendChild(title);
+    const description = document.createElement("p"); description.className = "workspace-card-description"; description.textContent = item.description || tr("workspaceNoDescription"); card.appendChild(description);
+    if (Array.isArray(item.tags) && item.tags.length) {
+      const tags = document.createElement("p"); tags.className = "workspace-card-tags"; tags.textContent = item.tags.map((tag) => "#" + tag).join("  "); card.appendChild(tags);
+    }
+    const actions = document.createElement("div"); actions.className = "workspace-card-actions";
     const openButton = document.createElement("button"); openButton.type = "button";
-    openButton.textContent = item.id === workspaceId ? tr("workspaceCurrent") : tr("workspaceOpen"); openButton.disabled = item.id === workspaceId;
-    openButton.addEventListener("click", () => activateWorkspace(item.id));
-    Object.assign(openButton.style, { marginTop: "8px", width: "100%", padding: "9px", borderRadius: "6px" }); card.appendChild(openButton);
+    openButton.textContent = item.id === workspaceId ? tr("workspaceCurrent") : tr("workspaceOpen");
+    openButton.disabled = item.id === workspaceId;
+    openButton.addEventListener("click", () => activateWorkspace(item.id)); actions.appendChild(openButton);
+    const editButton = document.createElement("button"); editButton.type = "button";
+    editButton.textContent = tr("workspaceEdit"); editButton.addEventListener("click", () => showWorkspaceSettings(item.id)); actions.appendChild(editButton);
     if (workspaces.length > 1) {
       const deleteButton = document.createElement("button"); deleteButton.type = "button"; deleteButton.textContent = tr("workspaceDelete");
-      Object.assign(deleteButton.style, { marginTop: "7px", width: "100%", padding: "8px", borderRadius: "6px", opacity: ".8" });
       deleteButton.addEventListener("click", () => {
         if (!confirm(tr("workspaceDeleteConfirm").replace("{name}", item.name || ""))) return;
         const remaining = readWorkspaceRegistry().filter((entry) => entry.id !== item.id);
         localStorage.setItem(WORKSPACES_KEY, JSON.stringify(remaining));
         if (item.id === workspaceId) {
-          const next = remaining[0];
-          workspaceId = next.id;
-          localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
-          normalizeWorkspaceData(next);
-          currentEditingNode = null;
-          connectMode = false;
-          connectSource = null;
-          applyWorkspacePan();
-          saveState();
+          const next = remaining[0]; workspaceId = next.id;
+          localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId); normalizeWorkspaceData(next);
+          currentEditingNode = null; connectMode = false; connectSource = null; applyWorkspacePan(); saveState();
         }
         renderWorkspaceManager();
-      }); card.appendChild(deleteButton);
+      }); actions.appendChild(deleteButton);
     }
-    list.appendChild(card);
+    card.appendChild(actions); list.appendChild(card);
   }
   panel.appendChild(list);
 }
+
 function activateWorkspace(id) {
   const target = readWorkspaceRegistry().find((item) => item.id === id); if (!target) return;
   if (id !== workspaceId) {
@@ -932,126 +936,108 @@ function showNameDialog(initialName = "", title = "Nome") {
 }
 
 
-function showWorkspaceSettings() {
+function showWorkspaceSettings(targetWorkspaceId = workspaceId) {
   document.getElementById("workspace-settings-popup")?.remove();
-  const overlay = document.createElement("div");
-  overlay.id = "workspace-settings-popup";
-  Object.assign(overlay.style, {
-    position: "fixed", inset: "0", zIndex: "1000004", display: "flex",
-    alignItems: "center", justifyContent: "center", padding: "20px",
-    background: "rgba(0,0,0,.72)", backdropFilter: "blur(5px)",
-  });
+  const isActive = targetWorkspaceId === workspaceId;
+  const target = isActive ? getWorkspaceSnapshot() : readWorkspaceRegistry().find((item) => item.id === targetWorkspaceId);
+  if (!target) return;
+  let draftPhoto = target.photo || "";
+  let selectedPhotoFile = null;
+  const overlay = document.createElement("div"); overlay.id = "workspace-settings-popup";
+  Object.assign(overlay.style, { position: "fixed", inset: "0", zIndex: "1000004", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", background: "rgba(0,0,0,.72)", backdropFilter: "blur(5px)" });
   const panel = document.createElement("form");
-  Object.assign(panel.style, {
-    width: "100%", maxWidth: "460px", maxHeight: "85vh", overflowY: "auto",
-    padding: "22px", borderRadius: "13px",
-    border: "1px solid var(--secondary-color, #5d00ff)",
-    background: "#151515", color: "#fff", boxShadow: "0 20px 60px #0009",
-    fontFamily: "inherit", display: "grid", gap: "9px",
-  });
-  const heading = document.createElement("h3");
-  heading.textContent = tr("workspaceSettings");
-  heading.style.margin = "0 0 8px";
-  const makeLabel = (text, target) => {
-    const label = document.createElement("label");
-    label.textContent = text;
-    label.htmlFor = target;
-    label.style.cssText = "font-size:13px;margin-top:5px;";
-    return label;
-  };
-  const makeField = (id, value, placeholder) => {
-    const field = document.createElement("input");
-    field.id = id;
-    field.value = value;
-    field.placeholder = placeholder;
-    field.style.cssText = "box-sizing:border-box;width:100%;padding:10px;border:1px solid #444;border-radius:7px;background:#202020;color:#fff;font:inherit;";
-    return field;
-  };
-  const name = makeField("workspace-settings-name", workspaceName, tr("workspaceNamePlaceholder"));
-  name.maxLength = 100;
-  const description = document.createElement("textarea");
-  description.id = "workspace-settings-description";
-  description.value = workspaceDescription;
-  description.placeholder = tr("workspaceDescriptionPlaceholder");
-  description.maxLength = 1000;
-  description.rows = 3;
+  Object.assign(panel.style, { width: "100%", maxWidth: "480px", maxHeight: "85vh", overflowY: "auto", padding: "22px", borderRadius: "13px", border: "1px solid var(--secondary-color, #5d00ff)", background: "#151515", color: "#fff", boxShadow: "0 20px 60px #0009", fontFamily: "inherit", display: "grid", gap: "9px" });
+  const heading = document.createElement("h3"); heading.textContent = tr("workspaceEdit"); heading.style.margin = "0 0 8px";
+  const makeLabel = (text, id) => { const label = document.createElement("label"); label.textContent = text; label.htmlFor = id; label.style.cssText = "font-size:13px;margin-top:5px;"; return label; };
+  const makeField = (id, value, placeholder) => { const field = document.createElement("input"); field.id = id; field.value = value; field.placeholder = placeholder; field.style.cssText = "box-sizing:border-box;width:100%;padding:10px;border:1px solid #444;border-radius:7px;background:#202020;color:#fff;font:inherit;"; return field; };
+  const name = makeField("workspace-settings-name", target.name || "", tr("workspaceNamePlaceholder")); name.maxLength = 100;
+  const description = document.createElement("textarea"); description.id = "workspace-settings-description"; description.value = target.description || ""; description.placeholder = tr("workspaceDescriptionPlaceholder"); description.maxLength = 1000; description.rows = 3;
   description.style.cssText = "box-sizing:border-box;width:100%;resize:vertical;padding:10px;border:1px solid #444;border-radius:7px;background:#202020;color:#fff;font:inherit;";
+  const photoInput = document.createElement("input"); photoInput.type = "file"; photoInput.accept = "image/*"; photoInput.id = "workspace-settings-photo"; photoInput.style.cssText = "box-sizing:border-box;width:100%;font:inherit;color:#ccc;";
+  const photoHint = document.createElement("p"); photoHint.textContent = tr("workspacePhotoHint"); photoHint.style.cssText = "font-size:12px;color:#aaa;margin:0;";
+  const photoPreview = document.createElement("div"); photoPreview.className = "workspace-photo-preview";
+  const photoPreviewImage = document.createElement("img"); photoPreviewImage.alt = tr("workspacePhoto"); photoPreviewImage.hidden = true;
+  const previewClip = document.createElement("span"); previewClip.className = "workspace-photo-clip"; previewClip.setAttribute("aria-hidden", "true");
+  photoPreview.append(photoPreviewImage, previewClip);
+  const removePhoto = document.createElement("button"); removePhoto.type = "button"; removePhoto.textContent = tr("workspacePhotoRemove");
+  removePhoto.style.cssText = "padding:7px 10px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;justify-self:start;";
+  const updatePhotoPreview = () => { photoPreviewImage.hidden = !draftPhoto; if (draftPhoto) photoPreviewImage.src = draftPhoto; removePhoto.hidden = !draftPhoto; };
+  updatePhotoPreview();
+  photoInput.addEventListener("change", () => {
+    const file = photoInput.files?.[0]; if (!file) return;
+    if (!file.type.startsWith("image/")) { alert(tr("workspacePhotoHint")); photoInput.value = ""; return; }
+    if (file.size > 8 * 1024 * 1024) { alert(tr("workspacePhotoTooLarge")); photoInput.value = ""; return; }
+    selectedPhotoFile = file;
+    const reader = new FileReader();
+    reader.onload = () => { draftPhoto = String(reader.result || ""); updatePhotoPreview(); };
+    reader.onerror = () => alert(tr("workspacePhotoHint"));
+    reader.readAsDataURL(file);
+  });
+  removePhoto.addEventListener("click", () => { draftPhoto = ""; selectedPhotoFile = null; photoInput.value = ""; updatePhotoPreview(); });
   const tagInput = makeField("workspace-settings-tag-input", "", tr("workspaceTagPlaceholder"));
-  const tagList = document.createElement("div");
-  Object.assign(tagList.style, { display: "flex", flexWrap: "wrap", gap: "6px", margin: "2px 0 8px" });
-  const draftTags = [...workspaceTags];
+  const tagList = document.createElement("div"); Object.assign(tagList.style, { display: "flex", flexWrap: "wrap", gap: "6px", margin: "2px 0 8px" });
+  const draftTags = [...(Array.isArray(target.tags) ? target.tags : [])];
   const renderTags = () => {
     tagList.replaceChildren();
     draftTags.forEach((tag, index) => {
-      const chip = document.createElement("span");
-      Object.assign(chip.style, {
-        display: "inline-flex", alignItems: "center", gap: "7px", padding: "5px 8px",
-        borderRadius: "14px", background: "rgba(120,90,255,.2)",
-        border: "1px solid rgba(120,90,255,.45)", fontSize: "12px",
-      });
-      const text = document.createElement("span");
-      text.textContent = tag;
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = "×";
-      remove.title = tr("workspaceRemoveTag");
-      remove.setAttribute("aria-label", `${tr("workspaceRemoveTag")}: ${tag}`);
+      const chip = document.createElement("span"); Object.assign(chip.style, { display: "inline-flex", alignItems: "center", gap: "7px", padding: "5px 8px", borderRadius: "14px", background: "rgba(120,90,255,.2)", border: "1px solid rgba(120,90,255,.45)", fontSize: "12px" });
+      const text = document.createElement("span"); text.textContent = tag;
+      const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "×"; remove.title = tr("workspaceRemoveTag"); remove.setAttribute("aria-label", `${tr("workspaceRemoveTag")}: ${tag}`);
       remove.style.cssText = "border:0;background:transparent;color:inherit;cursor:pointer;font-size:16px;padding:0;line-height:1;";
-      remove.addEventListener("click", () => { draftTags.splice(index, 1); renderTags(); });
-      chip.append(text, remove);
-      tagList.appendChild(chip);
+      remove.addEventListener("click", () => { draftTags.splice(index, 1); renderTags(); }); chip.append(text, remove); tagList.appendChild(chip);
     });
   };
-  const addTag = () => {
-    const value = tagInput.value.trim().replace(/,/g, "");
-    if (!value) return;
-    if (!draftTags.some((tag) => tag.toLocaleLowerCase() === value.toLocaleLowerCase())) draftTags.push(value);
-    tagInput.value = "";
-    renderTags();
-    tagInput.focus();
-  };
-  tagInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === ",") { event.preventDefault(); addTag(); }
-  });
-  const addTagButton = document.createElement("button");
-  addTagButton.type = "button";
-  addTagButton.textContent = tr("workspaceAddTag");
-  addTagButton.style.cssText = "padding:8px 10px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;justify-self:start;";
-  addTagButton.addEventListener("click", addTag);
-  const actions = document.createElement("div");
-  Object.assign(actions.style, { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" });
-  const cancel = document.createElement("button");
-  cancel.type = "button";
-  cancel.textContent = tr("cancel");
-  const save = document.createElement("button");
-  save.type = "submit";
-  save.textContent = tr("save");
-  for (const button of [cancel, save]) {
-    button.style.cssText = "padding:9px 14px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;";
-  }
-  save.style.borderColor = "var(--secondary-color, #5d00ff)";
-  cancel.addEventListener("click", () => overlay.remove());
-  actions.append(cancel, save);
-  panel.append(
-    heading, makeLabel(tr("workspaceName"), name.id), name,
-    makeLabel(tr("workspaceDescription"), description.id), description,
-    makeLabel(tr("workspaceTags"), tagInput.id), tagInput, addTagButton, tagList, actions,
-  );
-  panel.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const nextName = name.value.trim();
-    if (!nextName) { name.focus(); return; }
+  const addTag = () => { const value = tagInput.value.trim().replace(/,/g, ""); if (!value) return; if (!draftTags.some((tag) => tag.toLocaleLowerCase() === value.toLocaleLowerCase())) draftTags.push(value); tagInput.value = ""; renderTags(); tagInput.focus(); };
+  tagInput.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === ",") { event.preventDefault(); addTag(); } });
+  const addTagButton = document.createElement("button"); addTagButton.type = "button"; addTagButton.textContent = tr("workspaceAddTag"); addTagButton.style.cssText = "padding:8px 10px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;justify-self:start;"; addTagButton.addEventListener("click", addTag);
+  const actions = document.createElement("div"); Object.assign(actions.style, { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" });
+  const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = tr("cancel");
+  const save = document.createElement("button"); save.type = "submit"; save.textContent = tr("save");
+  for (const button of [cancel, save]) button.style.cssText = "padding:9px 14px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;";
+  save.style.borderColor = "var(--secondary-color, #5d00ff)"; cancel.addEventListener("click", () => overlay.remove()); actions.append(cancel, save);
+  panel.append(heading, makeLabel(tr("workspaceName"), name.id), name, makeLabel(tr("workspaceDescription"), description.id), description,
+    makeLabel(tr("workspacePhoto"), photoInput.id), photoInput, photoHint, photoPreview, removePhoto,
+    makeLabel(tr("workspaceTags"), tagInput.id), tagInput, addTagButton, tagList, actions);
+  panel.addEventListener("submit", async (event) => {
+    event.preventDefault(); const nextName = name.value.trim(); if (!nextName) { name.focus(); return; }
     if (tagInput.value.trim()) addTag();
-    workspaceName = nextName;
-    workspaceDescription = description.value.trim();
-    workspaceTags = [...draftTags];
-    saveState();
+    if (selectedPhotoFile) {
+      try { draftPhoto = await compressWorkspacePhoto(selectedPhotoFile); }
+      catch (error) { alert(tr("workspacePhotoHint")); return; }
+    }
+    const all = readWorkspaceRegistry();
+    const updated = { ...target, name: nextName, description: description.value.trim(), tags: [...draftTags], photo: draftPhoto };
+    const index = all.findIndex((item) => item.id === targetWorkspaceId);
+    if (index >= 0) all[index] = updated; else all.push(updated);
+    localStorage.setItem(WORKSPACES_KEY, JSON.stringify(all));
+    if (isActive) { workspaceName = updated.name; workspaceDescription = updated.description; workspaceTags = [...updated.tags]; workspacePhoto = updated.photo; saveState(); }
+    else if (workspaceManagerView) renderWorkspaceManager();
     overlay.remove();
   });
   overlay.addEventListener("click", (event) => { if (event.target === overlay) overlay.remove(); });
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
-  name.focus();
+  overlay.appendChild(panel); document.body.appendChild(overlay); name.focus();
+}
+
+function compressWorkspacePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = reject;
+      image.onload = () => {
+        const maxSide = 720; const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement("canvas"); canvas.width = Math.max(1, Math.round(image.naturalWidth * scale)); canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d"); if (!context) { reject(new Error("Canvas unavailable")); return; }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+        if (dataUrl.length > 900000) { reject(new Error("Image too large after compression")); return; }
+        resolve(dataUrl);
+      };
+      image.src = String(reader.result || "");
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 async function renameWorkspace() {
@@ -2321,9 +2307,7 @@ function openNodeInEditor(node) {
 
 function showEditor() {
   setWorkspaceManagerView(false);
-  const switcher = document.getElementById("workspace-switcher-button");
   const details = document.getElementById("workspace-details-button");
-  if (switcher) switcher.style.display = "none";
   if (details) details.style.display = "none";
   document.getElementById("Website-Container")?.classList.remove("extensions-active");
   const extensionsPanel = document.getElementById("extensions-panel");
@@ -2399,9 +2383,7 @@ function showMap() {
   if (editor) editor.style.display = "none";
   if (mind) mind.style.display = "block";
   setWorkspaceManagerView(false);
-  const switcher = document.getElementById("workspace-switcher-button");
   const details = document.getElementById("workspace-details-button");
-  if (switcher) switcher.style.display = "block";
   if (details) details.style.display = "block";
 
   for (const id of [
@@ -2619,14 +2601,9 @@ function setupFileInputs() {
 
 function wireUI() {
   const mapButton = document.getElementById("mindmap-button");
-  const switcherButton = document.getElementById("workspace-switcher-button");
   const detailsButton = document.getElementById("workspace-details-button");
-  if (switcherButton) switcherButton.style.display = "none";
   if (detailsButton) detailsButton.style.display = "none";
-  switcherButton?.addEventListener("click", () => {
-    if (mind && getComputedStyle(mind).display !== "none") setWorkspaceManagerView(!workspaceManagerView);
-  });
-  detailsButton?.addEventListener("click", showWorkspaceSettings);
+  detailsButton?.addEventListener("click", () => showWorkspaceSettings(workspaceId));
 
   mind?.addEventListener("pointerdown", beginWorkspacePan);
 
@@ -2645,7 +2622,7 @@ function wireUI() {
 
       if (isOpen) {
         closeAddMenu();
-        showEditor();
+        setWorkspaceManagerView(!workspaceManagerView);
       } else {
         showMap();
       }
