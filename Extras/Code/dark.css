@@ -2200,10 +2200,10 @@ body {
 
 /* Media-specific sizing: keep YouTube playback controls visible in the mini-player. */
 #mini-player-list { min-width: 0; }
-.mini-player-item.youtube, .mini-player-item.vimeo, .mini-player-item.dailymotion, .mini-player-item.twitch { aspect-ratio: 16 / 9; min-height: 203px; }
-.mini-player-item.youtube iframe, .mini-player-item.vimeo iframe, .mini-player-item.dailymotion iframe, .mini-player-item.twitch iframe { width: 100%; height: 100%; min-height: 203px; }
+.mini-player-item.youtube, .mini-player-item.vimeo, .mini-player-item.dailymotion, .mini-player-item.twitch { aspect-ratio: 16 / 9; min-height: 0; }
+.mini-player-item.youtube iframe, .mini-player-item.vimeo iframe, .mini-player-item.dailymotion iframe, .mini-player-item.twitch iframe { width: 100%; height: 100%; min-height: 0; }
 .mini-player-item.spotify { aspect-ratio: auto; min-height: 152px; }
-.mini-player-item.tiktok { aspect-ratio: auto; min-height: 400px; }
+.mini-player-item.tiktok { aspect-ratio: 9 / 16; min-height: 0; }
 .mini-player-item.tiktok iframe { width: 100%; }
 
 /* Fixed-size media surface: remove resize handles and let the actual media fill it. */
@@ -2217,15 +2217,15 @@ body {
 #mini-player-list .mini-player-item.youtube,
 #mini-player-list .mini-player-item.vimeo,
 #mini-player-list .mini-player-item.dailymotion,
-#mini-player-list .mini-player-item.twitch { aspect-ratio: 16 / 9; min-height: 203px; height: auto; }
+#mini-player-list .mini-player-item.twitch { aspect-ratio: 16 / 9; min-height: 0; height: auto; }
 #mini-player-list .mini-player-item.youtube iframe,
 #mini-player-list .mini-player-item.vimeo iframe,
 #mini-player-list .mini-player-item.dailymotion iframe,
-#mini-player-list .mini-player-item.twitch iframe { aspect-ratio: 16 / 9; min-height: 203px; height: auto !important; }
+#mini-player-list .mini-player-item.twitch iframe { aspect-ratio: 16 / 9; min-height: 0; height: auto !important; }
 #mini-player-list .mini-player-item.spotify { height: 352px; min-height: 352px; }
 #mini-player-list .mini-player-item.spotify iframe { height: 352px !important; }
-#mini-player-list .mini-player-item.tiktok { height: 600px; min-height: 600px; }
-#mini-player-list .mini-player-item.tiktok iframe { height: 600px !important; }
+#mini-player-list .mini-player-item.tiktok { width: 270px; height: 480px; min-height: 0; aspect-ratio: 9 / 16; }
+#mini-player-list .mini-player-item.tiktok iframe { height: 480px !important; }
 
 
 /* Auto-fit media by known platform format; no manual resize handles. */
@@ -2234,8 +2234,8 @@ body {
 #mini-player-list .mini-player-item { display: block; flex-shrink: 0; min-width: 0; min-height: 0; max-width: calc(100vw - 24px); overflow: hidden; }
 #mini-player-list .mini-player-item iframe { display: block; width: 100% !important; height: 100% !important; min-height: 0 !important; border: 0; }
 #mini-player-list .mini-player-item.spotify { width: 352px; height: 352px; min-height: 352px; }
-#mini-player-list .mini-player-item.tiktok { width: 338px; height: 600px; }
-#mini-player-list .mini-player-item.youtube { min-width: 300px; }
+#mini-player-list .mini-player-item.tiktok { width: 270px; height: 480px; }
+#mini-player-list .mini-player-item.youtube { min-width: 0; }
 #mini-player-list .mini-player-item.youtube:not([style*="aspect-ratio: 9 / 16"]) { width: 480px; height: 270px; }
 #mini-player-list .mini-player-item.vimeo,
 #mini-player-list .mini-player-item.dailymotion,
