@@ -2960,3 +2960,13 @@ body {
   min-height: 0 !important;
   max-height: 100% !important;
 }
+
+/* Spotify's embed must follow the resizable shell instead of retaining its old 352px width. */
+#mini-player:not(.collapsed):not(.is-expanded).has-spotify-media #mini-player-list,
+#mini-player:not(.collapsed):not(.is-expanded).has-spotify-media #mini-player-list .mini-player-item.spotify,
+#mini-player:not(.collapsed):not(.is-expanded).has-spotify-media #mini-player-list .mini-player-item.spotify iframe {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
