@@ -878,6 +878,8 @@ if (!blockWeb) {
     let previousRect = null;
     let activePointer = null;
     let holdTimer = null;
+    let expandLongPress = null;
+    let suppressExpandClick = false;
     const positionKey = "darkstudio-mini-player-position";
 
     function restorePosition() {
@@ -951,6 +953,7 @@ if (!blockWeb) {
     }
 
     expandButton.addEventListener("click", () => {
+      if (suppressExpandClick) { suppressExpandClick = false; return; }
       const wasExpanded = player.classList.contains("is-expanded");
       if (!wasExpanded) {
         const before = player.getBoundingClientRect();
@@ -990,6 +993,41 @@ if (!blockWeb) {
     window.addEventListener("resize", () => {
       if (player.classList.contains("is-expanded")) fitEditorToVideo();
     });
+
+    // Long-press the expand control to move the expanded preview.
+    expandButton.addEventListener("pointerdown", (event) => {
+      if (!player.classList.contains("is-expanded") || event.button !== 0) return;
+      const rect = player.getBoundingClientRect();
+      expandLongPress = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false, timer: setTimeout(() => {
+        player.classList.add("mini-player-holding");
+        expandButton.setPointerCapture?.(event.pointerId);
+      }, 280) };
+    });
+    expandButton.addEventListener("pointermove", (event) => {
+      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
+      const dx = event.clientX - expandLongPress.x;
+      const dy = event.clientY - expandLongPress.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) {
+        clearTimeout(expandLongPress.timer);
+        expandLongPress.moved = true;
+        suppressExpandClick = true;
+        const width = player.getBoundingClientRect().width;
+        const height = player.getBoundingClientRect().height;
+        const left = Math.max(8, Math.min(window.innerWidth - width - 8, expandLongPress.left + dx));
+        const top = Math.max(8, Math.min(window.innerHeight - height - 8, expandLongPress.top + dy));
+        player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
+        player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
+      }
+    });
+    const stopExpandLongPress = (event) => {
+      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
+      clearTimeout(expandLongPress.timer);
+      player.classList.remove("mini-player-holding");
+      if (!expandLongPress.moved) suppressExpandClick = false;
+      expandLongPress = null;
+    };
+    expandButton.addEventListener("pointerup", stopExpandLongPress);
+    expandButton.addEventListener("pointercancel", stopExpandLongPress);
 
     const resizeHandle = player.querySelector(".mini-player-resize-handle.resize-se");
     let resizeState = null;
