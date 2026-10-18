@@ -942,8 +942,9 @@ if (!blockWeb) {
     const editorSurface = document.getElementById("Editor");
     if (!player || !toolbar || !expandButton || !list || !editorSurface) return;
 
-    // Every newly loaded mini-player starts at the smallest supported shell size.
-    const DEFAULT = { width: 150, height: 90 };
+    // Platform defaults: Spotify keeps its compact width; short videos are portrait,
+    // while standard YouTube and other landscape videos use 16:9.
+    const DEFAULT = { width: 480, height: 270 };
     const positionKey = "darkstudio-mini-player-position";
     const sizeKey = "darkstudio-mini-player-size";
     let restoreRect = null;
@@ -953,6 +954,12 @@ if (!blockWeb) {
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     const getMedia = () => list.querySelector(".mini-player-item");
+    const getDefaultSize = () => {
+      const item = getMedia();
+      if (item?.classList.contains("spotify")) return { width: 340, height: 80 };
+      if (item?.classList.contains("tiktok")) return { width: 270, height: 480 };
+      return { width: 480, height: 270 };
+    };
     const getRatio = (item) => {
       if (!item) return 16 / 9;
       // Platform ratios must take precedence over a stale inline aspect-ratio.
@@ -1135,10 +1142,12 @@ if (!blockWeb) {
       const savedPos = JSON.parse(localStorage.getItem(positionKey) || "null");
       const savedSize = JSON.parse(localStorage.getItem(sizeKey) || "null");
       const bounds = editorSurface.getBoundingClientRect();
-      // Keep the last position, but always start at the minimum shell size.
-      // Spotify's compact player is 80px tall; other providers start at 90px.
-      const width = clamp(DEFAULT.width, Math.min(340, bounds.width), Math.max(Math.min(340, bounds.width), bounds.width));
-      const height = clamp(isSpotify() ? 80 : DEFAULT.height, isSpotify() ? 80 : 90, Math.max(isSpotify() ? 80 : 90, bounds.height));
+      // Start with a platform-appropriate aspect ratio. Only Spotify has a 340px minimum width.
+      const defaultSize = getDefaultSize();
+      const minWidth = isSpotify() ? Math.min(340, bounds.width) : 1;
+      const minHeight = isSpotify() ? Math.min(80, bounds.height) : 1;
+      const width = clamp(defaultSize.width, minWidth, Math.max(minWidth, bounds.width));
+      const height = clamp(defaultSize.height, minHeight, Math.max(minHeight, bounds.height));
       const left = clamp(Number(savedPos?.left) || bounds.left, bounds.left, Math.max(bounds.left, bounds.right - width));
       const top = clamp(Number(savedPos?.top) || bounds.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
       setRect(left, top, width, height);
@@ -1158,9 +1167,11 @@ if (!blockWeb) {
       } else {
         clearExpandedState();
         player.classList.remove("is-expanded");
-        const r = restoreRect || { left: 20, top: 90, ...DEFAULT };
+        const r = restoreRect || { left: 20, top: 90, ...getDefaultSize() };
         const bounds = editorSurface.getBoundingClientRect();
-        const restoredWidth = Math.max(Math.min(340, bounds.width), Math.min(r.width, bounds.width));
+        const restoredWidth = isSpotify()
+          ? Math.max(Math.min(340, bounds.width), Math.min(r.width, bounds.width))
+          : Math.min(r.width, bounds.width);
         const restoredHeight = Math.min(getMaxHeight(r.height), bounds.height);
         setRect(
           clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - restoredWidth)),
