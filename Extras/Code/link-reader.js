@@ -239,6 +239,10 @@ async function analyzeDetectedUrl(rawUrl) {
     const html = await response.text();
     const doc = new DOMParser().parseFromString(html.slice(0, 1_000_000), "text/html");
     const readMeta = (selector) => doc.querySelector(selector)?.content?.trim() || "";
+    const absoluteUrl = (value) => {
+      if (!value) return "";
+      try { return new URL(value, url.href).href; } catch { return value; }
+    };
     const title = readMeta("meta[property='og:title']") || doc.querySelector("title")?.textContent?.trim() || url.hostname;
     const description = readMeta("meta[name='description']") || readMeta("meta[property='og:description']");
     const metadata = {
@@ -247,11 +251,16 @@ async function analyzeDetectedUrl(rawUrl) {
       keywords: readMeta("meta[name='keywords']"),
       author: readMeta("meta[name='author']"),
       robots: readMeta("meta[name='robots']"),
-      canonical: doc.querySelector("link[rel='canonical']")?.href || "",
+      canonical: absoluteUrl(doc.querySelector("link[rel='canonical']")?.getAttribute("href") || ""),
       ogTitle: readMeta("meta[property='og:title']"),
       ogDescription: readMeta("meta[property='og:description']"),
-      ogUrl: readMeta("meta[property='og:url']"),
-      ogImage: readMeta("meta[property='og:image']"),
+      ogType: readMeta("meta[property='og:type']"),
+      ogUrl: absoluteUrl(readMeta("meta[property='og:url']")),
+      ogSiteName: readMeta("meta[property='og:site_name']"),
+      ogImage: absoluteUrl(readMeta("meta[property='og:image']")),
+      ogImageAlt: readMeta("meta[property='og:image:alt']"),
+      ogLocale: readMeta("meta[property='og:locale']"),
+      twitterCard: readMeta("meta[name='twitter:card']"),
       verification: readMeta("meta[name='google-site-verification']"),
     };
     if (sequence !== analysisSequence) return;
