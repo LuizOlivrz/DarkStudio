@@ -1836,17 +1836,13 @@ function createAddMenu(position = null) {
       action: renameWorkspace,
     },
     {
-      label: `↔ ${tr("mindMapConnectTitle")}`,
+      label: `↔ ${connectMode ? tr("connectPrompt") : tr("mindMapConnectTitle")}`,
       action: () => {
         connectMode = !connectMode;
         connectSource = null;
         nodeLayer?.querySelectorAll(".selected").forEach((element) => {
           element.classList.remove("selected");
         });
-        const connectButton = document.getElementById("mindmap-connect");
-        if (connectButton) {
-          connectButton.textContent = connectMode ? tr("connectPrompt") : tr("connect");
-        }
       },
     },
     {
