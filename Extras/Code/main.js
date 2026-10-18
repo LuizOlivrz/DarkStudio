@@ -951,14 +951,13 @@ if (!blockWeb) {
     }
 
     expandButton.addEventListener("click", () => {
+      const wasExpanded = player.classList.contains("is-expanded");
+      if (!wasExpanded) {
+        const before = player.getBoundingClientRect();
+        previousRect = { width: before.width || defaultSize.width, height: before.height || defaultSize.height, left: before.left, top: before.top };
+      }
       const expanded = player.classList.toggle("is-expanded");
       if (expanded) {
-        previousRect = {
-          width: player.offsetWidth || defaultSize.width,
-          height: player.offsetHeight || defaultSize.height,
-          left: player.getBoundingClientRect().left,
-          top: player.getBoundingClientRect().top,
-        };
         player.style.left = "";
         player.style.top = "";
         player.style.right = "";
@@ -973,8 +972,10 @@ if (!blockWeb) {
       } else {
         clearEditorFit();
         player.style.position = "fixed";
-        player.style.width = defaultSize.width + "px";
-        player.style.height = defaultSize.height + "px";
+        player.style.removeProperty("--mini-player-fit-width");
+        player.style.removeProperty("--mini-player-fit-height");
+        player.style.width = (previousRect?.width || defaultSize.width) + "px";
+        player.style.height = (previousRect?.height || defaultSize.height) + "px";
         player.style.left = Math.max(0, previousRect?.left ?? 20) + "px";
         player.style.top = Math.max(0, previousRect?.top ?? 20) + "px";
         player.style.right = "auto";
@@ -986,7 +987,46 @@ if (!blockWeb) {
       }
     });
 
-    window.addEventListener("resize", fitEditorToVideo);
+    window.addEventListener("resize", () => {
+      if (player.classList.contains("is-expanded")) fitEditorToVideo();
+    });
+
+    const resizeHandle = player.querySelector(".mini-player-resize-handle.resize-se");
+    let resizeState = null;
+    resizeHandle?.addEventListener("pointerdown", (event) => {
+      if (!player.classList.contains("is-expanded")) return;
+      const rect = player.getBoundingClientRect();
+      const item = player.querySelector("#mini-player-list .mini-player-item");
+      const portrait = !!item && (item.classList.contains("tiktok") || (item.style.aspectRatio || "").replaceAll(" ", "") === "9/16");
+      resizeState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, width: rect.width, height: rect.height, ratio: portrait ? 9 / 16 : rect.width / Math.max(1, rect.height) };
+      resizeHandle.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    resizeHandle?.addEventListener("pointermove", (event) => {
+      if (!resizeState || resizeState.pointerId !== event.pointerId) return;
+      const dx = event.clientX - resizeState.x;
+      const dy = event.clientY - resizeState.y;
+      const ratio = resizeState.ratio;
+      const widthFromX = resizeState.width + dx;
+      const widthFromY = (resizeState.height + dy) * ratio;
+      const width = Math.max(240, Math.min(window.innerWidth - 24, Math.abs(widthFromX - resizeState.width) > Math.abs(widthFromY - resizeState.width) ? widthFromX : widthFromY));
+      const height = width / ratio;
+      const rect = player.getBoundingClientRect();
+      player.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
+      player.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+      player.style.setProperty("--mini-player-editor-left", Math.round(Math.max(8, Math.min(window.innerWidth - width - 8, rect.left))) + "px");
+      player.style.setProperty("--mini-player-editor-top", Math.round(Math.max(8, Math.min(window.innerHeight - height - 8, rect.top))) + "px");
+      editorSurface?.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
+      editorSurface?.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+    });
+    const stopResize = (event) => {
+      if (resizeState?.pointerId !== event.pointerId) return;
+      resizeState = null;
+    };
+    resizeHandle?.addEventListener("pointerup", stopResize);
+    resizeHandle?.addEventListener("pointercancel", stopResize);
+
 
     toolbar.style.cursor = "grab";
     toolbar.addEventListener("pointerdown", (event) => {
