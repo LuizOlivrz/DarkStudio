@@ -2197,3 +2197,23 @@ body {
 .mini-player-item.spotify { aspect-ratio: auto; min-height: 152px; }
 .mini-player-item.tiktok { aspect-ratio: auto; min-height: 400px; }
 .mini-player-item.tiktok iframe { width: 100%; }
+
+/* Fixed-size media surface: remove resize handles and let the actual media fill it. */
+#mini-player { resize: none !important; }
+#mini-player .mini-player-resize-handle { display: none !important; }
+#mini-player-toolbar { cursor: grab; touch-action: none; }
+#mini-player-list { width: 100%; height: 100%; overflow: hidden; }
+#mini-player-list .mini-player-item { width: 100%; height: 100%; min-width: 0; min-height: 0; }
+#mini-player-list .mini-player-item iframe { display: block; width: 100%; max-width: 100%; border: 0; }
+#mini-player-list .mini-player-item.youtube,
+#mini-player-list .mini-player-item.vimeo,
+#mini-player-list .mini-player-item.dailymotion,
+#mini-player-list .mini-player-item.twitch { aspect-ratio: 16 / 9; min-height: 203px; height: auto; }
+#mini-player-list .mini-player-item.youtube iframe,
+#mini-player-list .mini-player-item.vimeo iframe,
+#mini-player-list .mini-player-item.dailymotion iframe,
+#mini-player-list .mini-player-item.twitch iframe { aspect-ratio: 16 / 9; min-height: 203px; height: auto !important; }
+#mini-player-list .mini-player-item.spotify { height: 352px; min-height: 352px; }
+#mini-player-list .mini-player-item.spotify iframe { height: 352px !important; }
+#mini-player-list .mini-player-item.tiktok { height: 600px; min-height: 600px; }
+#mini-player-list .mini-player-item.tiktok iframe { height: 600px !important; }
