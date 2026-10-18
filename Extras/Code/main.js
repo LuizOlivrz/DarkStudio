@@ -670,86 +670,110 @@ if (!blockWeb) {
     const list = document.getElementById("mini-player-list");
     const toggle = document.getElementById("mini-player-toggle");
     if (!player || !list) return;
+
     const text = typeof code === "string" ? code.trim() : "";
+    // URLs are also found inside pasted iframe/embed HTML (src="...").
     const urls = text.match(/https?:\/\/[^\s<>"']+/gi) || [];
     const embeds = [];
     const seen = new Set();
     let websiteUrl = "";
+
     for (const rawUrl of urls) {
-      const cleanedUrl = rawUrl.replace(/[),.;!?]+$/, "");
+      const cleanedUrl = rawUrl.replace(/[),.;!?]+$/, "").replace(/&amp;/gi, "&");
       try {
         const url = new URL(cleanedUrl);
-        const host = url.hostname.toLowerCase();
+        const host = url.hostname.toLowerCase().replace(/^www\./, "");
+        let embed = null;
+
+        // YouTube links and pasted iframe src values.
         let videoId = "";
         if (host === "youtu.be") videoId = url.pathname.split("/").filter(Boolean)[0] || "";
-        else if (["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)) {
+        else if (["youtube.com", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com"].includes(host)) {
           if (url.pathname === "/watch") videoId = url.searchParams.get("v") || "";
           else {
-            const match = url.pathname.match(/^\/(shorts|live|embed)\/([^/]+)/);
+            const match = url.pathname.match(/^\/(shorts|live|embed|v)\/([^/]+)/);
             if (match) videoId = match[2];
           }
         }
         if (/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-          const src = "https://www.youtube.com/embed/" + videoId + "?autoplay=0&mute=1";
-          if (!seen.has(src)) embeds.push({ type: "youtube", src: src, height: 180 });
-          seen.add(src);
-          continue;
+          embed = { type: "youtube", src: "https://www.youtube.com/embed/" + videoId, height: 203, title: "YouTube video player" };
         }
-        const spotify = getSpotifyInfo(cleanedUrl);
-        if (spotify) {
-          const src = "https://open.spotify.com/embed/" + spotify.type + "/" + spotify.id;
-          if (!seen.has(src)) embeds.push({ type: "spotify", src: src, height: spotify.type === "track" ? 152 : 352, spotify: spotify });
-          seen.add(src);
-          continue;
+
+        // Spotify track/album/playlist/artist embeds; keep the official Spotify card.
+        if (!embed) {
+          const spotify = getSpotifyInfo(cleanedUrl);
+          if (spotify) embed = {
+            type: "spotify",
+            src: "https://open.spotify.com/embed/" + spotify.type + "/" + spotify.id + "?utm_source=generator",
+            height: 352,
+            title: "Spotify Embed: " + spotify.type,
+            spotify: spotify
+          };
         }
-        if (!websiteUrl) websiteUrl = url.href;
-      } catch {}
+
+        // TikTok's documented inline player URL.
+        if (!embed && host === "tiktok.com") {
+          const match = url.pathname.match(/\/video\/(\d+)/);
+          if (match) embed = {
+            type: "tiktok",
+            src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&music_info=1&description=1",
+            height: 600,
+            title: "TikTok video player"
+          };
+        }
+
+        // Other platforms with documented iframe players.
+        if (!embed && ["vimeo.com", "player.vimeo.com"].includes(host)) {
+          const match = url.pathname.match(/(?:video\/)?(\d+)/);
+          if (match) embed = { type: "vimeo", src: "https://player.vimeo.com/video/" + match[1], height: 203, title: "Vimeo video player" };
+        }
+        if (!embed && host === "dailymotion.com") {
+          const match = url.pathname.match(/\/(?:video|embed\/video)\/([a-zA-Z0-9]+)/);
+          if (match) embed = { type: "dailymotion", src: "https://www.dailymotion.com/embed/video/" + match[1], height: 203, title: "Dailymotion video player" };
+        }
+        if (!embed && host === "twitch.tv") {
+          const clip = url.pathname.match(/^\/(?:[^/]+\/clip|clip)\/([A-Za-z0-9_-]+)/);
+          const video = url.pathname.match(/^\/videos\/(\d+)/);
+          if (clip) {
+            const parent = encodeURIComponent(location.hostname || "localhost");
+            embed = { type: "twitch", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, height: 203, title: "Twitch clip player" };
+          } else if (video) {
+            const parent = encodeURIComponent(location.hostname || "localhost");
+            embed = { type: "twitch", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, height: 203, title: "Twitch video player" };
+          }
+        }
+        if (embed) {
+          if (!seen.has(embed.src)) embeds.push(embed);
+          seen.add(embed.src);
+        } else if (!websiteUrl && /^https?:$/.test(url.protocol)) {
+          websiteUrl = url.href;
+        }
+      } catch {
+        // Ignore malformed URLs and continue.
+      }
     }
+
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
       const iframe = document.createElement("iframe");
       iframe.src = embed.src;
-      iframe.title = (embed.type === "youtube" ? "YouTube" : "Spotify") + " player " + (index + 1);
+      iframe.title = embed.title || (embed.type + " player " + (index + 1));
       iframe.loading = "lazy";
-      iframe.referrerPolicy = "no-referrer";
-      iframe.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
+      iframe.referrerPolicy = embed.type === "youtube" ? "strict-origin-when-cross-origin" : "strict-origin-when-cross-origin";
+      iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share";
       iframe.allowFullscreen = true;
       iframe.style.height = embed.height + "px";
       item.appendChild(iframe);
       if (embed.spotify) updateSpotifyTheme(embed.spotify);
       return item;
     }));
+
     player.classList.toggle("visible", embeds.length > 0);
     if (toggle) toggle.hidden = embeds.length === 0;
     player.dataset.pendingWebsite = websiteUrl;
     if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
   }
-
-  window.addEventListener("darkstudio:site-analysis", (event) => {
-    const detail = event.detail || {};
-    const player = document.getElementById("mini-player");
-    const list = document.getElementById("mini-player-list");
-    const toggle = document.getElementById("mini-player-toggle");
-    if (!player || !list || player.dataset.pendingWebsite !== detail.url) return;
-    list.querySelectorAll(".mini-player-item.website").forEach((node) => node.remove());
-    if (detail.ok) {
-      const item = document.createElement("div");
-      item.className = "mini-player-item website";
-      const iframe = document.createElement("iframe");
-      iframe.src = detail.url;
-      iframe.title = detail.title || new URL(detail.url).hostname;
-      iframe.loading = "lazy";
-      iframe.referrerPolicy = "no-referrer";
-      iframe.allow = "fullscreen";
-      iframe.style.height = "100%";
-      item.appendChild(iframe);
-      list.appendChild(item);
-      player.classList.add("visible");
-    }
-    player.classList.toggle("visible", list.children.length > 0);
-    if (toggle) toggle.hidden = list.children.length === 0;
-  });
 
   document.getElementById("mini-player-toggle")?.addEventListener("click", (event) => {
     const toggle = event.currentTarget;
