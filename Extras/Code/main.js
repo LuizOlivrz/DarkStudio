@@ -991,11 +991,8 @@ if (!blockWeb) {
         height: Math.max(180, Math.min(editorRect.height || window.innerHeight - 100, window.innerHeight - 16))
       };
       const preferredWidth = portrait ? Math.min(bounds.width, bounds.height * ratio) : bounds.width;
-      const preferredHeight = preferredWidth / ratio;
       const width = Math.max(180, Math.min(preferredWidth, bounds.width, bounds.height * ratio));
       const height = width / ratio;
-      const left = clamp(bounds.left + (bounds.width - width) / 2, 8, window.innerWidth - width - 8);
-      const top = clamp(bounds.top + (bounds.height - height) / 2, 8, window.innerHeight - height - 8);
 
       player.classList.toggle("is-expanded-portrait", portrait);
       player.classList.toggle("is-expanded-landscape", !portrait);
@@ -1003,6 +1000,12 @@ if (!blockWeb) {
       editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
       editorSurface.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
       editorSurface.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
+
+      // The editor may shift horizontally when its fitted width and auto margins are applied.
+      // Measure its resulting viewport rectangle instead of positioning from the pre-fit bounds.
+      const fittedEditorRect = editorSurface.getBoundingClientRect();
+      const left = clamp(fittedEditorRect.left, 8, window.innerWidth - width - 8);
+      const top = clamp(fittedEditorRect.top, 8, window.innerHeight - height - 8);
       setRect(left, top, width, height);
       addCaption(portrait);
       devLog("layout expanded", {
