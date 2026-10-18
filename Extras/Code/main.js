@@ -799,8 +799,8 @@ if (!blockWeb) {
     setMiniPlayersCollapsed(player, document.getElementById("mini-player-toggle"), false);
   });
   
-  // Drag the detached mini-player by its title bar.
-  (function initMiniPlayerResize() {
+  // Move the mini-player without resizing; keep its position across media changes and reloads.
+  (function initMiniPlayerMovement() {
     const player = document.getElementById("mini-player");
     const toolbar = document.getElementById("mini-player-toolbar");
     const expandButton = document.getElementById("mini-player-expand");
@@ -809,13 +809,32 @@ if (!blockWeb) {
     const defaultSize = { width: 360, height: 240 };
     let previousRect = null;
     let activePointer = null;
+    const positionKey = "darkstudio-mini-player-position";
+
+    function restorePosition() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(positionKey) || "null");
+        if (!saved || !Number.isFinite(saved.left) || !Number.isFinite(saved.top)) return;
+        player.style.position = "fixed";
+        player.style.left = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, saved.left)) + "px";
+        player.style.top = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, saved.top)) + "px";
+        player.style.right = "auto";
+        player.style.bottom = "auto";
+      } catch {}
+    }
+    function savePosition() {
+      const rect = player.getBoundingClientRect();
+      try { localStorage.setItem(positionKey, JSON.stringify({ left: rect.left, top: rect.top })); } catch {}
+    }
+
+    restorePosition();
 
     expandButton.addEventListener("click", () => {
       const expanded = player.classList.toggle("is-expanded");
       if (expanded) {
         previousRect = {
-          width: player.offsetWidth,
-          height: player.offsetHeight,
+          width: player.offsetWidth || defaultSize.width,
+          height: player.offsetHeight || defaultSize.height,
           left: player.getBoundingClientRect().left,
           top: player.getBoundingClientRect().top,
         };
@@ -824,31 +843,34 @@ if (!blockWeb) {
         player.style.right = "";
         player.style.bottom = "";
         expandButton.textContent = "↙";
-        expandButton.title = "Restore mini-player size";
-        expandButton.setAttribute("aria-label", "Restore mini-player size");
+        expandButton.title = "Restore mini-player";
+        expandButton.setAttribute("aria-label", "Restore mini-player");
       } else {
-        player.style.position = "absolute";
-        player.style.width = `${previousRect?.width || defaultSize.width}px`;
-        player.style.height = `${previousRect?.height || defaultSize.height}px`;
-        player.style.left = "";
-        player.style.top = "";
-        player.style.right = "9px";
-        player.style.bottom = "";
+        player.style.position = "fixed";
+        player.style.width = defaultSize.width + "px";
+        player.style.height = defaultSize.height + "px";
+        player.style.left = Math.max(0, previousRect?.left ?? 20) + "px";
+        player.style.top = Math.max(0, previousRect?.top ?? 20) + "px";
+        player.style.right = "auto";
+        player.style.bottom = "auto";
         expandButton.textContent = "⛶";
         expandButton.title = "Expand preview into editor area";
         expandButton.setAttribute("aria-label", "Expand preview");
+        savePosition();
       }
     });
 
+    toolbar.style.cursor = "grab";
     toolbar.addEventListener("pointerdown", (event) => {
       if (event.target.closest("button") || player.classList.contains("is-expanded")) return;
       const rect = player.getBoundingClientRect();
       activePointer = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
       player.style.position = "fixed";
-      player.style.left = `${rect.left}px`;
-      player.style.top = `${rect.top}px`;
+      player.style.left = rect.left + "px";
+      player.style.top = rect.top + "px";
       player.style.right = "auto";
       player.style.bottom = "auto";
+      toolbar.style.cursor = "grabbing";
       toolbar.setPointerCapture(event.pointerId);
       event.preventDefault();
     });
@@ -856,67 +878,23 @@ if (!blockWeb) {
       if (!activePointer || activePointer.id !== event.pointerId) return;
       const x = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, activePointer.left + event.clientX - activePointer.x));
       const y = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, activePointer.top + event.clientY - activePointer.y));
-      player.style.left = `${x}px`;
-      player.style.top = `${y}px`;
+      player.style.left = x + "px";
+      player.style.top = y + "px";
     });
     const stopDrag = (event) => {
-      if (activePointer?.id === event.pointerId) activePointer = null;
+      if (activePointer?.id !== event.pointerId) return;
+      activePointer = null;
+      toolbar.style.cursor = "grab";
+      savePosition();
     };
     toolbar.addEventListener("pointerup", stopDrag);
     toolbar.addEventListener("pointercancel", stopDrag);
-
-    player.querySelectorAll(".mini-player-resize-handle").forEach((handle) => {
-      handle.addEventListener("pointerdown", (event) => {
-        if (player.classList.contains("is-expanded") || player.classList.contains("collapsed")) return;
-        const rect = player.getBoundingClientRect();
-        activePointer = {
-          id: event.pointerId, mode: handle.dataset.resize, x: event.clientX, y: event.clientY,
-          left: rect.left, top: rect.top, width: rect.width, height: rect.height,
-        };
-        player.style.position = "fixed";
-        player.style.left = `${rect.left}px`;
-        player.style.top = `${rect.top}px`;
-        player.style.right = "auto";
-        player.style.bottom = "auto";
-        handle.setPointerCapture(event.pointerId);
-        event.preventDefault();
-        event.stopPropagation();
-      });
-      handle.addEventListener("pointermove", (event) => {
-        if (!activePointer || activePointer.id !== event.pointerId || !activePointer.mode) return;
-        const dx = event.clientX - activePointer.x;
-        const dy = event.clientY - activePointer.y;
-        let { left, top, width, height } = activePointer;
-        const mode = activePointer.mode;
-        const minW = 260, minH = 170;
-        if (mode.includes("e")) width = Math.max(minW, activePointer.width + dx);
-        if (mode.includes("s")) height = Math.max(minH, activePointer.height + dy);
-        if (mode.includes("w")) { width = Math.max(minW, activePointer.width - dx); left = activePointer.left + activePointer.width - width; }
-        if (mode.includes("n")) { height = Math.max(minH, activePointer.height - dy); top = activePointer.top + activePointer.height - height; }
-        width = Math.min(width, window.innerWidth - Math.max(0, left));
-        height = Math.min(height, window.innerHeight - Math.max(0, top));
-        player.style.left = `${Math.max(0, left)}px`;
-        player.style.top = `${Math.max(0, top)}px`;
-        player.style.width = `${width}px`;
-        player.style.height = `${height}px`;
-      });
-      const stopResize = (event) => {
-        if (activePointer?.id === event.pointerId) activePointer = null;
-      };
-      handle.addEventListener("pointerup", stopResize);
-      handle.addEventListener("pointercancel", stopResize);
-    });
-
-    // Double-click the toolbar to restore the original compact dimensions.
-    toolbar.addEventListener("dblclick", () => {
-      if (player.classList.contains("is-expanded")) expandButton.click();
-      player.style.width = `${defaultSize.width}px`;
-      player.style.height = `${defaultSize.height}px`;
-      player.style.left = "";
-      player.style.top = "";
-      player.style.right = "9px";
-      player.style.bottom = "";
-      player.style.position = "absolute";
+    window.addEventListener("resize", () => {
+      if (player.classList.contains("is-expanded")) return;
+      const rect = player.getBoundingClientRect();
+      player.style.left = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, rect.left)) + "px";
+      player.style.top = Math.max(0, Math.min(window.innerHeight - player.offsetHeight, rect.top)) + "px";
+      savePosition();
     });
   })();
 
