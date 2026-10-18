@@ -1299,7 +1299,6 @@ if (!blockWeb) {
       if (suppressClick) window.setTimeout(() => { suppressClick = false; }, 100);
     };
     toolbar.addEventListener("pointerdown", e => startDrag(e, toolbar));
-    expandButton.addEventListener("pointerdown", e => startDrag(e, expandButton));
     window.addEventListener("pointermove", moveDrag, { passive: false });
     window.addEventListener("pointerup", endDrag);
     window.addEventListener("pointercancel", endDrag);
