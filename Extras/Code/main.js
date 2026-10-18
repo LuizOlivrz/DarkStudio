@@ -1028,62 +1028,65 @@ if (!blockWeb) {
       }
     });
 
-    // Drag from toolbar in floating mode; in expanded mode drag via the expand button.
+    // Drag the floating player from its toolbar. In expanded mode, drag from the expand/restore
+    // control; route pointer movement through window so capture remains reliable over iframes.
     const startDrag = (event, handle) => {
-      if (event.button !== 0 || event.target.closest("button") && handle === toolbar) return;
+      if (event.button !== 0 || (handle === toolbar && event.target.closest("button"))) return;
       if (handle === toolbar && isExpanded()) return;
+      if (handle === expandButton && !isExpanded()) return;
       const r = player.getBoundingClientRect();
-      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: r.left, top: r.top, handle };
-      handle.setPointerCapture?.(event.pointerId);
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: r.left, top: r.top, width: r.width, height: r.height, handle };
+      try { handle.setPointerCapture?.(event.pointerId); } catch {}
       handle.style.touchAction = "none";
+      player.classList.add("mini-player-dragging");
       event.preventDefault();
+      event.stopPropagation();
+      devLog("drag start", { expanded: isExpanded(), left: r.left, top: r.top });
     };
     const moveDrag = (event) => {
       if (!drag || drag.id !== event.pointerId) return;
       const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) suppressClick = true;
-      const r = player.getBoundingClientRect();
-      const left = clamp(drag.left + dx, 8, window.innerWidth - r.width - 8);
-      const top = clamp(drag.top + dy, 8, window.innerHeight - r.height - 8);
+      const left = clamp(drag.left + dx, 8, window.innerWidth - drag.width - 8);
+      const top = clamp(drag.top + dy, 8, window.innerHeight - drag.height - 8);
+      setRect(left, top, drag.width, drag.height, false);
       if (isExpanded()) {
         player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
         player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
       }
-      setRect(left, top, r.width, r.height, false);
       event.preventDefault();
     };
     const endDrag = (event) => {
       if (!drag || drag.id !== event.pointerId) return;
       drag = null;
-      player.classList.remove("mini-player-resizing");
+      player.classList.remove("mini-player-dragging", "mini-player-resizing");
       savePosition();
-      if (suppressClick) window.setTimeout(() => { suppressClick = false; }, 80);
+      devLog("drag end", player.getBoundingClientRect().toJSON());
+      if (suppressClick) window.setTimeout(() => { suppressClick = false; }, 100);
     };
     toolbar.addEventListener("pointerdown", e => startDrag(e, toolbar));
-    toolbar.addEventListener("pointermove", moveDrag);
-    toolbar.addEventListener("pointerup", endDrag);
-    toolbar.addEventListener("pointercancel", endDrag);
-    expandButton.addEventListener("pointerdown", e => {
-      if (isExpanded()) startDrag(e, expandButton);
-    });
-    expandButton.addEventListener("pointermove", moveDrag);
-    expandButton.addEventListener("pointerup", endDrag);
-    expandButton.addEventListener("pointercancel", endDrag);
+    expandButton.addEventListener("pointerdown", e => startDrag(e, expandButton));
+    window.addEventListener("pointermove", moveDrag, { passive: false });
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
 
-    // One corner handle resizes both dimensions and preserves the media ratio.
+    // Resizing is available only in floating/text mode, never while expanded.
+    // The 44px invisible target makes the corner much easier to grab while preserving its look.
     const resizeHandle = player.querySelector('.mini-player-resize-handle[data-resize="se"]');
     if (resizeHandle) {
       resizeHandle.addEventListener("pointerdown", event => {
+        if (isExpanded() || player.classList.contains("collapsed")) return;
         const r = player.getBoundingClientRect();
-        const item = getMedia();
-        resize = { id: event.pointerId, x: event.clientX, y: event.clientY, width: r.width, ratio: getRatio(item), left: r.left, top: r.top };
-        resizeHandle.setPointerCapture?.(event.pointerId);
+        resize = { id: event.pointerId, x: event.clientX, y: event.clientY, width: r.width, ratio: getRatio(getMedia()), left: r.left, top: r.top };
+        try { resizeHandle.setPointerCapture?.(event.pointerId); } catch {}
         player.classList.add("mini-player-resizing");
         event.preventDefault();
         event.stopPropagation();
+        devLog("resize start", { width: r.width, height: r.height, ratio: resize.ratio });
       });
-      resizeHandle.addEventListener("pointermove", event => {
+      const moveResize = event => {
         if (!resize || resize.id !== event.pointerId) return;
+        if (isExpanded()) return;
         const dx = event.clientX - resize.x, dy = event.clientY - resize.y;
         const ratio = resize.ratio;
         const delta = Math.abs(dx) >= Math.abs(dy * ratio) ? dx : dy * ratio;
@@ -1091,12 +1094,8 @@ if (!blockWeb) {
         const width = clamp(resize.width + delta, 180, Math.max(180, maxW));
         const height = width / ratio;
         setRect(resize.left, resize.top, width, height, false);
-        if (isExpanded()) {
-          editorSurface.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
-          editorSurface.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
-        }
         event.preventDefault();
-      });
+      };
       const stopResize = event => {
         if (!resize || resize.id !== event.pointerId) return;
         resize = null;
@@ -1104,8 +1103,9 @@ if (!blockWeb) {
         savePosition();
         devLog("resize complete", player.getBoundingClientRect().toJSON());
       };
-      resizeHandle.addEventListener("pointerup", stopResize);
-      resizeHandle.addEventListener("pointercancel", stopResize);
+      window.addEventListener("pointermove", moveResize, { passive: false });
+      window.addEventListener("pointerup", stopResize);
+      window.addEventListener("pointercancel", stopResize);
     }
 
     // Recompute only on viewport/media changes, not on every AI panel/grid mutation.
