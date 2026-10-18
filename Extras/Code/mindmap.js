@@ -202,6 +202,10 @@ let previousDisplays = {};
 let workspaceName = "workspace 1";
 let workspaceDescription = "";
 let workspaceTags = [];
+let workspaceId = "";
+let workspaceManagerView = false;
+const WORKSPACES_KEY = "darkstudio_workspaces_v1";
+const ACTIVE_WORKSPACE_KEY = "darkstudio_active_workspace_id";
 let workspaceAutosaveInstalled = false;
 let highestNodeZIndex = 10;
 let indexedDbPromise = null;
@@ -314,26 +318,33 @@ function applyWorkspacePan() {
 // PERSISTÊNCIA
 // ============================================================
 
-function saveState() {
+function getWorkspaceSnapshot() {
+  return { id: workspaceId, name: workspaceName, description: workspaceDescription,
+    tags: [...workspaceTags], nodes, connections, workspacePan: { ...workspacePan } };
+}
+function readWorkspaceRegistry() {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        nodes,
-        connections,
-        workspaceName,
-        workspaceDescription,
-        workspaceTags,
-        workspacePan,
-      }),
-    );
+    const stored = JSON.parse(localStorage.getItem(WORKSPACES_KEY) || "[]");
+    return Array.isArray(stored) ? stored.filter((item) => item && typeof item.id === "string") : [];
+  } catch { return []; }
+}
+function saveState() {
+  const snapshot = getWorkspaceSnapshot();
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      nodes, connections, workspaceName, workspaceDescription, workspaceTags, workspacePan,
+    }));
+    const workspaces = readWorkspaceRegistry();
+    const index = workspaces.findIndex((item) => item.id === workspaceId);
+    if (index >= 0) workspaces[index] = snapshot; else workspaces.push(snapshot);
+    localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces));
+    localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
   } catch (error) {
     console.warn("DarkStudio: não foi possível salvar o Workspace.", error);
   }
-
   persistStateToIndexedDB();
-
   updateWorkspaceNameUI();
+  if (workspaceManagerView) renderWorkspaceManager();
 }
 
 function openWorkspaceDB() {
@@ -357,7 +368,7 @@ async function persistStateToIndexedDB() {
     const db = await openWorkspaceDB();
     await new Promise((resolve, reject) => {
       const transaction = db.transaction("workspace", "readwrite");
-      transaction.objectStore("workspace").put({ nodes, connections, workspaceName, workspaceDescription, workspaceTags, workspacePan }, "current");
+      transaction.objectStore("workspace").put(getWorkspaceSnapshot(), workspaceId || "current");
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
@@ -372,7 +383,7 @@ async function restoreStateFromIndexedDB() {
   try {
     const db = await openWorkspaceDB();
     const saved = await new Promise((resolve, reject) => {
-      const request = db.transaction("workspace", "readonly").objectStore("workspace").get("current");
+      const request = db.transaction("workspace", "readonly").objectStore("workspace").get(workspaceId || "current");
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
@@ -380,115 +391,123 @@ async function restoreStateFromIndexedDB() {
     if (Number.isFinite(saved.workspacePan?.x) && Number.isFinite(saved.workspacePan?.y)) {
       workspacePan = { x: saved.workspacePan.x, y: saved.workspacePan.y };
     }
-    nodes = saved.nodes;
-    connections = Array.isArray(saved.connections) ? saved.connections : [];
-    workspaceName = typeof saved.workspaceName === "string" && saved.workspaceName
-      ? saved.workspaceName
-      : (typeof saved.workspaceMeta?.name === "string" && saved.workspaceMeta.name)
-        ? saved.workspaceMeta.name
-        : workspaceName;
-    workspaceDescription = typeof saved.workspaceDescription === "string" ? saved.workspaceDescription : workspaceDescription;
-    workspaceTags = Array.isArray(saved.workspaceTags)
-      ? [...new Set(saved.workspaceTags.filter((tag) => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))]
-      : workspaceTags;
-    for (const node of nodes) {
-      node.id = String(node.id || makeId());
-      node.name = node.name || tr("newFile");
-      node.content = typeof node.content === "string" ? node.content : "";
-      node.filePath = node.filePath || node.name;
-      node.type = node.type || "text";
-      if (!Number.isFinite(node.x)) node.x = 120;
-      if (!Number.isFinite(node.y)) node.y = 120;
-      node.x = snapToGrid(node.x);
-      node.y = snapToGrid(node.y);
-      node.width = Math.max(MIN_NODE_WIDTH, snapToGrid(Number(node.width) || 144));
-      node.height = Math.max(MIN_NODE_HEIGHT, snapToGrid(Number(node.height) || 48));
-      if (!Number.isFinite(node.zIndex)) node.zIndex = 0;
-      if (node.type === "folder") node.isOpen = node.isOpen !== false;
-    }
-    connections = connections.filter((connection) =>
-      getNode(connection.from) && getNode(connection.to) && connection.from !== connection.to,
-    );
+    normalizeWorkspaceData(saved);
   } catch (error) {
     console.warn("DarkStudio: não foi possível restaurar o Workspace ampliado.", error);
   }
 }
 
+function normalizeWorkspaceData(data = {}) {
+  nodes = Array.isArray(data.nodes) ? data.nodes : [];
+  connections = Array.isArray(data.connections) ? data.connections : [];
+  workspaceName = data.name || data.workspaceName || "workspace 1";
+  workspaceDescription = typeof data.description === "string" ? data.description : (typeof data.workspaceDescription === "string" ? data.workspaceDescription : "");
+  const savedTags = Array.isArray(data.tags) ? data.tags : data.workspaceTags;
+  workspaceTags = Array.isArray(savedTags) ? [...new Set(savedTags.filter((tag) => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))] : [];
+  workspacePan = Number.isFinite(data.workspacePan?.x) && Number.isFinite(data.workspacePan?.y) ? { x: data.workspacePan.x, y: data.workspacePan.y } : { x: 0, y: 0 };
+  for (const node of nodes) {
+    node.id = String(node.id || makeId()); node.name = node.name || tr("newFile");
+    node.content = typeof node.content === "string" ? node.content : ""; node.filePath = node.filePath || node.name; node.type = node.type || "text";
+    if (!Number.isFinite(node.x)) node.x = 120; if (!Number.isFinite(node.y)) node.y = 120;
+    node.x = snapToGrid(node.x); node.y = snapToGrid(node.y);
+    node.width = Math.max(MIN_NODE_WIDTH, snapToGrid(Number(node.width) || 144));
+    node.height = Math.max(MIN_NODE_HEIGHT, snapToGrid(Number(node.height) || 48));
+    if (!Number.isFinite(node.vx)) node.vx = 0; if (!Number.isFinite(node.vy)) node.vy = 0;
+    if (!Number.isFinite(node.zIndex)) node.zIndex = 0; if (node.type === "folder") node.isOpen = node.isOpen !== false;
+  }
+  connections = connections.filter((connection) => getNode(connection.from) && getNode(connection.to) && connection.from !== connection.to);
+  for (const node of nodes) if (node.parentFolderId && !nodes.some((item) => item.id === node.parentFolderId && item.type === "folder")) delete node.parentFolderId;
+}
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-
-    if (!raw) {
-      nodes = [];
-      connections = [];
-      return;
-    }
-
-    const data = JSON.parse(raw);
-
-    if (Number.isFinite(data.workspacePan?.x) && Number.isFinite(data.workspacePan?.y)) {
-      workspacePan = { x: data.workspacePan.x, y: data.workspacePan.y };
-    }
-
-    nodes = Array.isArray(data.nodes) ? data.nodes : [];
-    connections = Array.isArray(data.connections) ? data.connections : [];
-
-    workspaceName = data.workspaceName || "workspace 1";
-    workspaceDescription = typeof data.workspaceDescription === "string" ? data.workspaceDescription : "";
-    workspaceTags = Array.isArray(data.workspaceTags) ? [...new Set(data.workspaceTags.filter((tag) => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))] : [];
-
-    for (const node of nodes) {
-      node.id = String(node.id || makeId());
-      node.name = node.name || tr("newFile");
-      node.content = typeof node.content === "string" ? node.content : "";
-
-      node.filePath = node.filePath || node.name;
-      node.type = node.type || "text";
-
-      if (!Number.isFinite(node.x)) node.x = 120;
-      if (!Number.isFinite(node.y)) node.y = 120;
-      node.x = snapToGrid(node.x);
-      node.y = snapToGrid(node.y);
-      node.width = Math.max(MIN_NODE_WIDTH, snapToGrid(Number(node.width) || 144));
-      node.height = Math.max(MIN_NODE_HEIGHT, snapToGrid(Number(node.height) || 48));
-
-      if (!Number.isFinite(node.vx)) node.vx = 0;
-      if (!Number.isFinite(node.vy)) node.vy = 0;
-
-      if (node.type === "folder") {
-        node.isOpen = node.isOpen !== false;
-      }
-    }
-
-    // Remove conexões que apontam para nós inexistentes.
-    connections = connections.filter((connection) => {
-      return (
-        getNode(connection.from) &&
-        getNode(connection.to) &&
-        connection.from !== connection.to
-      );
-    });
-
-    // Remove referências a pastas que não existem.
-    for (const node of nodes) {
-      if (
-        node.parentFolderId &&
-        !nodes.some(
-          (item) => item.id === node.parentFolderId && item.type === "folder",
-        )
-      ) {
-        delete node.parentFolderId;
-      }
-    }
+    let workspaces = readWorkspaceRegistry();
+    const activeId = localStorage.getItem(ACTIVE_WORKSPACE_KEY);
+    let active = workspaces.find((item) => item.id === activeId);
+    if (!workspaces.length) {
+      let legacy = {};
+      try { legacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch {}
+      workspaceId = makeId();
+      active = { id: workspaceId, name: legacy.workspaceName || "workspace 1", description: legacy.workspaceDescription || "",
+        tags: legacy.workspaceTags || [], nodes: legacy.nodes || [], connections: legacy.connections || [], workspacePan: legacy.workspacePan || { x: 0, y: 0 } };
+      workspaces = [active];
+      localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces)); localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+    } else if (!active) {
+      active = workspaces[0]; workspaceId = active.id; localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+    } else workspaceId = active.id;
+    normalizeWorkspaceData(active);
   } catch (error) {
-    console.warn("DarkStudio: erro ao carregar o Workspace.", error);
-
-    nodes = [];
-    connections = [];
-    workspaceName = "workspace 1";
-    workspaceDescription = "";
-    workspaceTags = [];
+    console.warn("DarkStudio: erro ao carregar o Workspace.", error); workspaceId = makeId(); normalizeWorkspaceData({});
   }
+}
+
+function setWorkspaceManagerView(enabled) {
+  workspaceManagerView = Boolean(enabled);
+  if (svg) svg.style.display = workspaceManagerView ? "none" : "";
+  if (nodeLayer) nodeLayer.style.display = workspaceManagerView ? "none" : "";
+  let panel = document.getElementById("workspace-manager-view");
+  if (workspaceManagerView) {
+    if (!panel) {
+      panel = document.createElement("section"); panel.id = "workspace-manager-view";
+      Object.assign(panel.style, { position: "absolute", inset: "0", overflow: "auto", boxSizing: "border-box", padding: "clamp(18px, 4vw, 48px)", color: "#f5f5f5", background: "#0b0b0b" });
+      mind.appendChild(panel);
+    }
+    panel.style.display = "block"; renderWorkspaceManager();
+  } else if (panel) panel.style.display = "none";
+}
+function renderWorkspaceManager() {
+  if (!workspaceManagerView || !mind) return;
+  const panel = document.getElementById("workspace-manager-view"); if (!panel) return;
+  const workspaces = readWorkspaceRegistry(); panel.replaceChildren();
+  const heading = document.createElement("h2"); heading.textContent = tr("workspacesTitle");
+  Object.assign(heading.style, { margin: "0 0 8px", fontSize: "clamp(22px, 3vw, 32px)" }); panel.appendChild(heading);
+  const intro = document.createElement("p"); intro.textContent = tr("workspacesDescription");
+  Object.assign(intro.style, { margin: "0 0 24px", color: "#aaa", lineHeight: "1.5" }); panel.appendChild(intro);
+  const createButton = document.createElement("button"); createButton.type = "button";
+  createButton.textContent = "+ " + tr("workspaceCreate"); createButton.className = "workspace-manager-primary";
+  createButton.addEventListener("click", async () => {
+    const name = await showNameDialog("", tr("workspaceCreate")); if (!name || !name.trim()) return;
+    saveState();
+    const created = { id: makeId(), name: name.trim(), description: "", tags: [], nodes: [], connections: [], workspacePan: { x: 0, y: 0 } };
+    const all = readWorkspaceRegistry(); all.push(created); localStorage.setItem(WORKSPACES_KEY, JSON.stringify(all)); activateWorkspace(created.id);
+  }); panel.appendChild(createButton);
+  const list = document.createElement("div");
+  Object.assign(list.style, { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 250px), 1fr))", gap: "12px", marginTop: "22px" });
+  for (const item of workspaces) {
+    const card = document.createElement("article");
+    Object.assign(card.style, { minWidth: "0", padding: "16px", borderRadius: "10px", border: item.id === workspaceId ? "1px solid var(--secondary-color, #7654ff)" : "1px solid #333", background: item.id === workspaceId ? "rgba(100,70,210,.13)" : "#151515", boxSizing: "border-box" });
+    const title = document.createElement("h3"); title.textContent = item.name || tr("currentWorkspace");
+    Object.assign(title.style, { margin: "0 0 8px", fontSize: "17px", overflowWrap: "anywhere" }); card.appendChild(title);
+    const description = document.createElement("p"); description.textContent = item.description || tr("workspaceNoDescription");
+    Object.assign(description.style, { color: "#aaa", fontSize: "13px", lineHeight: "1.45", minHeight: "38px", overflowWrap: "anywhere" }); card.appendChild(description);
+    if (Array.isArray(item.tags) && item.tags.length) {
+      const tags = document.createElement("p"); tags.textContent = item.tags.map((tag) => "#" + tag).join("  ");
+      Object.assign(tags.style, { color: "var(--secondary-color, #a78bfa)", fontSize: "12px", overflowWrap: "anywhere" }); card.appendChild(tags);
+    }
+    const openButton = document.createElement("button"); openButton.type = "button";
+    openButton.textContent = item.id === workspaceId ? tr("workspaceCurrent") : tr("workspaceOpen"); openButton.disabled = item.id === workspaceId;
+    openButton.addEventListener("click", () => activateWorkspace(item.id));
+    Object.assign(openButton.style, { marginTop: "8px", width: "100%", padding: "9px", borderRadius: "6px" }); card.appendChild(openButton);
+    if (workspaces.length > 1) {
+      const deleteButton = document.createElement("button"); deleteButton.type = "button"; deleteButton.textContent = tr("workspaceDelete");
+      Object.assign(deleteButton.style, { marginTop: "7px", width: "100%", padding: "8px", borderRadius: "6px", opacity: ".8" });
+      deleteButton.addEventListener("click", () => {
+        if (!confirm(tr("workspaceDeleteConfirm").replace("{name}", item.name || ""))) return;
+        const remaining = readWorkspaceRegistry().filter((entry) => entry.id !== item.id); localStorage.setItem(WORKSPACES_KEY, JSON.stringify(remaining));
+        if (item.id === workspaceId) activateWorkspace(remaining[0].id); else renderWorkspaceManager();
+      }); card.appendChild(deleteButton);
+    }
+    list.appendChild(card);
+  }
+  panel.appendChild(list);
+}
+function activateWorkspace(id) {
+  const target = readWorkspaceRegistry().find((item) => item.id === id); if (!target) return;
+  if (id !== workspaceId) {
+    syncCurrentEditorToMap(); saveState(); workspaceId = target.id;
+    localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId); normalizeWorkspaceData(target);
+    currentEditingNode = null; connectMode = false; connectSource = null; applyWorkspacePan(); saveState();
+  }
+  setWorkspaceManagerView(false); renderNodes(); updateWorkspaceNameUI();
 }
 
 // ============================================================
@@ -2289,6 +2308,7 @@ function openNodeInEditor(node) {
 }
 
 function showEditor() {
+  setWorkspaceManagerView(false);
   document.getElementById("Website-Container")?.classList.remove("extensions-active");
   const extensionsPanel = document.getElementById("extensions-panel");
   if (extensionsPanel) extensionsPanel.hidden = true;
@@ -2362,6 +2382,11 @@ function showMap() {
 
   if (editor) editor.style.display = "none";
   if (mind) mind.style.display = "block";
+  setWorkspaceManagerView(false);
+  const switcher = document.getElementById("workspace-switcher-button");
+  const details = document.getElementById("workspace-details-button");
+  if (switcher) switcher.style.display = "block";
+  if (details) details.style.display = "block";
 
   for (const id of [
     "download-file",
@@ -2578,7 +2603,14 @@ function setupFileInputs() {
 
 function wireUI() {
   const mapButton = document.getElementById("mindmap-button");
-  document.getElementById("workspace-details-button")?.addEventListener("click", showWorkspaceSettings);
+  const switcherButton = document.getElementById("workspace-switcher-button");
+  const detailsButton = document.getElementById("workspace-details-button");
+  if (switcherButton) switcherButton.style.display = "none";
+  if (detailsButton) detailsButton.style.display = "none";
+  switcherButton?.addEventListener("click", () => {
+    if (mind && getComputedStyle(mind).display !== "none") setWorkspaceManagerView(!workspaceManagerView);
+  });
+  detailsButton?.addEventListener("click", showWorkspaceSettings);
 
   mind?.addEventListener("pointerdown", beginWorkspacePan);
 
