@@ -1122,13 +1122,19 @@ if (!blockWeb) {
       }
       const ratio = getRatio(item);
       const portrait = ratio < 1;
-      const width = Math.max(1, Math.min(bounds.width, bounds.height * ratio));
+      // Vertical videos stay compact in expanded mode instead of filling the editor.
+      // Align them to the right edge so the code/editor remains visible on the left.
+      const width = portrait
+        ? Math.max(1, Math.min(bounds.width, 270, bounds.height * ratio))
+        : Math.max(1, Math.min(bounds.width, bounds.height * ratio));
       const height = Math.max(1, Math.min(bounds.height, width / ratio));
       const fittedWidth = Math.min(width, height * ratio);
       const fittedHeight = fittedWidth / ratio;
       player.classList.toggle("is-expanded-portrait", portrait);
       player.classList.toggle("is-expanded-landscape", !portrait);
-      const left = clamp(bounds.left, bounds.left, bounds.right - fittedWidth);
+      const left = portrait
+        ? clamp(bounds.right - fittedWidth, bounds.left, bounds.right - fittedWidth)
+        : clamp(bounds.left, bounds.left, bounds.right - fittedWidth);
       const top = clamp(bounds.top, bounds.top, bounds.bottom - fittedHeight);
       setRect(left, top, fittedWidth, fittedHeight);
       syncMiniPlayerContent(fittedWidth, fittedHeight);
@@ -1359,7 +1365,8 @@ if (!blockWeb) {
         }
         left = clamp(left, bounds.left, bounds.right - width);
       } else {
-        width = clamp(width, Math.min(340, bounds.width), bounds.right - left);
+        // Non-Spotify media has no forced minimum width; keep only a 1px safety floor.
+        width = clamp(width, 1, bounds.right - left);
       }
 
       height = clamp(height, getMinHeight(), bounds.bottom - top);
