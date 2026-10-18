@@ -196,6 +196,13 @@ if (!blockWeb) {
       language = detectLanguage(code);
     }
 
+    const workspaceFile = window.darkStudioWorkspaceCurrentFile;
+    if (workspaceFile?.languageOverride && workspaceFile.languageOverrideLabel) {
+      language = workspaceFile.languageOverrideLabel;
+    } else {
+      window.darkStudioWorkspaceSyncExtension?.(language);
+    }
+
     const isEmpty = code.trim() === "";
 
     updateLanguageDisplay(language);
