@@ -3042,16 +3042,19 @@ body {
   touch-action: none !important;
 }
 #mini-player.mini-player-toolbar-above #mini-player-toolbar {
-  top: -30px !important;
+  top: -36px !important;
   bottom: auto !important;
   border-bottom: 0 !important;
   border-radius: 7px 7px 0 0 !important;
 }
 #mini-player.mini-player-toolbar-below #mini-player-toolbar {
   top: auto !important;
-  bottom: -30px !important;
+  bottom: -36px !important;
   border-top: 0 !important;
   border-radius: 0 0 7px 7px !important;
+}
+#mini-player.mini-player-toolbar-hidden #mini-player-toolbar {
+  display: none !important;
 }
 #mini-player-toolbar:active {
   cursor: grabbing !important;
