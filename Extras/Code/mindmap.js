@@ -200,6 +200,8 @@ let folderClickTimer = null;
 let previousDisplays = {};
 
 let workspaceName = "workspace 1";
+let workspaceDescription = "";
+let workspaceTags = [];
 let workspaceAutosaveInstalled = false;
 let highestNodeZIndex = 10;
 let indexedDbPromise = null;
@@ -320,6 +322,8 @@ function saveState() {
         nodes,
         connections,
         workspaceName,
+        workspaceDescription,
+        workspaceTags,
         workspacePan,
       }),
     );
@@ -353,7 +357,7 @@ async function persistStateToIndexedDB() {
     const db = await openWorkspaceDB();
     await new Promise((resolve, reject) => {
       const transaction = db.transaction("workspace", "readwrite");
-      transaction.objectStore("workspace").put({ nodes, connections, workspaceName, workspacePan }, "current");
+      transaction.objectStore("workspace").put({ nodes, connections, workspaceName, workspaceDescription, workspaceTags, workspacePan }, "current");
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
@@ -383,6 +387,10 @@ async function restoreStateFromIndexedDB() {
       : (typeof saved.workspaceMeta?.name === "string" && saved.workspaceMeta.name)
         ? saved.workspaceMeta.name
         : workspaceName;
+    workspaceDescription = typeof saved.workspaceDescription === "string" ? saved.workspaceDescription : workspaceDescription;
+    workspaceTags = Array.isArray(saved.workspaceTags)
+      ? [...new Set(saved.workspaceTags.filter((tag) => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))]
+      : workspaceTags;
     for (const node of nodes) {
       node.id = String(node.id || makeId());
       node.name = node.name || tr("newFile");
@@ -426,6 +434,8 @@ function loadState() {
     connections = Array.isArray(data.connections) ? data.connections : [];
 
     workspaceName = data.workspaceName || "workspace 1";
+    workspaceDescription = typeof data.workspaceDescription === "string" ? data.workspaceDescription : "";
+    workspaceTags = Array.isArray(data.workspaceTags) ? [...new Set(data.workspaceTags.filter((tag) => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))] : [];
 
     for (const node of nodes) {
       node.id = String(node.id || makeId());
@@ -476,6 +486,8 @@ function loadState() {
     nodes = [];
     connections = [];
     workspaceName = "workspace 1";
+    workspaceDescription = "";
+    workspaceTags = [];
   }
 }
 
@@ -749,7 +761,11 @@ function updateWorkspaceNameUI() {
   }
 
   label.textContent = workspaceName;
-  label.title = `${tr("currentWorkspace")}: ${workspaceName}`;
+  label.title = [
+    `${tr("currentWorkspace")}: ${workspaceName}`,
+    workspaceDescription,
+    workspaceTags.length ? `${tr("workspaceTags")}: ${workspaceTags.join(", ")}` : "",
+  ].filter(Boolean).join("\n");
 }
 
 function showNameDialog(initialName = "", title = "Nome") {
@@ -882,6 +898,129 @@ function showNameDialog(initialName = "", title = "Nome") {
     input.focus();
     input.select();
   });
+}
+
+
+function showWorkspaceSettings() {
+  document.getElementById("workspace-settings-popup")?.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "workspace-settings-popup";
+  Object.assign(overlay.style, {
+    position: "fixed", inset: "0", zIndex: "1000004", display: "flex",
+    alignItems: "center", justifyContent: "center", padding: "20px",
+    background: "rgba(0,0,0,.72)", backdropFilter: "blur(5px)",
+  });
+  const panel = document.createElement("form");
+  Object.assign(panel.style, {
+    width: "100%", maxWidth: "460px", maxHeight: "85vh", overflowY: "auto",
+    padding: "22px", borderRadius: "13px",
+    border: "1px solid var(--secondary-color, #5d00ff)",
+    background: "#151515", color: "#fff", boxShadow: "0 20px 60px #0009",
+    fontFamily: "inherit", display: "grid", gap: "9px",
+  });
+  const heading = document.createElement("h3");
+  heading.textContent = tr("workspaceSettings");
+  heading.style.margin = "0 0 8px";
+  const makeLabel = (text, target) => {
+    const label = document.createElement("label");
+    label.textContent = text;
+    label.htmlFor = target;
+    label.style.cssText = "font-size:13px;margin-top:5px;";
+    return label;
+  };
+  const makeField = (id, value, placeholder) => {
+    const field = document.createElement("input");
+    field.id = id;
+    field.value = value;
+    field.placeholder = placeholder;
+    field.style.cssText = "box-sizing:border-box;width:100%;padding:10px;border:1px solid #444;border-radius:7px;background:#202020;color:#fff;font:inherit;";
+    return field;
+  };
+  const name = makeField("workspace-settings-name", workspaceName, tr("workspaceNamePlaceholder"));
+  name.maxLength = 100;
+  const description = document.createElement("textarea");
+  description.id = "workspace-settings-description";
+  description.value = workspaceDescription;
+  description.placeholder = tr("workspaceDescriptionPlaceholder");
+  description.maxLength = 1000;
+  description.rows = 3;
+  description.style.cssText = "box-sizing:border-box;width:100%;resize:vertical;padding:10px;border:1px solid #444;border-radius:7px;background:#202020;color:#fff;font:inherit;";
+  const tagInput = makeField("workspace-settings-tag-input", "", tr("workspaceTagPlaceholder"));
+  const tagList = document.createElement("div");
+  Object.assign(tagList.style, { display: "flex", flexWrap: "wrap", gap: "6px", margin: "2px 0 8px" });
+  const draftTags = [...workspaceTags];
+  const renderTags = () => {
+    tagList.replaceChildren();
+    draftTags.forEach((tag, index) => {
+      const chip = document.createElement("span");
+      Object.assign(chip.style, {
+        display: "inline-flex", alignItems: "center", gap: "7px", padding: "5px 8px",
+        borderRadius: "14px", background: "rgba(120,90,255,.2)",
+        border: "1px solid rgba(120,90,255,.45)", fontSize: "12px",
+      });
+      const text = document.createElement("span");
+      text.textContent = tag;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.title = tr("workspaceRemoveTag");
+      remove.setAttribute("aria-label", `${tr("workspaceRemoveTag")}: ${tag}`);
+      remove.style.cssText = "border:0;background:transparent;color:inherit;cursor:pointer;font-size:16px;padding:0;line-height:1;";
+      remove.addEventListener("click", () => { draftTags.splice(index, 1); renderTags(); });
+      chip.append(text, remove);
+      tagList.appendChild(chip);
+    });
+  };
+  const addTag = () => {
+    const value = tagInput.value.trim().replace(/,/g, "");
+    if (!value) return;
+    if (!draftTags.some((tag) => tag.toLocaleLowerCase() === value.toLocaleLowerCase())) draftTags.push(value);
+    tagInput.value = "";
+    renderTags();
+    tagInput.focus();
+  };
+  tagInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === ",") { event.preventDefault(); addTag(); }
+  });
+  const addTagButton = document.createElement("button");
+  addTagButton.type = "button";
+  addTagButton.textContent = tr("workspaceAddTag");
+  addTagButton.style.cssText = "padding:8px 10px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;justify-self:start;";
+  addTagButton.addEventListener("click", addTag);
+  const actions = document.createElement("div");
+  Object.assign(actions.style, { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" });
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.textContent = tr("cancel");
+  const save = document.createElement("button");
+  save.type = "submit";
+  save.textContent = tr("save");
+  for (const button of [cancel, save]) {
+    button.style.cssText = "padding:9px 14px;border:1px solid #444;border-radius:7px;background:#252525;color:#fff;cursor:pointer;";
+  }
+  save.style.borderColor = "var(--secondary-color, #5d00ff)";
+  cancel.addEventListener("click", () => overlay.remove());
+  actions.append(cancel, save);
+  panel.append(
+    heading, makeLabel(tr("workspaceName"), name.id), name,
+    makeLabel(tr("workspaceDescription"), description.id), description,
+    makeLabel(tr("workspaceTags"), tagInput.id), tagInput, addTagButton, tagList, actions,
+  );
+  panel.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const nextName = name.value.trim();
+    if (!nextName) { name.focus(); return; }
+    if (tagInput.value.trim()) addTag();
+    workspaceName = nextName;
+    workspaceDescription = description.value.trim();
+    workspaceTags = [...draftTags];
+    saveState();
+    overlay.remove();
+  });
+  overlay.addEventListener("click", (event) => { if (event.target === overlay) overlay.remove(); });
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  name.focus();
 }
 
 async function renameWorkspace() {
@@ -2439,6 +2578,7 @@ function setupFileInputs() {
 
 function wireUI() {
   const mapButton = document.getElementById("mindmap-button");
+  document.getElementById("workspace-details-button")?.addEventListener("click", showWorkspaceSettings);
 
   mind?.addEventListener("pointerdown", beginWorkspacePan);
 
