@@ -1111,7 +1111,7 @@ if (!blockWeb) {
       const bounds = editorSurface.getBoundingClientRect();
       // Keep the last position, but always start at the minimum shell size.
       // Spotify's compact player is 80px tall; other providers start at 90px.
-      const width = clamp(DEFAULT.width, Math.min(150, bounds.width), Math.max(Math.min(150, bounds.width), bounds.width));
+      const width = clamp(DEFAULT.width, Math.min(340, bounds.width), Math.max(Math.min(340, bounds.width), bounds.width));
       const height = clamp(isSpotify() ? 80 : DEFAULT.height, isSpotify() ? 80 : 90, Math.max(isSpotify() ? 80 : 90, bounds.height));
       const left = clamp(Number(savedPos?.left) || bounds.left, bounds.left, Math.max(bounds.left, bounds.right - width));
       const top = clamp(Number(savedPos?.top) || bounds.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
@@ -1134,7 +1134,7 @@ if (!blockWeb) {
         player.classList.remove("is-expanded");
         const r = restoreRect || { left: 20, top: 90, ...DEFAULT };
         const bounds = editorSurface.getBoundingClientRect();
-        const restoredWidth = Math.max(Math.min(150, bounds.width), Math.min(r.width, bounds.width));
+        const restoredWidth = Math.max(Math.min(340, bounds.width), Math.min(r.width, bounds.width));
         const restoredHeight = Math.min(getMaxHeight(r.height), bounds.height);
         setRect(
           clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - restoredWidth)),
@@ -1257,9 +1257,9 @@ if (!blockWeb) {
       if (direction.includes("n")) top += dy;
       if (direction.includes("s")) bottom += dy;
 
-      // Keep a 150px minimum width while allowing Spotify to grow freely.
+      // Keep a 340px minimum width while allowing Spotify to grow freely.
       // Preserve the opposite edge when resizing from the west/east handles.
-      const minWidth = Math.min(150, bounds.right - bounds.left);
+      const minWidth = Math.min(340, bounds.right - bounds.left);
       if (direction.includes("w")) {
         right = clamp(right, bounds.left + minWidth, bounds.right);
         left = clamp(left, bounds.left, right - minWidth);
@@ -1307,7 +1307,7 @@ if (!blockWeb) {
       if (resize.free) {
         // Calculate Spotify width directly from pointer movement. This avoids
         // fixed embed dimensions interfering with edge/corner resizing.
-        const minWidth = Math.min(150, bounds.right - bounds.left);
+        const minWidth = Math.min(340, bounds.right - bounds.left);
         if (direction.includes("w")) {
           width = clamp(resize.width - dx, minWidth, resize.left + resize.width - bounds.left);
           left = resize.left + resize.width - width;
@@ -1320,7 +1320,7 @@ if (!blockWeb) {
         }
         left = clamp(left, bounds.left, bounds.right - width);
       } else {
-        width = clamp(width, Math.min(150, bounds.width), bounds.right - left);
+        width = clamp(width, Math.min(340, bounds.width), bounds.right - left);
       }
 
       height = clamp(height, getMinHeight(), bounds.bottom - top);
@@ -1353,7 +1353,7 @@ if (!blockWeb) {
       if (isExpanded()) fitExpandedPlayer();
       else {
         const r = player.getBoundingClientRect();
-        const width = Math.max(Math.min(150, bounds.width), Math.min(r.width, bounds.width));
+        const width = Math.max(Math.min(340, bounds.width), Math.min(r.width, bounds.width));
         const height = Math.min(r.height, bounds.height);
         setRect(clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - width)), clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - height)), width, height);
         syncMiniPlayerContent(width, height);
@@ -1364,7 +1364,7 @@ if (!blockWeb) {
       const r = player.getBoundingClientRect();
       if (isExpanded()) fitExpandedPlayer();
       else {
-        const width = Math.max(Math.min(150, bounds.width), Math.min(r.width, bounds.width));
+        const width = Math.max(Math.min(340, bounds.width), Math.min(r.width, bounds.width));
         const height = Math.min(r.height, bounds.height);
         setRect(clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - width)), clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - height)), width, height);
         syncMiniPlayerContent(width, height);
