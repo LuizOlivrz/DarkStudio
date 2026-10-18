@@ -3181,3 +3181,28 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+
+/* Modo ultra compacto do Spotify: impedir que o cartão maior crie rolagem no player. */
+#mini-player.is-expanded.has-spotify-media #mini-player-list,
+#mini-player.is-expanded.has-spotify-media #mini-player-list .mini-player-item.spotify {
+  height: 80px !important;
+  min-height: 80px !important;
+  max-height: 80px !important;
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#mini-player.is-expanded.has-spotify-media #mini-player-list::-webkit-scrollbar,
+#mini-player.is-expanded.has-spotify-media #mini-player-list .mini-player-item.spotify::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+#mini-player.is-expanded.has-spotify-media #mini-player-list .mini-player-item.spotify iframe {
+  display: block !important;
+  height: 80px !important;
+  min-height: 80px !important;
+  max-height: 80px !important;
+  overflow: hidden !important;
+}
