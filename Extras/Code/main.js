@@ -491,7 +491,11 @@ if (!blockWeb) {
           metadata.ogTitle && `Título OG: ${metadata.ogTitle}`,
           metadata.ogDescription && `Descrição OG: ${metadata.ogDescription}`,
           metadata.ogUrl && `URL OG: ${metadata.ogUrl}`,
+          metadata.ogType && `Tipo OG: ${metadata.ogType}`,
+          metadata.ogSiteName && `Site OG: ${metadata.ogSiteName}`,
           metadata.ogImage && `Imagem OG: ${metadata.ogImage}`,
+          metadata.ogImageAlt && `Descrição da imagem OG: ${metadata.ogImageAlt}`,
+          metadata.twitterCard && `Cartão Twitter: ${metadata.twitterCard}`,
           metadata.robots && `Robots: ${metadata.robots}`,
           metadata.verification && `Verificação Google: ${metadata.verification}`,
         ].filter(Boolean);
@@ -977,7 +981,7 @@ if (!blockWeb) {
     const isExpanded = () => player.classList.contains("is-expanded");
     const SPOTIFY_HEIGHTS = [80, 152, 352];
     const isSpotify = () => Boolean(getMedia()?.classList.contains("spotify"));
-    const getMinHeight = () => isSpotify() ? 80 : 90;
+    const getMinHeight = () => isSpotify() ? 80 : 1;
     const getMaxHeight = (height) =>
       isSpotify() ? Math.min(height, 352) : height;
     const snapSpotifyHeight = (height, availableHeight) => {
