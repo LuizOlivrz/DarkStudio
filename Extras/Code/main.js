@@ -957,7 +957,9 @@ if (!blockWeb) {
     const getDefaultSize = () => {
       const item = getMedia();
       if (item?.classList.contains("spotify")) return { width: 340, height: 80 };
-      if (item?.classList.contains("tiktok")) return { width: 270, height: 480 };
+      if (item?.classList.contains("tiktok") || getRatio(item) < 1) {
+        return { width: 270, height: 480 };
+      }
       return { width: 480, height: 270 };
     };
     const getRatio = (item) => {
