@@ -994,26 +994,17 @@ if (!blockWeb) {
       if (player.classList.contains("is-expanded")) fitEditorToVideo();
     });
 
-    // Long-press the expand control, Android-style, to move the expanded preview.
+    // Drag the expanded preview directly by its expand/restore button.
     expandButton.style.touchAction = "none";
     expandButton.addEventListener("pointerdown", (event) => {
       if (!player.classList.contains("is-expanded") || event.button !== 0) return;
       const rect = player.getBoundingClientRect();
-      expandLongPress = {
-        pointerId: event.pointerId, x: event.clientX, y: event.clientY,
-        left: rect.left, top: rect.top, active: false, moved: false,
-        timer: setTimeout(() => {
-          if (!expandLongPress) return;
-          expandLongPress.active = true;
-          player.classList.add("mini-player-holding");
-          player.classList.add("mini-player-dragging");
-        }, 350)
-      };
+      expandLongPress = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false };
       try { expandButton.setPointerCapture(event.pointerId); } catch (_) {}
       event.preventDefault();
     });
     expandButton.addEventListener("pointermove", (event) => {
-      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId || !expandLongPress.active) return;
+      if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
       const dx = event.clientX - expandLongPress.x;
       const dy = event.clientY - expandLongPress.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) {
@@ -1024,23 +1015,17 @@ if (!blockWeb) {
         const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, expandLongPress.top + dy));
         player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
         player.style.setProperty("--mini-player-editor-top", Math.round(top) + "px");
-        player.style.transition = "none";
       }
     });
-    const stopExpandLongPress = (event) => {
+    const stopExpandDrag = (event) => {
       if (!expandLongPress || expandLongPress.pointerId !== event.pointerId) return;
-      clearTimeout(expandLongPress.timer);
-      player.classList.remove("mini-player-holding", "mini-player-dragging");
-      player.style.removeProperty("transition");
-      if (expandLongPress.moved) {
-        setTimeout(() => { suppressExpandClick = false; }, 0);
-      }
+      if (expandLongPress.moved) setTimeout(() => { suppressExpandClick = false; }, 50);
       expandLongPress = null;
     };
-    expandButton.addEventListener("pointerup", stopExpandLongPress);
-    expandButton.addEventListener("pointercancel", stopExpandLongPress);
+    expandButton.addEventListener("pointerup", stopExpandDrag);
+    expandButton.addEventListener("pointercancel", stopExpandDrag);
 
-    // Resize from any edge/corner while keeping the media's aspect ratio.
+    // Resize from any edge/corner while keeping the media aspect ratio.
     let resizeState = null;
     player.addEventListener("pointerdown", (event) => {
       if (!player.classList.contains("is-expanded")) return;
