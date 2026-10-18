@@ -3165,3 +3165,19 @@ body {
   pointer-events: auto !important;
 }
 
+
+
+/* Ocultar a barra de rolagem dentro dos embeds do Spotify sem bloquear a navegação. */
+#mini-player.has-spotify-media #mini-player-list,
+#mini-player.has-spotify-media #mini-player-list .mini-player-item.spotify,
+#mini-player.has-spotify-media #mini-player-list .mini-player-item.spotify iframe {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#mini-player.has-spotify-media #mini-player-list::-webkit-scrollbar,
+#mini-player.has-spotify-media #mini-player-list .mini-player-item.spotify::-webkit-scrollbar,
+#mini-player.has-spotify-media #mini-player-list .mini-player-item.spotify iframe::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
