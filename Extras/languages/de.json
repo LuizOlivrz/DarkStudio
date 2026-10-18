@@ -74,7 +74,7 @@
   "workspaceTagPlaceholder": "Tag eingeben und Enter drücken",
   "workspaceAddTag": "Tag hinzufügen",
   "workspaceRemoveTag": "Tag entfernen",
-  "mindMapTitle": "Arbeitsbereich",
+  "mindMapTitle": "Workspaces",
   "mindMapAddTitle": "Zum Arbeitsbereich hinzufügen",
   "mindMapConnectTitle": "Connect workspace items",
   "mindMapClearTitle": "Clear workspace",
@@ -175,5 +175,6 @@
   "resizeChat": "Resize AI chat width",
   "addEditorContent": "Aktuellen Editorinhalt hinzufügen",
   "editorContentFileName": "Editorinhalt",
-  "editorContentEmpty": "Der Editor ist leer. Fügen Sie zuerst Inhalt hinzu."
+  "editorContentEmpty": "Der Editor ist leer. Fügen Sie zuerst Inhalt hinzu.",
+  "manageWorkspaces": "Workspaces verwalten"
 }
