@@ -924,7 +924,7 @@ if (!blockWeb) {
     const syncMiniPlayerContent = (width, height) => {
       const items = [...list.querySelectorAll(".mini-player-item")];
       items.forEach(item => {
-        item.style.setProperty("width", Math.round(width) + "px", "important");
+        item.style.setProperty("width", "100%", "important");
         item.style.setProperty("height", Math.round(height) + "px", "important");
         if (!item.classList.contains("spotify")) {
           const ratio = getRatio(item);
