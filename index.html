@@ -33,7 +33,17 @@
           ? "pt-BR"
           : normalizedLanguages.some((locale) => locale.startsWith("ru"))
             ? "ru"
-            : "en-US";
+            : normalizedLanguages.some((locale) => locale.startsWith("ja"))
+              ? "ja"
+              : normalizedLanguages.some((locale) => locale.startsWith("ko"))
+                ? "ko"
+                : normalizedLanguages.some((locale) => locale.startsWith("zh"))
+                  ? "zh-CN"
+                  : normalizedLanguages.some((locale) => locale.startsWith("de"))
+                    ? "de"
+                    : normalizedLanguages.some((locale) => locale.startsWith("es"))
+                      ? "es"
+                      : "en-US";
 
       document.documentElement.lang = exactMatch || languageMatch;
     })();
