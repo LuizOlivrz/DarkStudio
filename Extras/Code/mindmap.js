@@ -98,7 +98,9 @@ function applyLanguageToNode(node, language, manual = false) {
 function syncDetectedWorkspaceLanguage(label) {
   const node = currentEditingNode;
   if (!node || node.type === "folder" || node.languageOverride) return;
-  const language = getWorkspaceLanguage(label);
+  let language = getWorkspaceLanguage(label);
+  if (!language && String(label) === tr("text")) language = getWorkspaceLanguage("Texto");
+  if (!language && String(label) === tr("gitText")) language = getWorkspaceLanguage("Git");
   if (!language) return;
 
   // Não redesenhe nem salve o Workspace a cada análise se a extensão já está correta.
