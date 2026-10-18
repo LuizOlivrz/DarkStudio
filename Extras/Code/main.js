@@ -987,56 +987,45 @@ if (!blockWeb) {
       player.querySelector(".mini-player-orientation-caption")?.remove();
       player.querySelectorAll(".mini-player-caution-tape").forEach(el => el.remove());
     };
+    const getEditorBounds = () => {
+      const r = editorSurface.getBoundingClientRect();
+      return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+    };
     const fitExpandedPlayer = () => {
       if (!isExpanded()) return;
       const item = getMedia();
       if (!item) return;
+      const bounds = getEditorBounds();
       const ratio = getRatio(item);
       const portrait = ratio < 1;
-      // Use the editor's visible rectangle as a reference only. Never change Website-Container
-      // or its grid tracks: options/chat keep their own columns and cannot be pushed around.
-      const editorRect = editorSurface.getBoundingClientRect();
-      const bounds = {
-        left: Math.max(8, editorRect.left),
-        top: Math.max(8, editorRect.top),
-        width: Math.max(240, Math.min(editorRect.width || window.innerWidth - 32, window.innerWidth - 16)),
-        height: Math.max(180, Math.min(editorRect.height || window.innerHeight - 100, window.innerHeight - 16))
-      };
-      const preferredWidth = portrait ? Math.min(bounds.width, bounds.height * ratio) : bounds.width;
-      // Keep the media's native ratio. A hard minimum width can make portrait video
-      // taller than the available editor area and cause the iframe to look stretched.
-      const width = Math.max(1, Math.min(preferredWidth, bounds.width, bounds.height * ratio));
-      const height = width / ratio;
-
+      const width = Math.max(1, Math.min(bounds.width, bounds.height * ratio));
+      const height = Math.max(1, Math.min(bounds.height, width / ratio));
+      const fittedWidth = Math.min(width, height * ratio);
+      const fittedHeight = fittedWidth / ratio;
       player.classList.toggle("is-expanded-portrait", portrait);
       player.classList.toggle("is-expanded-landscape", !portrait);
-      editorSurface.classList.toggle("mini-player-fit-portrait", portrait);
-      editorSurface.classList.toggle("mini-player-fit-landscape", !portrait);
-      editorSurface.style.setProperty("--mini-player-fit-width", Math.round(width) + "px");
-      editorSurface.style.setProperty("--mini-player-fit-height", Math.round(height) + "px");
-
-      // Fitting the editor can center it in its grid track, changing its X coordinate.
-      // Measure after applying the fitted dimensions, then anchor the player to that
-      // actual viewport rectangle (important when the app/browser is fullscreen).
-      const fittedEditorRect = editorSurface.getBoundingClientRect();
-      const left = clamp(fittedEditorRect.left, 8, window.innerWidth - width - 8);
-      const top = clamp(fittedEditorRect.top, 8, window.innerHeight - height - 8);
-      setRect(left, top, width, height);
+      const left = clamp(bounds.left, bounds.left, bounds.right - fittedWidth);
+      const top = clamp(bounds.top, bounds.top, bounds.bottom - fittedHeight);
+      setRect(left, top, fittedWidth, fittedHeight);
+      syncMiniPlayerContent(fittedWidth, fittedHeight);
       addCaption(portrait);
       devLog("layout expanded", {
-        media: item.className, portrait, ratio, editor: { width: Math.round(editorRect.width), height: Math.round(editorRect.height) },
-        player: { left: Math.round(left), top: Math.round(top), width: Math.round(width), height: Math.round(height) }
+        media: item.className, portrait, ratio,
+        editor: { width: Math.round(bounds.width), height: Math.round(bounds.height) },
+        player: { left: Math.round(left), top: Math.round(top), width: Math.round(fittedWidth), height: Math.round(fittedHeight) }
       });
     };
 
     try {
       const savedPos = JSON.parse(localStorage.getItem(positionKey) || "null");
       const savedSize = JSON.parse(localStorage.getItem(sizeKey) || "null");
-      const width = clamp(Number(savedSize?.width) || DEFAULT.width, 220, window.innerWidth - 16);
-      const height = clamp(Number(savedSize?.height) || DEFAULT.height, 150, window.innerHeight - 16);
-      const left = clamp(Number(savedPos?.left) || 20, 0, window.innerWidth - width);
-      const top = clamp(Number(savedPos?.top) || 90, 0, window.innerHeight - height);
+      const bounds = editorSurface.getBoundingClientRect();
+      const width = clamp(Number(savedSize?.width) || DEFAULT.width, 120, Math.max(120, bounds.width));
+      const height = clamp(Number(savedSize?.height) || DEFAULT.height, 90, Math.max(90, bounds.height));
+      const left = clamp(Number(savedPos?.left) || bounds.left, bounds.left, Math.max(bounds.left, bounds.right - width));
+      const top = clamp(Number(savedPos?.top) || bounds.top, bounds.top, Math.max(bounds.top, bounds.bottom - height));
       setRect(left, top, width, height);
+      syncMiniPlayerContent(width, height);
     } catch {}
 
     expandButton.addEventListener("click", () => {
@@ -1081,8 +1070,9 @@ if (!blockWeb) {
       if (!drag || drag.id !== event.pointerId) return;
       const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) suppressClick = true;
-      const left = clamp(drag.left + dx, 8, window.innerWidth - drag.width - 8);
-      const top = clamp(drag.top + dy, 8, window.innerHeight - drag.height - 8);
+      const bounds = editorSurface.getBoundingClientRect();
+      const left = clamp(drag.left + dx, bounds.left, Math.max(bounds.left, bounds.right - drag.width));
+      const top = clamp(drag.top + dy, bounds.top, Math.max(bounds.top, bounds.bottom - drag.height));
       setRect(left, top, drag.width, drag.height, false);
       if (isExpanded()) {
         player.style.setProperty("--mini-player-editor-left", Math.round(left) + "px");
@@ -1104,55 +1094,123 @@ if (!blockWeb) {
     window.addEventListener("pointerup", endDrag);
     window.addEventListener("pointercancel", endDrag);
 
-    // Resizing is available only in floating/text mode, never while expanded.
-    // The 44px invisible target makes the corner much easier to grab while preserving its look.
-    const resizeHandle = player.querySelector('.mini-player-resize-handle[data-resize="se"]');
-    if (resizeHandle) {
+    // Resize from every edge/corner, always clamped to the editor's visible rectangle.
+    // Spotify is intentionally free-form; other embeds preserve their platform aspect ratio.
+    const resizeHandles = [...player.querySelectorAll(".mini-player-resize-handle[data-resize]")];
+    resizeHandles.forEach(resizeHandle => {
       resizeHandle.addEventListener("pointerdown", event => {
-        if (isExpanded() || player.classList.contains("collapsed")) return;
+        if (player.classList.contains("collapsed")) return;
+        if (event.button !== 0) return;
         const r = player.getBoundingClientRect();
-        resize = { id: event.pointerId, x: event.clientX, y: event.clientY, width: r.width, ratio: getRatio(getMedia()), left: r.left, top: r.top };
+        const bounds = editorSurface.getBoundingClientRect();
+        resize = {
+          id: event.pointerId,
+          direction: resizeHandle.dataset.resize,
+          x: event.clientX,
+          y: event.clientY,
+          left: r.left,
+          top: r.top,
+          width: r.width,
+          height: r.height,
+          ratio: getRatio(getMedia()),
+          free: Boolean(getMedia()?.classList.contains("spotify")),
+          bounds: { left: bounds.left, top: bounds.top, right: bounds.right, bottom: bounds.bottom }
+        };
         try { resizeHandle.setPointerCapture?.(event.pointerId); } catch {}
         player.classList.add("mini-player-resizing");
         event.preventDefault();
         event.stopPropagation();
-        devLog("resize start", { width: r.width, height: r.height, ratio: resize.ratio });
+        devLog("resize start", { direction: resize.direction, width: r.width, height: r.height, free: resize.free });
       });
-      const moveResize = event => {
-        if (!resize || resize.id !== event.pointerId) return;
-        if (isExpanded()) return;
-        const dx = event.clientX - resize.x, dy = event.clientY - resize.y;
-        const ratio = resize.ratio;
-        const delta = Math.abs(dx) >= Math.abs(dy * ratio) ? dx : dy * ratio;
-        const maxW = Math.min(window.innerWidth - resize.left - 8, (window.innerHeight - resize.top - 8) * ratio);
-        const width = clamp(resize.width + delta, 180, Math.max(180, maxW));
-        const height = width / ratio;
-        setRect(resize.left, resize.top, width, height, false);
-        syncMiniPlayerContent(width, height);
-        event.preventDefault();
-      };
-      const stopResize = event => {
-        if (!resize || resize.id !== event.pointerId) return;
-        resize = null;
-        player.classList.remove("mini-player-resizing");
-        savePosition();
-        devLog("resize complete", player.getBoundingClientRect().toJSON());
-      };
-      window.addEventListener("pointermove", moveResize, { passive: false });
-      window.addEventListener("pointerup", stopResize);
-      window.addEventListener("pointercancel", stopResize);
-    }
+    });
+    const moveResize = event => {
+      if (!resize || resize.id !== event.pointerId) return;
+      const { direction, bounds } = resize;
+      const dx = event.clientX - resize.x;
+      const dy = event.clientY - resize.y;
+      let left = resize.left, top = resize.top;
+      let right = resize.left + resize.width, bottom = resize.top + resize.height;
+      if (direction.includes("w")) left += dx;
+      if (direction.includes("e")) right += dx;
+      if (direction.includes("n")) top += dy;
+      if (direction.includes("s")) bottom += dy;
+
+      // Never let any edge escape the editor bounds.
+      left = clamp(left, bounds.left, bounds.right - 120);
+      right = clamp(right, left + 120, bounds.right);
+      top = clamp(top, bounds.top, bounds.bottom - 90);
+      bottom = clamp(bottom, top + 90, bounds.bottom);
+      let width = right - left;
+      let height = bottom - top;
+
+      if (!resize.free) {
+        const ratio = resize.ratio || (width / height);
+        const widthDriven = direction.includes("e") || direction.includes("w")
+          ? (!direction.includes("n") && !direction.includes("s") || Math.abs(dx) >= Math.abs(dy * ratio))
+          : false;
+        if (direction === "e" || direction === "w" || (direction.length === 2 && widthDriven)) {
+          height = width / ratio;
+          if (direction.includes("n")) top = resize.top + resize.height - height;
+          else bottom = top + height;
+        } else {
+          width = height * ratio;
+          if (direction.includes("w")) left = resize.left + resize.width - width;
+          else right = left + width;
+        }
+        // Re-clamp while preserving the aspect ratio inside the editor.
+        if (width > bounds.right - left) {
+          width = bounds.right - left;
+          height = width / ratio;
+          if (direction.includes("n")) top = resize.top + resize.height - height;
+          else bottom = top + height;
+        }
+        if (height > bounds.bottom - top) {
+          height = bounds.bottom - top;
+          width = height * ratio;
+          if (direction.includes("w")) left = resize.left + resize.width - width;
+          else right = left + width;
+        }
+        left = clamp(left, bounds.left, bounds.right - width);
+        top = clamp(top, bounds.top, bounds.bottom - height);
+      }
+      width = clamp(width, 120, bounds.right - left);
+      height = clamp(height, 90, bounds.bottom - top);
+      setRect(left, top, width, height, false);
+      syncMiniPlayerContent(width, height);
+      event.preventDefault();
+    };
+    const stopResize = event => {
+      if (!resize || resize.id !== event.pointerId) return;
+      resize = null;
+      player.classList.remove("mini-player-resizing");
+      savePosition();
+      devLog("resize complete", player.getBoundingClientRect().toJSON());
+    };
+    window.addEventListener("pointermove", moveResize, { passive: false });
+    window.addEventListener("pointerup", stopResize);
+    window.addEventListener("pointercancel", stopResize);
 
     // Recompute only on viewport/media changes, not on every AI panel/grid mutation.
     window.addEventListener("resize", () => {
+      const bounds = editorSurface.getBoundingClientRect();
       if (isExpanded()) fitExpandedPlayer();
       else {
         const r = player.getBoundingClientRect();
-        setRect(clamp(r.left, 0, window.innerWidth-r.width), clamp(r.top, 0, window.innerHeight-r.height), Math.min(r.width, window.innerWidth-16), Math.min(r.height, window.innerHeight-16));
+        const width = Math.min(r.width, bounds.width);
+        const height = Math.min(r.height, bounds.height);
+        setRect(clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - width)), clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - height)), width, height);
+        syncMiniPlayerContent(width, height);
       }
     });
     new ResizeObserver(() => {
+      const bounds = editorSurface.getBoundingClientRect();
+      const r = player.getBoundingClientRect();
       if (isExpanded()) fitExpandedPlayer();
+      else {
+        const width = Math.min(r.width, bounds.width);
+        const height = Math.min(r.height, bounds.height);
+        setRect(clamp(r.left, bounds.left, Math.max(bounds.left, bounds.right - width)), clamp(r.top, bounds.top, Math.max(bounds.top, bounds.bottom - height)), width, height);
+      }
     }).observe(editorSurface);
   })();
 
