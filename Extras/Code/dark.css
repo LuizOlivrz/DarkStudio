@@ -2868,3 +2868,25 @@ body {
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
+
+/* Reduce edge resize hitboxes so nearby editor controls remain clickable. */
+#mini-player .mini-player-resize-handle.resize-n,
+#mini-player .mini-player-resize-handle.resize-s {
+  height: 5px !important;
+  left: 14px !important;
+  right: 14px !important;
+}
+#mini-player .mini-player-resize-handle.resize-e,
+#mini-player .mini-player-resize-handle.resize-w {
+  width: 5px !important;
+  top: 14px !important;
+  bottom: 14px !important;
+}
+#mini-player .mini-player-resize-handle.resize-ne,
+#mini-player .mini-player-resize-handle.resize-nw,
+#mini-player .mini-player-resize-handle.resize-se,
+#mini-player .mini-player-resize-handle.resize-sw {
+  width: 16px !important;
+  height: 16px !important;
+}
