@@ -23,7 +23,10 @@ export default async (request) => {
   }
 
   const origin = request.headers.get("origin");
-  if (!origin || !ALLOWED_ORIGINS.has(origin)) {
+  const isDeployPreview =
+    typeof origin === "string" &&
+    /^https:\/\/deploy-preview-\d+--darkstudio-code\.netlify\.app$/.test(origin);
+  if (!origin || (!ALLOWED_ORIGINS.has(origin) && !isDeployPreview)) {
     return json({ error: "Origin not allowed." }, 403);
   }
 
