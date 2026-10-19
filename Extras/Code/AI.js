@@ -1,19 +1,19 @@
 import { blockWeb, getDevMode, language, t } from "./config.js";
 
 if (!blockWeb) {
-  const API_KEY = "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";
-  const MODEL = "openai/gpt-oss-120b";
+  const API_ENDPOINT = "/.netlify/functions/nightcoder";
   const STORAGE_KEY = "nightcoder_chat";
   const MAX_MESSAGES = 10;
   let firstTime = true;
   const primaryPrompt =
     "You are NightCoder, an AI focused on helping with programming or any other topic, The editor currently being used by the user is Dark Studio by LUIZzz.";
   const getDefaultSystemPrompt = () => {
-    const responseLanguage = {
-      "en-US": "English",
-      "pt-BR": "Brazilian Portuguese",
-      ru: "Russian",
-    }[language] || language;
+    const responseLanguage =
+      {
+        "en-US": "English",
+        "pt-BR": "Brazilian Portuguese",
+        ru: "Russian",
+      }[language] || language;
     return `Be direct. Explain code changes at the end. Always reply in ${responseLanguage} unless the user requests another language.`;
   };
   const SYSTEM_PROMPT_KEY = "nightcoder_system_prompt";
@@ -35,13 +35,22 @@ if (!blockWeb) {
   });
 
   function saveChatToStorage() {
-    const systemMessage = chatHistory.find((message) => message.role === "system");
+    const systemMessage = chatHistory.find(
+      (message) => message.role === "system",
+    );
     const recentMessages = chatHistory
-      .filter((message) => message.role === "user" || message.role === "assistant")
+      .filter(
+        (message) => message.role === "user" || message.role === "assistant",
+      )
       .slice(-MAX_MESSAGES);
 
     // Keep in-memory history bounded too, not just the persisted copy.
-    chatHistory.splice(0, chatHistory.length, ...(systemMessage ? [systemMessage] : []), ...recentMessages);
+    chatHistory.splice(
+      0,
+      chatHistory.length,
+      ...(systemMessage ? [systemMessage] : []),
+      ...recentMessages,
+    );
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recentMessages));
   }
 
@@ -65,7 +74,8 @@ if (!blockWeb) {
           !msg ||
           !["user", "assistant"].includes(msg.role) ||
           typeof msg.content !== "string"
-        ) continue;
+        )
+          continue;
         chatHistory.push(msg);
         const divClass = msg.role === "user" ? "user" : "ai";
         const content =

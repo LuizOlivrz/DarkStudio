@@ -459,13 +459,13 @@ function applyFavicon(e) {
 
 if (!block) {
   (async () => {
-    try {
-      await loadExternalScript(
-        "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
-      );
-    } catch (error) {
+    // Color Thief is only needed by optional appearance features. Start it
+    // in parallel so a slow third-party CDN cannot delay the editor startup.
+    loadExternalScript(
+      "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
+    ).catch((error) => {
       console.error("Could not load Color Thief:", error);
-    }
+    });
 
     await Promise.all([loadJS("monaco"), loadJS("main"), loadJS("AI")]);
 
