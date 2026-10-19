@@ -189,6 +189,7 @@ Formato obrigatório:
 | 2026-10-19 17:34 (UTC-03:00) | ChatGPT — GPT-6 | Padronizou colaboração por branches/PRs, modelo de revisão e verificação automática de sintaxe JavaScript. | Branch `chore/git-collaboration-workflow`; PR #9: https://github.com/LuizOlivrz/DarkStudio/pull/9 |
 | 2026-10-19 19:57 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a detecção de linguagem de `main.js` para `language-detection.js`; validação de sintaxe aprovada pelo GitHub Actions. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 | 2026-10-19 19:58 (UTC-03:00) | ChatGPT — GPT-6 | Extrai constantes e utilitários de linguagem/extensão de `mindmap.js` para `workspace-language.js`. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
+| 2026-10-19 19:59 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a lógica de redimensionamento dos painéis para `panel-resizers.js`, recebendo o contêiner por parâmetro. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
