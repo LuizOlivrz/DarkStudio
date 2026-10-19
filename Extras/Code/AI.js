@@ -1,7 +1,7 @@
 import { blockWeb, getDevMode, language, t } from "./config.js";
 
 if (!blockWeb) {
-  const API_KEY = "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";
+  const API_ENDPOINT = "/.netlify/functions/nightcoder";
   const MODEL = "openai/gpt-oss-120b";
   const STORAGE_KEY = "nightcoder_chat";
   const MAX_MESSAGES = 10;
@@ -33,6 +33,26 @@ if (!blockWeb) {
     if (localStorage.getItem(SYSTEM_PROMPT_KEY)) return;
     chatHistory[0].content = `${primaryPrompt} ${getDefaultSystemPrompt()}`;
   });
+
+  async function requestChatCompletion(messages) {
+    const response = await fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        typeof data.error === "string"
+          ? data.error
+          : "The AI service is unavailable. Please try again later.",
+      );
+    }
+    if (typeof data.reply !== "string") {
+      throw new Error("The AI service returned an invalid response.");
+    }
+    return data.reply;
+  }
 
   function saveChatToStorage() {
     // remove system antes de salvar
@@ -131,20 +151,15 @@ if (!blockWeb) {
     messages.scrollTop = messages.scrollHeight;
 
     // Chama API
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: chatHistory,
-      }),
-    });
-
-    const data = await res.json();
-    const reply = data.choices[0].message.content;
+    let reply;
+    try {
+      reply = await requestChatCompletion(chatHistory);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "The AI service is unavailable.";
+      messages.insertAdjacentHTML("beforeend", `<div class="ai">${escapeHTML(message)}</div>`);
+      messages.scrollTop = messages.scrollHeight;
+      return;
+    }
 
     // Mostra resposta
     messages.innerHTML += `<div class='ai'>${renderMessage(reply)}</div>`;
@@ -239,20 +254,7 @@ if (!blockWeb) {
   window.sendInlineRequest = async function (content) {
     chatHistory.push({ role: "user", content });
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: chatHistory,
-      }),
-    });
-
-    const data = await res.json();
-    return data.choices[0].message.content;
+    return requestChatCompletion(chatHistory);
   };
 
   function clearChatStorage() {
@@ -284,7 +286,7 @@ if (!blockWeb) {
     localStorage.setItem(SYSTEM_PROMPT_KEY, value);
 
     // Atualiza o system prompt em memória
-    chatHistory[0].content = value;
+    chatHistory[0].content = `${primaryPrompt} ${value}`;
 
     if (getDevMode() === "true") alert(t("promptSaved"));
   }
