@@ -3,14 +3,16 @@
 // Workspace visual, arquivos, pastas, conexões e Monaco Editor
 // ============================================================
 
-import { TEXT_FILE_EXTENSIONS, WORKSPACE_LANGUAGES, getWorkspaceLanguage, getWorkspaceLanguageForFile, getFileExtension, getLanguageFromFile } from "./workspace-language.js";
+import {
+  TEXT_FILE_EXTENSIONS,
+  WORKSPACE_LANGUAGES,
+  getWorkspaceLanguage,
+  getWorkspaceLanguageForFile,
+  getFileExtension,
+  getLanguageFromFile,
+} from "./workspace-language.js";
 const STORAGE_KEY = "darkstudio_mindmap_v1";
 const SVG_NS = "http://www.w3.org/2000/svg";
-
-
-
-
-
 
 function applyLanguageToNode(node, language, manual = false) {
   if (!node || node.type === "folder" || !language) return false;
