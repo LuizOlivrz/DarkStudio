@@ -1577,10 +1577,13 @@ if (!blockWeb) {
     if (!fileName) return;
 
     const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
+    const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
+    link.href = objectUrl;
     link.download = `${fileName}.${extension}`;
     link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
   });
 
   // ─────────────────────────────────────────────
