@@ -35,13 +35,14 @@ if (!blockWeb) {
   });
 
   function saveChatToStorage() {
-    // remove system antes de salvar
-    const toSave = chatHistory.filter((m) => m.role !== "system");
+    const systemMessage = chatHistory.find((message) => message.role === "system");
+    const recentMessages = chatHistory
+      .filter((message) => message.role === "user" || message.role === "assistant")
+      .slice(-MAX_MESSAGES);
 
-    // mantém só as últimas 10
-    const limited = toSave.slice(-MAX_MESSAGES);
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(limited));
+    // Keep in-memory history bounded too, not just the persisted copy.
+    chatHistory.splice(0, chatHistory.length, ...(systemMessage ? [systemMessage] : []), ...recentMessages);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(recentMessages));
   }
 
   function loadChatFromStorage() {
@@ -60,7 +61,11 @@ if (!blockWeb) {
       }
       const messages = document.getElementById("messages");
       for (const msg of parsed) {
-        if (!msg || !msg.role || typeof msg.content !== "string") continue;
+        if (
+          !msg ||
+          !["user", "assistant"].includes(msg.role) ||
+          typeof msg.content !== "string"
+        ) continue;
         chatHistory.push(msg);
         const divClass = msg.role === "user" ? "user" : "ai";
         const content =
