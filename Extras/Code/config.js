@@ -284,17 +284,16 @@ export const blockWeb = block;
  */
 async function js(name) {
   const path = `Extras/Code/${name}.js`;
-  const ok = await checkFile(path, `${name}.js`);
-
-  if (!ok) return false;
-
   return new Promise((resolve) => {
     const script = document.createElement("script");
 
     script.src = path;
     script.type = "module";
 
-    script.onload = () => resolve(true);
+    script.onload = () => {
+      bootLogs.push(`✅ ${name}.js`);
+      resolve(true);
+    };
     script.onerror = () => {
       bootLogs.push(`❌ ${name}.js`);
       resolve(false);
@@ -368,10 +367,6 @@ export async function loadCSS(name) {
     return true;
   }
 
-  const ok = await checkFile(path, name);
-
-  if (!ok) return false;
-
   return new Promise((resolve) => {
     const link = document.createElement("link");
 
@@ -379,6 +374,7 @@ export async function loadCSS(name) {
     link.href = path;
 
     link.onload = () => {
+      bootLogs.push(`✅ ${name}`);
       const container = document.getElementById("Website-Container");
 
       if (container) {
@@ -398,23 +394,6 @@ export async function loadCSS(name) {
 }
 
 const bootLogs = [];
-
-async function checkFile(path, label) {
-  try {
-    const res = await fetch(path, { method: "HEAD" });
-
-    if (res.ok) {
-      bootLogs.push(`✅ ${label}`);
-      return true;
-    }
-
-    bootLogs.push(`❌ ${label}`);
-    return false;
-  } catch {
-    bootLogs.push(`❌ ${label}`);
-    return false;
-  }
-}
 
 function flushBootLogs() {
   if (!getDevMode()) return;
