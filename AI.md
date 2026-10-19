@@ -203,4 +203,5 @@ Formato obrigatório:
 ---
 
 **Regra final:** explore, experimente e melhore o DarkStudio com iniciativa. O limite não é evitar mudanças grandes; é evitar mudanças irresponsáveis, opacas ou impossíveis de revisar.
-| 2026-10-19 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a detecção de linguagem de `main.js` para `language-detection.js`; validação automatizada pendente da PR. | Branch `refactor/split-language-detection` |
+| 2026-10-19 19:57 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a detecção de linguagem de `main.js` para `language-detection.js`; validação de sintaxe aprovada pelo GitHub Actions. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
+| 2026-10-19 19:58 (UTC-03:00) | ChatGPT — GPT-6 | Extrai constantes e utilitários de linguagem/extensão de `mindmap.js` para `workspace-language.js`. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
