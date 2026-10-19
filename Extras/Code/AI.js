@@ -2,7 +2,6 @@ import { blockWeb, getDevMode, language, t } from "./config.js";
 
 if (!blockWeb) {
   const API_ENDPOINT = "/.netlify/functions/nightcoder";
-  const MODEL = "openai/gpt-oss-120b";
   const STORAGE_KEY = "nightcoder_chat";
   const MAX_MESSAGES = 10;
   let firstTime = true;
