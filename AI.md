@@ -186,6 +186,7 @@ Formato obrigatório:
 | Data e hora (com fuso) | Assistente/modelo | Resumo | Referência |
 |---|---|---|---|
 | 2026-10-19 10:50 (UTC-03:00) | ChatGPT — GPT-6 | Criou este guia inicial de colaboração e rastreabilidade para IAs; alteração limitada a `AI.md`. | Branch `docs/ai-contributor-guide`; commit/PR a vincular após criação. |
+| 2026-10-19 17:34 (UTC-03:00) | ChatGPT — GPT-6 | Padronizou colaboração por branches/PRs, modelo de revisão e verificação automática de sintaxe JavaScript. | Branch `chore/git-collaboration-workflow`; PR #9: https://github.com/LuizOlivrz/DarkStudio/pull/9 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
