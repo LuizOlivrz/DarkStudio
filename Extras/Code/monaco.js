@@ -374,7 +374,7 @@ if (!blockWeb) {
       function saveCode() {
         const code = window.editor.getValue();
         localStorage.setItem("codigoSalvo", code);
-        if (getDevMode() === "true")
+        if (getDevMode())
           console.log("💾 Código salvo automaticamente / Code auto-saved");
       }
 
