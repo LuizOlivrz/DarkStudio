@@ -13,6 +13,9 @@ const MODEL = "openai/gpt-oss-120b";
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_LENGTH = 20000;
 const MAX_TOTAL_LENGTH = 40000;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 30;
+const requestsByIP = new Map();
 
 export default async (request) => {
   if (request.method !== "POST") {
@@ -22,6 +25,33 @@ export default async (request) => {
   const origin = request.headers.get("origin");
   if (!origin || !ALLOWED_ORIGINS.has(origin)) {
     return json({ error: "Origin not allowed." }, 403);
+  }
+
+  // Best-effort per-instance limit to curb bursts. Use platform-level persistent
+  // rate limiting as well for a public production deployment.
+  const now = Date.now();
+  for (const [ip, entry] of requestsByIP) {
+    if (now - entry.windowStart >= RATE_LIMIT_WINDOW_MS) requestsByIP.delete(ip);
+  }
+  const ip =
+    request.headers.get("x-nf-client-connection-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown";
+  const current = requestsByIP.get(ip);
+  if (current && now - current.windowStart < RATE_LIMIT_WINDOW_MS) {
+    if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
+      return json({ error: "Too many requests. Please try again later." }, 429, {
+        "Retry-After": String(Math.ceil((RATE_LIMIT_WINDOW_MS - (now - current.windowStart)) / 1000)),
+      });
+    }
+    current.count += 1;
+  } else {
+    requestsByIP.set(ip, { windowStart: now, count: 1 });
+  }
+
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > 50000) {
+    return json({ error: "Request body is too large." }, 413);
   }
 
   const apiKey = process.env.GROQ_API_KEY;
