@@ -1,0 +1,305 @@
+const path = require("node:path");
+const fs = require("node:fs/promises");
+const { app, BrowserWindow, shell, dialog, ipcMain, protocol, net, Menu } = require("electron");
+const { pathToFileURL } = require("node:url");
+const extract = require("extract-zip");
+
+protocol.registerSchemesAsPrivileged([{
+  scheme: "app",
+  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
+}]);
+
+// Public update manifest; the desktop client never accesses the private source repository.
+const UPDATE_MANIFEST_URLS = [
+  "https://raw.githubusercontent.com/LuizOlivrz/DarkStudio/main/Publico/version.json",
+  "https://cdn.jsdelivr.net/gh/LuizOlivrz/DarkStudio@main/Publico/version.json",
+];
+const UPDATE_ROOT = () => path.join(app.getPath("userData"), "official-updates");
+const ACTIVE_VERSION_FILE = () => path.join(UPDATE_ROOT(), "active.json");
+const PROJECT_ROOT = path.resolve(__dirname, "..");
+const VERSION_PATTERN = /export\s+const\s+version\s*=\s*["']([^"']+)["']/;
+
+ipcMain.handle("darkstudio:open-file", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openFile"],
+    filters: [{ name: "Code and text files", extensions: ["js", "html", "css", "txt", "json", "java", "py", "cpp", "c", "bat", "md"] }, { name: "All files", extensions: ["*"] }]
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  const filePath = result.filePaths[0];
+  return { filePath, fileName: path.basename(filePath), content: await fs.readFile(filePath, "utf8") };
+});
+
+ipcMain.handle("darkstudio:save-file", async (_event, options = {}) => {
+  const extension = String(options.extension || "txt").replace(/[^a-z0-9]/gi, "") || "txt";
+  const defaultName = String(options.defaultName || `untitled.${extension}`).replace(/[\\\\/]/g, "_");
+  const result = await dialog.showSaveDialog({
+    defaultPath: defaultName,
+    filters: [{ name: extension.toUpperCase() + " files", extensions: [extension] }, { name: "All files", extensions: ["*"] }]
+  });
+  if (result.canceled || !result.filePath) return { canceled: true };
+  await fs.writeFile(result.filePath, String(options.content ?? ""), "utf8");
+  return { canceled: false, filePath: result.filePath };
+});
+
+async function readActiveUpdate() {
+  try {
+    const data = JSON.parse(await fs.readFile(ACTIVE_VERSION_FILE(), "utf8"));
+    if (
+      typeof data.version !== "string" ||
+      !/^[a-zA-Z0-9._-]{1,80}$/.test(data.version) ||
+      data.directory !== `version-${data.version}`
+    ) return null;
+    const indexPath = path.join(UPDATE_ROOT(), data.directory, "index.html");
+    const configPath = path.join(UPDATE_ROOT(), data.directory, "Extras", "Code", "config.js");
+    await Promise.all([fs.access(indexPath), fs.access(configPath)]);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+async function getLocalVersion() {
+  const active = await readActiveUpdate();
+  if (active) return active.version;
+  try {
+    const source = await fs.readFile(path.join(PROJECT_ROOT, "Extras", "Code", "config.js"), "utf8");
+    return source.match(VERSION_PATTERN)?.[1] || "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+}
+
+async function fetchText(url, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal, headers: { "User-Agent": "DarkStudio-Desktop-Updater", "Cache-Control": "no-cache" }, cache: "no-store", redirect: "follow" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.text();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchUpdateManifest() {
+  let lastError;
+  for (const url of UPDATE_MANIFEST_URLS) {
+    try {
+      const manifest = JSON.parse(await fetchText(url));
+      if (
+        manifest.product !== "DarkStudio" ||
+        typeof manifest.version !== "string" ||
+        !/^[a-zA-Z0-9._-]{1,80}$/.test(manifest.version)
+      ) throw new Error("Metadados de atualização inválidos.");
+      return manifest;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Não foi possível consultar as atualizações.");
+}
+
+async function checkForUpdates() {
+  let manifest;
+  try {
+    manifest = await fetchUpdateManifest();
+  } catch (error) {
+    console.warn("DarkStudio: não foi possível verificar atualizações; mantendo a versão local.", error);
+    return;
+  }
+
+  const localVersion = await getLocalVersion();
+  const officialVersion = manifest.version;
+  if (officialVersion === localVersion) return;
+
+  // Never prompt for an update until a public package has actually been published.
+  if (typeof manifest.updatePackageUrl !== "string" || !manifest.updatePackageUrl.trim()) {
+    console.warn(`DarkStudio: a versão ${officialVersion} está anunciada, mas ainda não há pacote publicado.`);
+    return;
+  }
+
+  let packageUrl;
+  try {
+    packageUrl = new URL(manifest.updatePackageUrl);
+    if (packageUrl.protocol !== "https:") throw new Error("A URL do pacote precisa usar HTTPS.");
+  } catch {
+    console.error("DarkStudio: URL do pacote de atualização inválida.");
+    return;
+  }
+
+  const choice = await dialog.showMessageBox({
+    type: "info",
+    title: "Atualização do DarkStudio",
+    message: "Uma nova versão do DarkStudio está disponível.",
+    detail: `Versão instalada: ${localVersion}\\nVersão oficial: ${officialVersion}\\n\\nDeseja baixar e instalar a atualização agora? A versão instalada continuará disponível offline.`,
+    buttons: ["Atualizar agora", "Depois"],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true
+  });
+  if (choice.response !== 0) return;
+
+  let stagingDir;
+  try {
+    await fs.mkdir(UPDATE_ROOT(), { recursive: true });
+    const tempRoot = path.join(UPDATE_ROOT(), "staging");
+    stagingDir = tempRoot;
+    await fs.rm(tempRoot, { recursive: true, force: true });
+    await fs.mkdir(tempRoot, { recursive: true });
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 120000);
+    let archive;
+    try {
+      const response = await fetch(packageUrl.toString(), {
+        signal: controller.signal,
+        headers: { "User-Agent": "DarkStudio-Desktop-Updater" },
+        redirect: "follow"
+      });
+      if (!response.ok) throw new Error(`Download falhou (HTTP ${response.status}).`);
+      const bytes = Buffer.from(await response.arrayBuffer());
+      if (!bytes.length || bytes.length > 150 * 1024 * 1024) {
+        throw new Error("O arquivo de atualização tem tamanho inválido.");
+      }
+      archive = path.join(tempRoot, "update.zip");
+      await fs.writeFile(archive, bytes);
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const extractedDir = path.join(tempRoot, "extracted");
+    await fs.mkdir(extractedDir, { recursive: true });
+    await extract(archive, { dir: extractedDir });
+    const roots = await fs.readdir(extractedDir, { withFileTypes: true });
+    const sourceRoot = roots.find((entry) => entry.isDirectory() && /^[^/]+$/.test(entry.name));
+    if (!sourceRoot) throw new Error("O pacote de atualização não contém uma pasta válida.");
+    const officialRoot = path.join(extractedDir, sourceRoot.name);
+    const officialConfigPath = path.join(officialRoot, "Extras", "Code", "config.js");
+    let configSource = await fs.readFile(officialConfigPath, "utf8");
+    const downloadedVersion = configSource.match(VERSION_PATTERN)?.[1];
+    if (!downloadedVersion || downloadedVersion !== officialVersion) {
+      throw new Error("A versão do pacote baixado não corresponde à versão anunciada.");
+    }
+
+    // Keep the desktop-specific origin exception when applying web assets.
+    if (!configSource.includes("window.darkStudioDesktop?.isDesktop")) {
+      const guard = 'if (!OFFICIAL_ORIGINS.has(window.location.origin)) {';
+      if (!configSource.includes(guard)) throw new Error("A verificação de origem oficial mudou; atualização cancelada por segurança.");
+      configSource = configSource.replace(
+        guard,
+        'const isDesktopApp = window.darkStudioDesktop?.isDesktop === true;' + String.fromCharCode(10) + 'if (!isDesktopApp && !OFFICIAL_ORIGINS.has(window.location.origin)) {'
+      );
+    }
+    await fs.writeFile(officialConfigPath, configSource, "utf8");
+
+    const bridgeSource = await fs.readFile(path.join(__dirname, "desktop-bridge.js"), "utf8");
+    await fs.mkdir(path.join(officialRoot, "desktop"), { recursive: true });
+    await fs.writeFile(path.join(officialRoot, "desktop", "desktop-bridge.js"), bridgeSource, "utf8");
+    const htmlPath = path.join(officialRoot, "index.html");
+    let html = await fs.readFile(htmlPath, "utf8");
+    if (!html.includes('src="desktop/desktop-bridge.js"')) {
+      html = html.replace("</body>", '  <script src="desktop/desktop-bridge.js"></script>\n</body>');
+    }
+    if (!html.includes('src="desktop/desktop-bridge.js"')) throw new Error("Não foi possível preparar a interface para desktop.");
+    await fs.writeFile(htmlPath, html, "utf8");
+
+    const versionDir = path.join(UPDATE_ROOT(), `version-${officialVersion}`);
+    await fs.rm(versionDir, { recursive: true, force: true });
+    await fs.rename(officialRoot, versionDir);
+    const activeTemp = path.join(UPDATE_ROOT(), "active.json.tmp");
+    await fs.writeFile(activeTemp, JSON.stringify({ version: officialVersion, directory: path.basename(versionDir) }, null, 2), "utf8");
+    await fs.rename(activeTemp, ACTIVE_VERSION_FILE());
+
+    await dialog.showMessageBox({
+      type: "info",
+      title: "Atualização concluída",
+      message: `DarkStudio foi atualizado para a versão ${officialVersion}.`,
+      detail: "A versão baixada ficará armazenada localmente e continuará funcionando sem internet.",
+      buttons: ["Reiniciar agora"],
+      defaultId: 0
+    });
+    app.relaunch();
+    app.exit(0);
+  } catch (error) {
+    await dialog.showMessageBox({
+      type: "error",
+      title: "Não foi possível atualizar",
+      message: "A atualização não foi aplicada. A versão atual do DarkStudio foi mantida.",
+      detail: String(error?.message || error),
+      buttons: ["OK"]
+    });
+    if (stagingDir) await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1440,
+    height: 920,
+    minWidth: 900,
+    minHeight: 620,
+    title: "DarkStudio",
+    backgroundColor: "#111111",
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true
+    }
+  });
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://") || url.startsWith("http://")) shell.openExternal(url);
+    return { action: "deny" };
+  });
+  win.webContents.on("will-navigate", (event, url) => {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
+  win.loadURL("app://darkstudio/index.html");
+}
+
+app.whenReady().then(async () => {
+  await protocol.handle("app", async (request) => {
+    const requestUrl = new URL(request.url);
+    const requestedPath = decodeURIComponent(requestUrl.pathname || "/index.html");
+    const relativePath = requestedPath.replace(/^[/\\]+/, "");
+    const safeRelativePath = path.normalize(relativePath);
+    if (safeRelativePath.startsWith("..") || path.isAbsolute(safeRelativePath)) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    const active = await readActiveUpdate();
+    if (active) {
+      const overlayRoot = path.join(UPDATE_ROOT(), active.directory);
+      const overlayPath = path.resolve(overlayRoot, safeRelativePath);
+      if (overlayPath.startsWith(overlayRoot + path.sep) || overlayPath === overlayRoot) {
+        try {
+          const stat = await fs.stat(overlayPath);
+          if (stat.isFile()) return net.fetch(pathToFileURL(overlayPath).toString());
+        } catch {}
+      }
+    }
+
+    const bundledPath = path.resolve(PROJECT_ROOT, safeRelativePath);
+    if (bundledPath !== __dirname && !bundledPath.startsWith(PROJECT_ROOT + path.sep)) {
+      return new Response("Not found", { status: 404 });
+    }
+    return net.fetch(pathToFileURL(bundledPath).toString());
+  });
+  app.setAppUserModelId("dev.darkstudio.desktop");
+  Menu.setApplicationMenu(null);
+  createWindow();
+  // Update checks run after the window is usable; network failure is intentionally silent.
+  void checkForUpdates();
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
