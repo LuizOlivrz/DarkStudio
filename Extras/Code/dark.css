@@ -3412,3 +3412,23 @@ body {
   max-width: 100%;
   overflow-x: auto;
 }
+
+
+/* Version label anchored to the lower-right corner of Settings. */
+#app-version {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  z-index: 5;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--secondary-color, #888) 35%, transparent);
+  border-radius: 6px;
+  color: var(--secondary-color, #aaa);
+  background: color-mix(in srgb, var(--background-color, #090909) 88%, transparent);
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  opacity: 0.78;
+  pointer-events: none;
+  user-select: none;
+}
