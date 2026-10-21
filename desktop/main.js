@@ -286,7 +286,7 @@ app.whenReady().then(async () => {
     }
 
     const bundledPath = path.resolve(PROJECT_ROOT, safeRelativePath);
-    if (bundledPath !== __dirname && !bundledPath.startsWith(PROJECT_ROOT + path.sep)) {
+    if (bundledPath !== PROJECT_ROOT && !bundledPath.startsWith(PROJECT_ROOT + path.sep)) {
       return new Response("Not found", { status: 404 });
     }
     return net.fetch(pathToFileURL(bundledPath).toString());
