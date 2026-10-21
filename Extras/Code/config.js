@@ -22,6 +22,9 @@ const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
 export const version = "18.10.26"; // Current version / versão atual
 
+const versionLabel = document.getElementById("app-version");
+if (versionLabel) versionLabel.textContent = `v${version}`;
+
 // ─────────────────────────────────────────────
 // ▶️ CODE EXECUTOR SETTINGS
 // Controle de execução de código
