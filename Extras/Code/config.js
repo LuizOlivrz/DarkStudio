@@ -20,7 +20,7 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
-export const version = "17.10.26"; // Current version / versão atual
+export const version = "18.10.26"; // Current version / versão atual
 
 // ─────────────────────────────────────────────
 // ▶️ CODE EXECUTOR SETTINGS
