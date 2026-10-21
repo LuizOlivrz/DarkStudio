@@ -242,7 +242,8 @@ document.documentElement.lang = currentLang;
 // ─────────────────────────────────────────────
 
 detectDevice();
-if (!OFFICIAL_ORIGINS.has(window.location.origin)) {
+const isDesktopApp = window.darkStudioDesktop?.isDesktop === true;
+if (!isDesktopApp && !OFFICIAL_ORIGINS.has(window.location.origin)) {
   if (sessionStorage.getItem(OFFICIAL_ORIGIN_UNLOCK_KEY) !== "true") {
     block = true;
     blockReasonKey = "blockedOrigin";
