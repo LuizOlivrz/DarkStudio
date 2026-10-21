@@ -1,7 +1,7 @@
 {
   "name": "darkstudio",
   "productName": "DarkStudio",
-  "version": "18.10.26",
+  "version": "1.0.0",
   "description": "DarkStudio web e desktop no mesmo repositório",
   "main": "desktop/main.js",
   "author": "LuizOlivrz",
