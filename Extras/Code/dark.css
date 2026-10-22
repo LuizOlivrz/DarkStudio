@@ -3531,3 +3531,56 @@ body {
 #Website-Container.no-chat {
   grid-template-columns: 44px var(--options-width, 120px) minmax(0, 1fr);
 }
+
+
+/* Explorer uses the user's two accent colors without a hover background. */
+#explorer-toggle,
+#explorer-graph-button {
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--primary-color, #5d00ff);
+  text-align: left;
+  transition: color .2s ease, opacity .22s ease;
+}
+#explorer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 2px;
+}
+#explorer-toggle:hover,
+#explorer-graph-button:hover,
+#explorer-toggle:focus-visible,
+#explorer-graph-button:focus-visible {
+  color: var(--secondary-color, #5d00ff);
+  background: transparent !important;
+}
+#explorer-toggle .explorer-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+#explorer-toggle .explorer-chevron {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  margin-right: 3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(135deg);
+  transition: transform .2s ease, color .2s ease;
+}
+#explorer.explorer-open #explorer-toggle .explorer-chevron {
+  transform: rotate(45deg);
+}
+#explorer-graph-button {
+  padding: 6px 2px;
+  text-align: left;
+}
+#explorer-files .explorer-file:hover {
+  background: transparent;
+  color: var(--secondary-color, #5d00ff);
+}
