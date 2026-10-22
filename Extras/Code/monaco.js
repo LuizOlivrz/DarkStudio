@@ -315,7 +315,7 @@ if (!blockWeb) {
       },
     });
 
-    console.log(monacoSource === "web" ? "🌐 Monaco Web" : "📦 Monaco Local");
+    if (getDevMode()) console.log(monacoSource === "web" ? "🌐 Monaco Web" : "📦 Monaco Local");
 
     initialTheme = theme;
 
@@ -393,39 +393,6 @@ if (!blockWeb) {
       // Restaura código salvo, se existir
       const savedCode = localStorage.getItem("codigoSalvo");
       if (savedCode) window.editor.setValue(savedCode);
-
-      // ─────────────────────────────────────────────
-      // 📂 Carregamento de Arquivos / File Loading
-      // ─────────────────────────────────────────────
-      const loadButton = document.getElementById("load-button");
-      const fileInput = document.getElementById("file-input");
-
-      loadButton.addEventListener("click", () => fileInput.click());
-
-      fileInput.addEventListener("change", (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          const content = e.target.result;
-          window.editor.setValue(content);
-          console.log(
-            "📂 Arquivo carregado com sucesso! / File loaded successfully!",
-          );
-
-          if (getDevMode())
-            console.log(
-              "💬 Código carregado do arquivo / Code loaded from file",
-            );
-        };
-
-        reader.onerror = () =>
-          alert("❌ Erro ao ler o arquivo / Error reading file.");
-
-        reader.readAsText(file);
-      });
 
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
         const selection = editor.getSelection();
