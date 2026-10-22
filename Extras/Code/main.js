@@ -108,7 +108,9 @@ if (!blockWeb) {
     currentDetectedLanguage = language;
     const isUrl = language === "Link (URL)";
     const rawUrl = isUrl ? (window.editor.getValue() || "").trim().replace(/[),.;!?]+$/, "") : "";
-    const metadata = lastLinkAnalysis?.url === rawUrl ? lastLinkAnalysis.metadata : null;
+    let normalizedUrl = rawUrl;
+    try { if (rawUrl) normalizedUrl = new URL(rawUrl).href; } catch {}
+    const metadata = lastLinkAnalysis?.url === normalizedUrl ? lastLinkAnalysis.metadata : null;
     const displayText = isUrl
       ? `${t("linkPrefix")} - ${getLinkSiteName(rawUrl, metadata || {})}`
       : language;
@@ -250,9 +252,9 @@ if (!blockWeb) {
 
   function buildLinkTooltip(rawUrl, metadata = {}) {
     const details = [
-      metadata.title && `Title: ${metadata.title}`,
-      metadata.description && `Description: ${metadata.description}`,
-      metadata.author && `Author: ${metadata.author}`,
+      metadata.title && `${t("linkMetaTitle")}: ${metadata.title}`,
+      metadata.description && `${t("linkMetaDescription")}: ${metadata.description}`,
+      metadata.author && `${t("linkMetaAuthor")}: ${metadata.author}`,
       rawUrl,
     ].filter(Boolean);
     return details.join("\n");
@@ -260,7 +262,9 @@ if (!blockWeb) {
 
   window.addEventListener("darkstudio:site-analysis", (event) => {
     const detail = event.detail || {};
-    const currentUrl = (window.editor?.getValue() || "").trim().replace(/[),.;!?]+$/, "");
+    const rawUrl = (window.editor?.getValue() || "").trim().replace(/[),.;!?]+$/, "");
+    let currentUrl = "";
+    try { currentUrl = new URL(rawUrl).href; } catch {}
     if (!currentUrl || currentDetectedLanguage !== "Link (URL)" || detail.url !== currentUrl) return;
     lastLinkAnalysis = { url: currentUrl, metadata: detail.metadata || {}, ok: Boolean(detail.ok) };
     updateLanguageDisplay("Link (URL)");
