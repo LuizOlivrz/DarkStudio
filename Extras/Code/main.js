@@ -28,6 +28,7 @@ import {
   EXECUTOR_CONFIG,
   loadLanguage,
   devLog,
+  getCurrentLanguage,
 } from "./config.js";
 import { detectLanguage } from "./language-detection.js";
 import { setupPanelResizers } from "./panel-resizers.js";
