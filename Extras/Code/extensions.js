@@ -458,7 +458,7 @@ async function renderBundledCatalog() {
     if (!Array.isArray(entries)) throw new Error("Formato de índice inválido.");
 
     for (const entry of entries) {
-      if (!entry || typeof entry.name !== "string" || typeof entry.description !== "string") continue;
+      if (!entry || typeof entry.file !== "string" || !/^[\wÀ-ÿ ._-]+\.dsx\.json$/i.test(entry.file) || typeof entry.name !== "string" || typeof entry.description !== "string") continue;
       const card = document.createElement("article");
       card.className = "ds-extension-card ds-extension-catalog-card";
       const info = document.createElement("div");
@@ -466,10 +466,12 @@ async function renderBundledCatalog() {
       title.textContent = entry.name;
       const detail = document.createElement("p");
       detail.textContent = entry.description;
+      const filename = document.createElement("p");
+      filename.textContent = `Arquivo proposto: ${entry.file}`;
       const status = document.createElement("p");
       status.textContent = "Status: aguardando revisão do mantenedor";
       status.setAttribute("role", "status");
-      info.append(title, detail, status);
+      info.append(title, detail, filename, status);
       card.append(info);
       catalogList.appendChild(card);
     }
