@@ -125,7 +125,7 @@ if (!blockWeb) {
     }
     if (display) {
       display.title = isUrl && detectedSiteHoverText
-        ? detectedSiteStatusItems.join("\\n")
+        ? detectedSiteStatusItems.join("\n")
         : language;
       display.dataset.detectedLanguage = language;
     }
