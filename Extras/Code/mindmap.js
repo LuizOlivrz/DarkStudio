@@ -2226,9 +2226,14 @@ function showEditor() {
   if (extensionsPanel) extensionsPanel.hidden = true;
   if (mind) mind.style.display = "none";
 
-  const editor = document.getElementById("Editor");
-
-  if (editor) editor.style.display = "block";
+  const editor = document.getElementById("main-content");
+  const editorInput = document.getElementById("Editor-Input");
+  const configPanel = document.getElementById("config");
+  const extensionsView = document.getElementById("extensions-panel");
+  if (editor) editor.style.display = "flex";
+  if (editorInput) editorInput.hidden = false;
+  if (configPanel) configPanel.hidden = true;
+  if (extensionsView) extensionsView.hidden = true;
 
   const extensionsButton = document.getElementById("extensions-button");
   if (extensionsButton) extensionsButton.style.display = previousDisplays["extensions-button"] ?? "";
@@ -2290,8 +2295,11 @@ function showMap() {
   if (extensionsPanel) extensionsPanel.hidden = true;
   ensureCurrentEditorInWorkspace();
 
-  const editor = document.getElementById("Editor");
-
+  const editor = document.getElementById("main-content");
+  const editorInput = document.getElementById("Editor-Input");
+  const configPanel = document.getElementById("config");
+  if (editorInput) editorInput.hidden = false;
+  if (configPanel) configPanel.hidden = true;
   if (editor) editor.style.display = "none";
   if (mind) mind.style.display = "block";
   setWorkspaceManagerView(false);
