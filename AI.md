@@ -51,7 +51,7 @@ O README descreve estas funcionalidades existentes; confirme a implementação r
 - Carregamento de arquivos locais, limpeza, download e execução/visualização para os formatos suportados.
 - NightCoder, histórico de conversa e instruções personalizadas.
 - Mind Map e suas conexões/itens.
-- Instalação, ativação, desativação e isolamento de extensões `.dsx.json`.
+- Instalação, ativação, desativação e isolamento de extensões `.dsx.json`; propostas comunitárias em `Extras/Extensões` não devem executar nem instalar automaticamente antes da revisão e aprovação do mantenedor.
 - Temas, cores, fundos, preferências e personalização da interface.
 - Traduções em português do Brasil, inglês e russo.
 - Painel dinâmico e integrações externas, como clima, quando configuradas.
@@ -191,7 +191,7 @@ Formato obrigatório:
 | 2026-10-19 19:58 (UTC-03:00) | ChatGPT — GPT-6 | Extrai constantes e utilitários de linguagem/extensão de `mindmap.js` para `workspace-language.js`. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 | 2026-10-19 19:59 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a lógica de redimensionamento dos painéis para `panel-resizers.js`, recebendo o contêiner por parâmetro. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 
-| 2026-10-22 10:20 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona catálogo local de extensões, move o manifesto de atualização para Extras e padroniza a pasta do desktop. | PR #13: https://github.com/LuizOlivrz/DarkStudio/pull/13 |
+| 2026-10-22 10:20 (UTC-03:00) | ChatGPT — GPT-6 | Organiza a área de extensões da comunidade, move o manifesto de atualização para Extras e padroniza a pasta do desktop. | PR #13: https://github.com/LuizOlivrz/DarkStudio/pull/13 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
