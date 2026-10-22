@@ -48,7 +48,7 @@ if (!blockWeb) {
   const iframeButton = document.getElementById("new-iframe-button");
   const downloadButton = document.getElementById("download-file");
   const clearButton = document.getElementById("clear");
-  const editor = document.getElementById("Editor");
+  const editor = document.getElementById("main-content");
   const executorPanel = document.getElementById("executor-panel");
   const executorOutput = document.getElementById("executor-output");
   const configMenu = document.getElementById("config");
@@ -526,7 +526,7 @@ if (!blockWeb) {
   // 🧹 Remove código Markdown (inline e blocos)
   // ─────────────────────────────────────────────
   function isEditorSurfaceVisible() {
-    const surface = document.getElementById("Editor");
+    const surface = document.getElementById("main-content");
     if (!surface || surface.hidden) return false;
     const style = getComputedStyle(surface);
     const rect = surface.getBoundingClientRect();
@@ -802,7 +802,7 @@ if (!blockWeb) {
     const toolbar = document.getElementById("mini-player-toolbar");
     const expandButton = document.getElementById("mini-player-expand");
     const list = document.getElementById("mini-player-list");
-    const editorSurface = document.getElementById("Editor");
+    const editorSurface = document.getElementById("main-content");
     if (!player || !toolbar || !expandButton || !list || !editorSurface) return;
 
     // Platform defaults: Spotify keeps its compact width; short videos are portrait,
@@ -1790,11 +1790,20 @@ ${code}
   // ─────────────────────────────────────────────
 
   function config() {
-    document.getElementById("Website-Container")?.classList.remove("extensions-active");
+    const opening = !WebsiteContainer.classList.contains("settings-active");
     const extensionsPanel = document.getElementById("extensions-panel");
+    const editorInput = document.getElementById("Editor-Input");
+    const miniPlayerToggle = document.getElementById("mini-player-toggle");
+
+    WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
-    configValue = !WebsiteContainer.classList.contains("settings-active");
-    WebsiteContainer.classList.toggle("settings-active", configValue);
+
+    configValue = opening;
+    WebsiteContainer.classList.toggle("settings-active", opening);
+    configMenu.hidden = !opening;
+    if (editorInput) editorInput.hidden = opening;
+    if (miniPlayerToggle) miniPlayerToggle.hidden = opening;
+
     configMenu.scrollTop = 0;
     requestAnimationFrame(() => window.editor?.layout());
   }
