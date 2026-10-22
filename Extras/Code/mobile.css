@@ -1605,8 +1605,7 @@ body {
 }
 #main-content #config[hidden],
 #main-content #extensions-panel[hidden],
-#main-content #Editor-Input[hidden],
-#main-content #mini-player-toggle[hidden] {
+#main-content #Editor-Input[hidden] {
   display: none !important;
 }
 /* Settings and extensions are child views; keep the workbench and options panel in place. */
