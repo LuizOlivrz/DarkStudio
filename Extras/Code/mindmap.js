@@ -2229,6 +2229,11 @@ function openNodeInEditor(node) {
     showImageViewer(node);
     return;
   }
+  if (node.type === "binary") {
+    showMap();
+    updateSelectedNodeUI();
+    return;
+  }
 
   // Guarda o arquivo atual antes de trocar.
   syncCurrentEditorToMap();
@@ -2271,7 +2276,6 @@ function showEditor() {
 
   for (const id of [
     "download-file",
-    "load-button",
     "clear",
     "execute",
     "new-iframe-button",
