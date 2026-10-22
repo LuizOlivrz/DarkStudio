@@ -199,5 +199,6 @@
   "linkReaderTooLarge": "Ответ слишком велик для отображения (лимит: 1 МБ).",
   "linkReaderInvalidApi": "GitHub вернул неверный ответ API.",
   "linkReaderNoReadableText": "По этому URL не найден читаемый текст.",
-  "linkReaderCouldNotRead": "Не удалось прочитать эту ссылку."
+  "linkReaderCouldNotRead": "Не удалось прочитать эту ссылку.",
+  "enableMiniPlayers": "Включить мини-плееры медиа"
 }
