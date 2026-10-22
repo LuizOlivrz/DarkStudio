@@ -194,5 +194,13 @@
   "linkReaderPdf": "PDF 문서",
   "linkMetaTitle": "제목",
   "linkMetaDescription": "설명",
-  "linkMetaAuthor": "작성자"
+  "linkMetaAuthor": "작성자",
+  "linkReaderRawFile": "원시 파일",
+  "linkReaderGithubFileGeneric": "GitHub 파일",
+  "linkReaderGithubContent": "GitHub 콘텐츠",
+  "linkReaderHttpError": "서버가 HTTP {status}를 반환했습니다.",
+  "linkReaderTooLarge": "응답이 너무 커서 표시할 수 없습니다(최대 1MB).",
+  "linkReaderInvalidApi": "GitHub가 잘못된 API 응답을 반환했습니다.",
+  "linkReaderNoReadableText": "이 URL에서 읽을 수 있는 텍스트를 찾지 못했습니다.",
+  "linkReaderCouldNotRead": "이 링크를 읽을 수 없습니다."
 }
