@@ -424,8 +424,12 @@ if (!blockWeb) {
     if (player.classList.contains("is-expanded")) {
       requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
     }
-    player.dataset.pendingWebsite = websiteUrl;
-    if (websiteUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: websiteUrl } }));
+    const editorUrl = detectLanguage(text) === "Link (URL)"
+      ? text.replace(/[),.;!?]+$/, "")
+      : "";
+    const metadataUrl = editorUrl || websiteUrl;
+    player.dataset.pendingWebsite = metadataUrl;
+    if (metadataUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: metadataUrl } }));
   }
 
   // Pause off-screen embeds. TikTok may ignore pause messages, so unload its
