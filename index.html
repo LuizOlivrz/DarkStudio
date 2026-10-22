@@ -4,7 +4,7 @@
 <head>
   <script>
     (() => {
-      const supportedLanguages = ["en-US", "pt-BR", "ru"];
+      const supportedLanguages = ["en-US", "pt-BR", "ru", "ja", "ko", "zh-CN", "de", "es"];
       let savedLanguage = null;
       try {
         savedLanguage = localStorage.getItem("darkstudio-language");
@@ -148,9 +148,7 @@
           <input type="checkbox" id="mini-player-enabled-checkbox" checked />
           <span>Ativar mini-players de mídia</span>
         </label><br />
-        <label for="dynamic-panel-checkbox"><input type="checkbox" id="dynamic-panel-checkbox" /> <span
-            data-i18n="hideDynamicPanel">Hide the dynamic panel</span></label><br />
-        <h3 data-i18n="extras">Extras:</h3>
+<h3 data-i18n="extras">Extras:</h3>
         <label for="bg-image-checkbox">
           <input type="checkbox" id="bg-image-checkbox" />
           <span data-i18n="enableBackground">Enable background image.</span>
@@ -284,10 +282,12 @@
       </button>
 
       <button id="extensions-button" type="button" data-i18n="extensions">Extensions</button>
-      <section id="explorer" aria-label="Workspace explorer">
-        <button id="explorer-toggle" type="button" aria-expanded="false">Explorer</button>
-        <div id="explorer-files" role="list" aria-label="Workspace files"></div>
-        <button id="explorer-graph-button" type="button" title="Toggle graphical workspace">Graph view</button>
+      <section id="explorer" aria-label="Workspace explorer" data-i18n-aria-label="explorerAriaLabel">
+        <button id="explorer-toggle" type="button" aria-expanded="false" title="Toggle explorer" data-i18n-title="explorerToggleTitle">
+          <span class="explorer-label" data-i18n="explorer">Explorer</span><span class="explorer-chevron" aria-hidden="true"></span>
+        </button>
+        <div id="explorer-files" role="list" aria-label="Workspace files" data-i18n-aria-label="explorerFilesAriaLabel"></div>
+        <button id="explorer-graph-button" type="button" title="Toggle graphical workspace" data-i18n="graphView" data-i18n-title="graphViewTitle">Graph view</button>
       </section>
     </div>
 
@@ -298,11 +298,7 @@
         <h4 data-i18n="startWriting">Start writing your code and see the language here!</h4>
       </div>
 
-      <!-- ====== DYNAMIC PANEL / PAINEL DINÂMICO ====== -->
-      <div id="dynamic-panel" aria-live="polite">
-        <span id="dynamic-panel-text" data-i18n="loading">🕒 Loading...</span>
-      </div>
-      <!-- ====== CONFIGURATION ICON / ÍCONE DE CONFIGURAÇÃO ====== -->
+<!-- ====== CONFIGURATION ICON / ÍCONE DE CONFIGURAÇÃO ====== -->
       <div id="config-toggle" role="button" tabindex="0" aria-label="Open settings" data-i18n-aria-label="settings"
         onclick="config()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();config()}">
         <svg id="Config-SVG" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100"
@@ -334,22 +330,21 @@
       </div>
 
       <section id="link-reader" aria-labelledby="link-reader-heading">
-        <h2 id="link-reader-heading">Link Reader <span>no AI</span></h2>
+        <h2 id="link-reader-heading"><span data-i18n="linkReaderTitle">Link Reader</span> <span data-i18n="linkReaderNoAI">no AI</span></h2>
         <form id="link-reader-form">
-          <label for="link-reader-url">Read content from a URL</label>
+          <label for="link-reader-url" data-i18n="linkReaderUrlLabel">Read content from a URL</label>
           <div class="link-reader-controls">
             <input id="link-reader-url" type="url" inputmode="url" placeholder="https://example.com or a GitHub link"
-              autocomplete="url" required />
-            <button id="link-reader-submit" type="submit">Read link</button>
+              data-i18n-placeholder="linkReaderUrlPlaceholder" autocomplete="url" required />
+            <button id="link-reader-submit" type="submit" data-i18n="linkReaderRead">Read link</button>
           </div>
         </form>
-        <p id="link-reader-status" role="status" aria-live="polite">Paste a public link to extract its readable content.
-        </p>
+        <p id="link-reader-status" role="status" aria-live="polite" data-i18n="linkReaderInitialStatus">Paste a public link to extract its readable content.</p>
         <div id="link-reader-result" hidden>
           <h3 id="link-reader-title"></h3>
           <p id="link-reader-source"></p>
           <pre id="link-reader-content" tabindex="0"></pre>
-          <button id="link-reader-copy" type="button">Copy content</button>
+          <button id="link-reader-copy" type="button" data-i18n="linkReaderCopy">Copy content</button>
         </div>
       </section>
     </div>
