@@ -39,7 +39,11 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     const collapsed = WebsiteContainer.classList.contains("chat-resize-hidden");
 
     if (!closed && !collapsed && value <= 295) {
-      WebsiteContainer.classList.add("chat-resize-hidden");
+      // Reuse the original two-column layout when the chat is hidden,
+      // so no empty third grid track or extra right-side gap remains.
+      WebsiteContainer.classList.remove("with-chat", "chat-resize-hidden");
+      WebsiteContainer.classList.add("no-chat");
+      chat.style.display = "none";
       WebsiteContainer.style.setProperty("--chat-width", "310px");
       layout();
       return;
