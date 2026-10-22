@@ -202,5 +202,6 @@
   "linkReaderTooLarge": "响应过大，无法显示（上限：1 MB）。",
   "linkReaderInvalidApi": "GitHub 返回了无效的 API 响应。",
   "linkReaderNoReadableText": "此 URL 中没有可读取的文本。",
-  "linkReaderCouldNotRead": "无法读取此链接。"
+  "linkReaderCouldNotRead": "无法读取此链接。",
+  "enableMiniPlayers": "启用媒体迷你播放器"
 }
