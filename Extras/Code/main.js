@@ -83,6 +83,8 @@ if (!blockWeb) {
     Python: "python",
     Java: "java",
     HTML: "html",
+    XML: "xml",
+    SVG: "xml",
     CSS: "css",
     "Batch (BAT/CMD)": "bat",
     Arduino: "cpp",
