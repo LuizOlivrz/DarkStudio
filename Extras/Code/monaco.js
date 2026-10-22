@@ -343,6 +343,13 @@ if (!blockWeb) {
           automaticLayout: true,
           fontSize,
           minimap: { enabled: false },
+          // Permite rolagem horizontal quando linhas excedem a largura visível.
+          wordWrap: "off",
+          scrollbar: {
+            horizontal: "auto",
+            horizontalScrollbarSize: 10,
+            alwaysConsumeMouseWheel: false,
+          },
           links: true,
         },
       );
