@@ -194,5 +194,13 @@
   "linkReaderPdf": "PDFドキュメント",
   "linkMetaTitle": "タイトル",
   "linkMetaDescription": "説明",
-  "linkMetaAuthor": "作成者"
+  "linkMetaAuthor": "作成者",
+  "linkReaderRawFile": "Rawファイル",
+  "linkReaderGithubFileGeneric": "GitHubファイル",
+  "linkReaderGithubContent": "GitHubコンテンツ",
+  "linkReaderHttpError": "サーバーが HTTP {status} を返しました。",
+  "linkReaderTooLarge": "応答が大きすぎます（上限：1 MB）。",
+  "linkReaderInvalidApi": "GitHubから無効なAPI応答が返されました。",
+  "linkReaderNoReadableText": "このURLに読み取り可能なテキストがありません。",
+  "linkReaderCouldNotRead": "このリンクを読み取れませんでした。"
 }
