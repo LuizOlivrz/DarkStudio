@@ -72,10 +72,10 @@ export function detectLanguage(code) {
 
   // HTML tem prioridade sobre JavaScript e CSS
   const hasHtmlStructure =
-    /<!doctype\s+html\b/i.test(cleanCode) ||
-    /<html(?:\s[^>]*)?>/i.test(cleanCode) ||
-    /<head(?:\s[^>]*)?>/i.test(cleanCode) ||
-    /<body(?:\s[^>]*)?>/i.test(cleanCode);
+    /<!doctype\\s+html\\b/i.test(cleanCode) ||
+    /<html(?:\\s[^>]*)?>/i.test(cleanCode) ||
+    /<head(?:\\s[^>]*)?>/i.test(cleanCode) ||
+    /<body(?:\\s[^>]*)?>/i.test(cleanCode);
 
   if (hasHtmlStructure) {
     return "HTML";
@@ -83,7 +83,7 @@ export function detectLanguage(code) {
 
   // Fragmentos HTML sem documento completo
   const hasHtmlElements =
-    /<(div|main|section|header|footer|nav|article|form|button|script|style|h[1-6])\b[^>]*>/i.test(
+    /<(div|main|section|header|footer|nav|article|form|button|script|style|h[1-6])\\b[^>]*>/i.test(
       cleanCode,
     );
 
