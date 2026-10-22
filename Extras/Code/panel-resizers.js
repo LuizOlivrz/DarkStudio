@@ -79,9 +79,16 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
       : current(type === "options" ? "--options-width" : "--chat-width");
     const direction = type === "options" ? 1 : -1;
     const move = nextEvent => {
-      const nextWidth = startWidth + (nextEvent.clientX - startX) * direction;
-      if (type === "options") setOptionsWidth(nextWidth);
-      else setChatWidth(nextWidth);
+      const delta = (nextEvent.clientX - startX) * direction;
+      const nextWidth = startWidth + delta;
+      if (type === "options") {
+        setOptionsWidth(nextWidth);
+      } else if (!chatIsHidden && delta >= 50) {
+        // Fecha o chat quando o usuário o arrasta pelo menos 50 px para dentro.
+        setChatWidth(295);
+      } else {
+        setChatWidth(nextWidth);
+      }
     };
     const stop = () => {
       window.removeEventListener("pointermove", move);
