@@ -1665,3 +1665,34 @@ body {
   border-radius: 6px;
   box-sizing: border-box;
 }
+
+/* Hide editor/workbench scrollbars during resizing; keep settings scrollbars visible. */
+#main-content,
+#main-content #Editor-Input,
+#main-content .monaco-editor,
+#main-content .monaco-editor .monaco-scrollable-element {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+#main-content #Editor-Input::-webkit-scrollbar,
+#main-content .monaco-editor::-webkit-scrollbar,
+#main-content .monaco-editor .monaco-scrollable-element::-webkit-scrollbar,
+#main-content .monaco-editor .scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+#main-content #config,
+#main-content #config * {
+  scrollbar-width: thin;
+  -ms-overflow-style: auto;
+}
+
+#main-content #config::-webkit-scrollbar,
+#main-content #config *::-webkit-scrollbar {
+  display: initial;
+  width: 8px;
+  height: 8px;
+}
