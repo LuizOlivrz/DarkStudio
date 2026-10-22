@@ -94,11 +94,6 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
   editor.addEventListener("pointerdown", event => {
     if (event.clientX >= editor.getBoundingClientRect().right - 8) beginResize(event, "chat");
   });
-  chat.addEventListener("pointerdown", event => {
-    if (!WebsiteContainer.classList.contains("chat-resize-hidden") &&
-        event.clientX <= chat.getBoundingClientRect().left + 8) beginResize(event, "chat");
-  });
-
   window.addEventListener("resize", () => {
     setOptionsWidth(current("--options-width"));
     if (!WebsiteContainer.classList.contains("chat-resize-hidden")) {
