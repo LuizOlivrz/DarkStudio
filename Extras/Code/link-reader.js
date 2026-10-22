@@ -132,7 +132,7 @@ async function readUrl(input) {
         title = payload.name || payload.path || t("linkReaderGithubFileGeneric");
       } else if (typeof payload.content === "string") {
         content = payload.content;
-        title = payload.name || payload.path || "GitHub file";
+        title = payload.name || payload.path || t("linkReaderGithubFileGeneric");
       } else {
         content = JSON.stringify(payload, null, 2);
         title = payload.name || payload.full_name || t("linkReaderGithubContent");
