@@ -3,6 +3,7 @@
 // Workspace visual, arquivos, pastas, conexões e Monaco Editor
 // ============================================================
 
+import { devLog } from "./config.js";
 import {
   TEXT_FILE_EXTENSIONS,
   WORKSPACE_LANGUAGES,
@@ -1172,6 +1173,31 @@ function renderNodes() {
 
   updateFolderVisibility();
   updateConnections();
+  refreshExplorerList();
+}
+
+function refreshExplorerList() {
+  const list = document.getElementById("explorer-files");
+  if (!list) return;
+  list.replaceChildren();
+  if (!nodes.length) {
+    const empty = document.createElement("div");
+    empty.className = "explorer-empty";
+    empty.textContent = "No workspace files";
+    list.appendChild(empty);
+    return;
+  }
+  for (const node of nodes) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "explorer-file";
+    item.setAttribute("role", "listitem");
+    item.dataset.nodeId = node.id;
+    item.title = node.filePath || node.name;
+    const prefix = node.type === "folder" ? (node.isOpen === false ? "▸ " : "▾ ") : node.type === "image" ? "▧ " : node.type === "binary" ? "▤ " : "· ";
+    item.textContent = prefix + node.name;
+    list.appendChild(item);
+  }
 }
 
 // ============================================================
@@ -1824,10 +1850,12 @@ async function importWorkspaceFiles(fileList) {
     seenPaths.add(entry.filePath);
     const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : null;
     const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
+    const extension = entry.filename.split(".").pop().toLowerCase();
+    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(entry.file.type || "");
     const node = addNode(
       entry.filename,
       entry.content,
-      isImage ? "image" : "text",
+      isImage ? "image" : isText ? "text" : "binary",
       centerPosition((nodes.length % 8) * 18),
     );
 
@@ -2480,6 +2508,30 @@ function clearMap() {
 // CONFIGURAÇÃO DOS BOTÕES
 // ============================================================
 
+window.darkStudioHandleDroppedFiles = async (fileList) => {
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  const isTextFile = (file) => {
+    const extension = file.name.split(".").pop().toLowerCase();
+    return TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(file.type || "");
+  };
+  const textFiles = files.filter(isTextFile);
+  const binaryFiles = files.filter((file) => !isTextFile(file));
+  if (textFiles.length && window.editor) {
+    const file = textFiles.shift();
+    window.editor.setValue(await file.text());
+    const language = getWorkspaceLanguageForFile(file.name);
+    const label = document.querySelector("#code-language h4");
+    if (label && language?.label) label.textContent = language.label;
+    window.darkStudioDroppedFileName = file.name;
+  }
+  const workspaceFiles = [...binaryFiles, ...textFiles];
+  if (workspaceFiles.length) {
+    await importWorkspaceFiles(workspaceFiles);
+    showMap();
+  }
+};
+
 function setupFileInputs() {
   fileInput = document.createElement("input");
   fileInput.type = "file";
@@ -2520,7 +2572,7 @@ function setupFileInputs() {
 }
 
 function wireUI() {
-  const mapButton = document.getElementById("mindmap-button");
+  const mapButton = document.getElementById("explorer-graph-button");
   const detailsButton = document.getElementById("workspace-details-button");
   if (detailsButton) detailsButton.style.display = "none";
   detailsButton?.addEventListener("click", () => {
@@ -2539,6 +2591,24 @@ function wireUI() {
     event.preventDefault();
     event.stopPropagation();
     createAddMenu({ x: event.clientX, y: event.clientY });
+  });
+
+  const explorer = document.getElementById("explorer");
+  const explorerToggle = document.getElementById("explorer-toggle");
+  explorerToggle?.addEventListener("click", () => {
+    const isOpen = explorer?.classList.toggle("explorer-open") ?? false;
+    explorerToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+  document.getElementById("explorer-files")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-node-id]");
+    if (!button) return;
+    const node = getNode(button.dataset.nodeId);
+    if (!node) return;
+    if (node.type === "folder") toggleFolder(node);
+    else if (node.type === "binary") {
+      showMap();
+      setWorkspaceManagerView(false);
+    } else openNodeInEditor(node);
   });
 
   if (mapButton) {
@@ -2591,7 +2661,7 @@ async function initMindmap() {
   updateWorkspaceNameUI();
   waitForEditor();
 
-  console.info("DarkStudio Workspace inicializado.");
+  devLog("DarkStudio Workspace inicializado.");
 }
 
 if (document.readyState === "loading") {
@@ -2601,5 +2671,22 @@ if (document.readyState === "loading") {
 } else {
   initMindmap();
 }
+
+for (const eventName of ["dragenter", "dragover"]) {
+  document.addEventListener(eventName, (event) => {
+    if (event.dataTransfer?.types?.includes("Files")) event.preventDefault();
+  });
+}
+document.addEventListener("drop", async (event) => {
+  const files = event.dataTransfer?.files;
+  if (!files?.length) return;
+  event.preventDefault();
+  try {
+    await window.darkStudioHandleDroppedFiles?.(files);
+  } catch (error) {
+    console.error("Erro ao abrir arquivos arrastados:", error);
+    alert("Não foi possível abrir os arquivos arrastados.");
+  }
+});
 
 export {};
