@@ -25,7 +25,7 @@ body {
   /* IE/Edge */
 }
 
-#Editor {
+#main-content {
   position: relative;
   /* REMOVE fixed */
   grid-column: 2;
@@ -759,7 +759,7 @@ p {
   grid-template-columns: minmax(90px, 120px) 1fr minmax(320px, 370px);
 }
 
-#Editor,
+#main-content,
 #options,
 #chat {
   box-sizing: border-box;
@@ -1115,7 +1115,7 @@ body {
 }
 
 #options,
-#Editor,
+#main-content,
 #chat,
 #config,
 #mindmap-container {
@@ -1133,13 +1133,13 @@ body {
   overflow: auto;
 }
 
-#Editor,
+#main-content,
 #config,
 #mindmap-container {
   grid-column: 2;
 }
 
-#Editor {
+#main-content {
   overflow: hidden;
 }
 
@@ -1175,7 +1175,7 @@ body {
   overflow: auto;
 }
 
-#Website-Container.settings-active #Editor,
+#Website-Container.settings-active #main-content,
 #Website-Container.settings-active #mindmap-container {
   display: none !important;
 }
@@ -1458,13 +1458,13 @@ body {
    EDITOR DURANTE EXECUÇÃO
    ========================================================= */
 
-#Editor {
+#main-content {
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
 }
 
-#Editor.editor-hidden {
+#main-content.editor-hidden {
   opacity: 0;
   transform: translateY(-10px);
 
@@ -1937,7 +1937,7 @@ body {
   display: none !important;
 }
 
-#Website-Container.extensions-active #Editor,
+#Website-Container.extensions-active #main-content,
 #Website-Container.extensions-active #mindmap-container,
 #Website-Container.extensions-active #config {
   display: none !important;
@@ -2298,11 +2298,11 @@ body {
 }
 
 /* Fit only the editor surface; never resize the application root grid. */
-#Editor {
+#main-content {
   transition: width .3s ease, height .3s ease;
 }
-#Editor.mini-player-fit-portrait,
-#Editor.mini-player-fit-landscape {
+#main-content.mini-player-fit-portrait,
+#main-content.mini-player-fit-landscape {
   width: var(--mini-player-fit-width, 480px) !important;
   height: var(--mini-player-fit-height, 270px) !important;
   min-width: 0 !important;
@@ -2375,7 +2375,7 @@ body {
 .mini-player-caution-tape.left { left: -21px; transform: rotate(180deg); }
 .mini-player-caution-tape.right { right: -21px; }
 @media (prefers-reduced-motion: reduce) {
-  #Website-Container, #Editor { transition: none; }
+  #Website-Container, #main-content { transition: none; }
 }
 
 
@@ -2402,8 +2402,8 @@ body {
   pointer-events: auto !important;
   z-index: 9999 !important;
 }
-#Editor.mini-player-fit-portrait,
-#Editor.mini-player-fit-landscape {
+#main-content.mini-player-fit-portrait,
+#main-content.mini-player-fit-landscape {
   margin-inline: auto;
   transition: width .3s ease, height .3s ease, margin .3s ease;
 }
@@ -2542,15 +2542,15 @@ body {
   text-align: center;
   padding: 8px 4px;
 }
-#Editor.mini-player-fit-portrait,
-#Editor.mini-player-fit-landscape {
+#main-content.mini-player-fit-portrait,
+#main-content.mini-player-fit-landscape {
   transition: width .28s ease, height .28s ease;
   box-sizing: border-box;
 }
 #mini-player.mini-player-resizing { transition: none !important; }
 #mini-player.is-expanded #mini-player-toolbar { z-index: 1200; }
 @media (prefers-reduced-motion: reduce) {
-  #mini-player, #Editor { transition: none !important; }
+  #mini-player, #main-content { transition: none !important; }
 }
 
 
@@ -2673,7 +2673,7 @@ body {
 }
 
 
-/* Mini-player final interaction rules: keep its full box inside #Editor. */
+/* Mini-player final interaction rules: keep its full box inside #main-content. */
 #mini-player {
   box-sizing: border-box !important;
   overflow: hidden !important;
@@ -2979,11 +2979,11 @@ body {
 
 
 /* Hide scrollbars on the parent editor container only; keep Monaco's own scrollbars visible. */
-#Editor {
+#main-content {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
-#Editor::-webkit-scrollbar {
+#main-content::-webkit-scrollbar {
   display: none !important;
 }
 
@@ -3431,4 +3431,67 @@ body {
   opacity: 0.78;
   pointer-events: none;
   user-select: none;
+}
+
+
+/* Main content views: the code surface is the default; settings/extensions are switched by JS. */
+#main-content {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+#main-content #Editor-Input {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+#main-content #config,
+#main-content #extensions-panel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  border-radius: inherit;
+  box-sizing: border-box;
+  overflow: auto;
+}
+#main-content #config[hidden],
+#main-content #extensions-panel[hidden],
+#main-content #Editor-Input[hidden],
+#main-content #mini-player-toggle[hidden] {
+  display: none !important;
+}
+/* Settings and extensions are child views; keep the workbench and options panel in place. */
+#Website-Container.settings-active #main-content,
+#Website-Container.extensions-active #main-content {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+#Website-Container.settings-active #main-content #config:not([hidden]) {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+#Website-Container.extensions-active #main-content #extensions-panel:not([hidden]) {
+  display: block;
+}
+#Website-Container.settings-active #mindmap-container,
+#Website-Container.extensions-active #mindmap-container {
+  display: none !important;
 }
