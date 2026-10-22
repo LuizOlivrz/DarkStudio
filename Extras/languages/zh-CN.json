@@ -194,5 +194,13 @@
   "linkReaderPdf": "PDF 文档",
   "linkMetaTitle": "标题",
   "linkMetaDescription": "描述",
-  "linkMetaAuthor": "作者"
+  "linkMetaAuthor": "作者",
+  "linkReaderRawFile": "原始文件",
+  "linkReaderGithubFileGeneric": "GitHub 文件",
+  "linkReaderGithubContent": "GitHub 内容",
+  "linkReaderHttpError": "服务器返回了 HTTP {status}。",
+  "linkReaderTooLarge": "响应过大，无法显示（上限：1 MB）。",
+  "linkReaderInvalidApi": "GitHub 返回了无效的 API 响应。",
+  "linkReaderNoReadableText": "此 URL 中没有可读取的文本。",
+  "linkReaderCouldNotRead": "无法读取此链接。"
 }
