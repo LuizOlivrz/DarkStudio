@@ -191,6 +191,8 @@ Formato obrigatório:
 | 2026-10-19 19:58 (UTC-03:00) | ChatGPT — GPT-6 | Extrai constantes e utilitários de linguagem/extensão de `mindmap.js` para `workspace-language.js`. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 | 2026-10-19 19:59 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a lógica de redimensionamento dos painéis para `panel-resizers.js`, recebendo o contêiner por parâmetro. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 
+| 2026-10-22 10:20 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona catálogo local de extensões, move o manifesto de atualização para Extras e padroniza a pasta do desktop. | PR #13: https://github.com/LuizOlivrz/DarkStudio/pull/13 |
+
 ## 13. Checklist rápido antes de enviar uma PR
 
 - [ ] Li este guia e os arquivos relacionados.
