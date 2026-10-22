@@ -1,3 +1,5 @@
+import { t } from "./config.js";
+
 // DarkStudio Link Reader — deterministic extraction, no AI.
 const form = document.getElementById("link-reader-form");
 const urlInput = document.getElementById("link-reader-url");
@@ -17,7 +19,7 @@ function normalizeUrl(value) {
   const trimmed = value.trim().replace(/[),.;!?]+$/, "");
   const url = new URL(trimmed);
   if (!["http:", "https:"].includes(url.protocol)) {
-    throw new Error("Only HTTP and HTTPS links are supported.");
+    throw new Error(t("linkReaderOnlyHttp"));
   }
   if (
     url.username || url.password ||
@@ -30,7 +32,7 @@ function normalizeUrl(value) {
     /^192\.168\./.test(url.hostname) ||
     /^172\.(1[6-9]|2\d|3[01])\./.test(url.hostname)
   ) {
-    throw new Error("Local or private-network URLs are not supported.");
+    throw new Error(t("linkReaderPrivateUrl"));
   }
   return url;
 }
@@ -44,7 +46,7 @@ function getFetchTarget(url) {
     const [, owner, repo, ref, filePath] = githubFile;
     return {
       url: `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${filePath.split("/").map(encodeURIComponent).join("/")}`,
-      label: "GitHub file (raw content)",
+      label: t("linkReaderGithubFile"),
       forceText: true,
     };
   }
@@ -57,7 +59,7 @@ function getFetchTarget(url) {
     const [, owner, repo] = githubRepo;
     return {
       url: `https://api.github.com/repos/${owner}/${repo}/readme`,
-      label: "GitHub repository README",
+      label: t("linkReaderGithubReadme"),
       githubApi: true,
       forceText: true,
     };
@@ -71,7 +73,7 @@ function getFetchTarget(url) {
     return { url: url.href, label: "GitHub file", githubApi: true, forceText: true };
   }
 
-  return { url: url.href, label: "Web page", forceText: false };
+  return { url: url.href, label: t("linkReaderWebPage"), forceText: false };
 }
 
 function decodeBase64Utf8(value) {
@@ -153,9 +155,9 @@ async function readUrl(input) {
       finalUrl: response.url || target.url,
     };
   } catch (error) {
-    if (error.name === "AbortError") throw new Error("The request timed out after 15 seconds.");
+    if (error.name === "AbortError") throw new Error(t("linkReaderTimeout"));
     if (error instanceof TypeError) {
-      throw new Error("The browser could not read this site (usually CORS or access restrictions). GitHub raw files and public README files are supported.");
+      throw new Error(t("linkReaderCors"));
     }
     throw error;
   } finally {
@@ -167,43 +169,38 @@ form?.addEventListener("submit", async (event) => {
   event.preventDefault();
   resultElement.hidden = true;
   submitButton.disabled = true;
-  submitButton.textContent = "Reading…";
-  statusElement.textContent = "Fetching the link and extracting readable text…";
+  submitButton.textContent = t("linkReaderReading");
+  statusElement.textContent = t("linkReaderFetching");
 
   try {
     const result = await readUrl(urlInput.value);
     titleElement.textContent = result.title;
     sourceElement.textContent = `${result.source} · ${result.finalUrl}`;
-    contentElement.textContent = result.content + (result.truncated ? "\n\n[Output truncated to keep the interface responsive.]" : "");
+    contentElement.textContent = result.content + (result.truncated ? "\n\n" + t("linkReaderTruncated") : "");
     resultElement.hidden = false;
-    statusElement.textContent = "Content extracted. No AI was used.";
+    statusElement.textContent = t("linkReaderSuccess");
   } catch (error) {
     statusElement.textContent = error.message || "Could not read this link.";
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Read link";
+    submitButton.textContent = t("linkReaderRead");
   }
 });
 
 copyButton?.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(contentElement.textContent);
-    statusElement.textContent = "Extracted content copied to clipboard.";
+    statusElement.textContent = t("linkReaderCopied");
   } catch {
-    statusElement.textContent = "Clipboard access was blocked by the browser.";
+    statusElement.textContent = t("linkReaderClipboardBlocked");
   }
 });
 
 
-// Automatic site context for the editor status panel. This is metadata extraction,
-// not AI. If CORS blocks the request, the URL/domain still remains useful context.
-const editorStatus = document.getElementById("dynamic-panel-text");
+// Read public page metadata when the destination permits cross-origin access.
+// When CORS blocks the request, the editor still identifies the site from its URL.
 let activeAnalysisUrl = "";
 let analysisSequence = 0;
-
-function showEditorStatus(message) {
-  if (editorStatus) editorStatus.textContent = message;
-}
 
 async function analyzeDetectedUrl(rawUrl) {
   let url;
@@ -218,7 +215,6 @@ async function analyzeDetectedUrl(rawUrl) {
   if (url.href === activeAnalysisUrl) return;
   activeAnalysisUrl = url.href;
   const sequence = ++analysisSequence;
-  showEditorStatus(`Link detectado: ${url.hostname} — analisando título e descrição…`);
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 6500);
@@ -235,7 +231,6 @@ async function analyzeDetectedUrl(rawUrl) {
     const type = response.headers.get("content-type") || "";
     if (!/html|xhtml/i.test(type)) {
       window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: false } }));
-      showEditorStatus(`Link detectado: ${url.hostname} — conteúdo ${type || "não HTML"}; prévia ocultada.`);
       return;
     }
     const html = await response.text();
@@ -266,25 +261,12 @@ async function analyzeDetectedUrl(rawUrl) {
       verification: readMeta("meta[name='google-site-verification']"),
     };
     if (sequence !== analysisSequence) return;
-    const statusItems = [
-      metadata.title && `Título: ${metadata.title}`,
-      metadata.description && `Descrição: ${metadata.description}`,
-      metadata.author && `Autor: ${metadata.author}`,
-    ].filter(Boolean);
     window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", {
       detail: { url: url.href, ok: true, title, description, metadata },
     }));
-    if (editorStatus) {
-      editorStatus.title = Object.entries(metadata)
-        .filter(([, value]) => value)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n");
-    }
-    showEditorStatus(statusItems.join(" — ") || `Site: ${url.hostname}`);
   } catch {
     if (sequence !== analysisSequence) return;
     window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", { detail: { url: url.href, ok: false } }));
-    showEditorStatus(`Link detectado: ${url.hostname} — leitura bloqueada por CORS/acesso; prévia ocultada. O link continua identificado.`);
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -293,13 +275,4 @@ async function analyzeDetectedUrl(rawUrl) {
 window.addEventListener("darkstudio:url-detected", (event) => {
   const url = event.detail?.url;
   if (typeof url === "string") analyzeDetectedUrl(url);
-});
-
-window.addEventListener("darkstudio:preview-loaded", (event) => {
-  const url = event.detail?.url;
-  if (typeof url !== "string") return;
-  let host = url;
-  try { host = new URL(url).hostname; } catch {}
-  // A loaded iframe event does not guarantee that the remote site permits framing.
-  if (!activeAnalysisUrl) showEditorStatus(`Prévia solicitada para ${host}; se a página estiver em branco, o site pode bloquear iframe.`);
 });
