@@ -202,5 +202,6 @@
   "linkReaderTooLarge": "Die Antwort ist zu groß (Limit: 1 MB).",
   "linkReaderInvalidApi": "GitHub hat eine ungültige API-Antwort zurückgegeben.",
   "linkReaderNoReadableText": "Unter dieser URL wurde kein lesbarer Text gefunden.",
-  "linkReaderCouldNotRead": "Dieser Link konnte nicht gelesen werden."
+  "linkReaderCouldNotRead": "Dieser Link konnte nicht gelesen werden.",
+  "enableMiniPlayers": "Medien-Mini-Player aktivieren"
 }
