@@ -527,7 +527,6 @@ document.getElementById("extensions-button")?.addEventListener("click", () => {
   const container = document.getElementById("Website-Container");
   const opening = !container?.classList.contains("extensions-active");
   const editorInput = document.getElementById("Editor-Input");
-  const miniPlayerToggle = document.getElementById("mini-player-toggle");
   const settingsPanel = document.getElementById("config");
 
   container?.classList.remove("settings-active");
@@ -535,7 +534,6 @@ document.getElementById("extensions-button")?.addEventListener("click", () => {
   panel.hidden = !opening;
   if (settingsPanel) settingsPanel.hidden = true;
   if (editorInput) editorInput.hidden = opening;
-  if (miniPlayerToggle) miniPlayerToggle.hidden = opening;
   requestAnimationFrame(() => window.editor?.layout());
 });
 
