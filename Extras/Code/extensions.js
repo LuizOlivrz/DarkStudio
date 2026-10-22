@@ -442,9 +442,9 @@ async function renderBundledCatalog() {
   section.setAttribute("aria-labelledby", "extensions-catalog-heading");
   const heading = document.createElement("h2");
   heading.id = "extensions-catalog-heading";
-  heading.textContent = "Catálogo local";
+  heading.textContent = "Contribuições da comunidade";
   const description = document.createElement("p");
-  description.textContent = "Extensões disponibilizadas pela pasta Extras/Extensões.";
+  description.textContent = "Esta área organiza propostas de extensões enviadas pela comunidade. Os arquivos aqui não são executados nem instalados automaticamente: o mantenedor revisará cada contribuição e só publicará as aprovadas no catálogo oficial.";
   const catalogList = document.createElement("div");
   catalogList.className = "ds-extension-catalog";
   section.append(heading, description, catalogList);
@@ -453,53 +453,35 @@ async function renderBundledCatalog() {
   try {
     const catalogURL = new URL("../Extensões/Catalogo.json", import.meta.url);
     const response = await fetch(catalogURL, { cache: "no-cache" });
-    if (!response.ok) throw new Error("Não foi possível carregar o catálogo.");
+    if (!response.ok) throw new Error("Não foi possível carregar o índice de contribuições.");
     const entries = await response.json();
-    if (!Array.isArray(entries)) throw new Error("Formato de catálogo inválido.");
+    if (!Array.isArray(entries)) throw new Error("Formato de índice inválido.");
 
     for (const entry of entries) {
-      if (!entry || typeof entry.file !== "string" || !/^[\wÀ-ÿ ._-]+\.dsx\.json$/i.test(entry.file)) continue;
+      if (!entry || typeof entry.name !== "string" || typeof entry.description !== "string") continue;
       const card = document.createElement("article");
       card.className = "ds-extension-card ds-extension-catalog-card";
       const info = document.createElement("div");
       const title = document.createElement("h3");
-      title.textContent = String(entry.name || entry.file);
+      title.textContent = entry.name;
       const detail = document.createElement("p");
-      detail.textContent = String(entry.description || "");
-      const install = document.createElement("button");
-      install.type = "button";
-      install.textContent = "Instalar";
-      install.disabled = records.has(String(entry.id || ""));
-      install.addEventListener("click", async () => {
-        install.disabled = true;
-        try {
-          const manifestURL = new URL(entry.file, catalogURL);
-          if (manifestURL.origin !== location.origin || !manifestURL.pathname.startsWith(new URL("../Extensões/", import.meta.url).pathname)) {
-            throw new Error("Caminho de extensão inválido.");
-          }
-          const manifestResponse = await fetch(manifestURL, { cache: "no-cache" });
-          if (!manifestResponse.ok) throw new Error("Não foi possível carregar a extensão.");
-          installManifest(await manifestResponse.json());
-          install.textContent = "Instalada";
-        } catch (error) {
-          console.error("DarkStudio: falha ao instalar extensão do catálogo.", error);
-          install.disabled = false;
-          alert(t("extensionError"));
-        }
-      });
-      info.append(title, detail);
-      card.append(info, install);
+      detail.textContent = entry.description;
+      const status = document.createElement("p");
+      status.textContent = "Status: aguardando revisão do mantenedor";
+      status.setAttribute("role", "status");
+      info.append(title, detail, status);
+      card.append(info);
       catalogList.appendChild(card);
     }
     if (!catalogList.childElementCount) {
       const empty = document.createElement("p");
-      empty.textContent = "Nenhuma extensão disponível no catálogo.";
+      empty.textContent = "Nenhuma contribuição publicada nesta lista. Consulte Extras/Extensões/LEIA-ME.md para enviar uma proposta.";
       catalogList.appendChild(empty);
     }
   } catch (error) {
-    console.warn("DarkStudio: catálogo local indisponível.", error);
+    console.warn("DarkStudio: índice de contribuições indisponível.", error);
     const message = document.createElement("p");
-    message.textContent = "Não foi possível carregar as extensões locais. Verifique a conexão e tente novamente.";
+    message.textContent = "Não foi possível carregar a lista de contribuições no momento.";
     catalogList.appendChild(message);
   }
 }
