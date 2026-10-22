@@ -1,0 +1,7 @@
+{
+  "product": "DarkStudio",
+  "version": "18.10.26",
+  "channel": "stable",
+  "updatePackageUrl": "https://codeload.github.com/LuizOlivrz/DarkStudio/zip/refs/heads/main",
+  "notes": "Pacote da interface compartilhada do repositório DarkStudio."
+}
