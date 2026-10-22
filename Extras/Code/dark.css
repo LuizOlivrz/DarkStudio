@@ -1081,11 +1081,36 @@ body {
 }
 
 #Website-Container.with-chat.chat-resize-hidden {
-  grid-template-columns: var(--options-width, 120px) minmax(0, 1fr);
+  grid-template-columns: var(--options-width, 120px) minmax(0, 1fr) 10px;
 }
 
 #Website-Container.chat-resize-hidden #chat {
-  display: none !important;
+  display: block !important;
+  grid-column: 3;
+  width: 10px;
+  min-width: 0;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+#Website-Container.chat-resize-hidden #chat > :not(#chat-resize-handle) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#Website-Container.chat-resize-hidden #chat-resize-handle {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  opacity: 1;
+  cursor: col-resize;
+}
+
+#Website-Container.chat-resize-hidden #chat-resize-handle::after {
+  width: 3px;
+  height: 100%;
+  margin: 0 auto;
 }
 
 #options,
