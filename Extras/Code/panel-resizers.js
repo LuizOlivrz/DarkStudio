@@ -38,12 +38,19 @@ export function setupPanelResizers(WebsiteContainer) {
     };
     const apply = (value) => {
       if (id === "chat-resize-handle") {
-        const hideChat = value < config.min;
-        WebsiteContainer.classList.toggle("chat-resize-hidden", hideChat);
-        if (hideChat) {
+        const hidden = WebsiteContainer.classList.contains("chat-resize-hidden");
+        const hideThreshold = config.min - 15;
+        if (value <= hideThreshold) {
+          WebsiteContainer.classList.add("chat-resize-hidden");
+          WebsiteContainer.style.setProperty(config.variable, `${config.min}${config.unit}`);
           requestAnimationFrame(() => window.editor?.layout());
           return;
         }
+        if (hidden && value < config.min) {
+          requestAnimationFrame(() => window.editor?.layout());
+          return;
+        }
+        WebsiteContainer.classList.remove("chat-resize-hidden");
       }
       const maximum = typeof config.max === "function" ? config.max() : (config.max ?? 98);
       const clamped = Math.min(maximum, Math.max(config.min, value));
