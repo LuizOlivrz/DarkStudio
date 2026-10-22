@@ -997,6 +997,7 @@ function addNode(name, content = "", type = "text", position = null) {
   saveState();
   updateFolderVisibility();
   updateConnections();
+  refreshExplorerList();
 
   return node;
 }
@@ -1251,6 +1252,7 @@ function toggleFolder(folder) {
 
   saveState();
   updateFolderVisibility();
+  refreshExplorerList();
 }
 
 function renameFolderNode(folder, newName) {
@@ -1773,7 +1775,8 @@ function ensureFolderPath(path) {
 async function readFileContent(file) {
   const binaryTypes = /^(?:image|audio|video|font)\//i;
   const extension = file.name.split(".").pop().toLowerCase();
-  if (binaryTypes.test(file.type || "") || !TEXT_FILE_EXTENSIONS.has(extension)) {
+  const declaredText = /^text\//i.test(file.type || "");
+  if (binaryTypes.test(file.type || "") || (!TEXT_FILE_EXTENSIONS.has(extension) && !declaredText)) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
