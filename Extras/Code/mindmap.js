@@ -2343,7 +2343,6 @@ function showMap() {
 
   for (const id of [
     "download-file",
-    "load-button",
     "clear",
     "execute",
     "new-iframe-button",
