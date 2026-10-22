@@ -743,7 +743,7 @@ p {
   grid-template-rows: 1fr;
   column-gap: 4px;
   row-gap: 5px;
-  padding: 5px;
+  padding: 5px 5px 5px 15px;
   box-sizing: border-box;
 
   transition: opacity 1.5s ease;
