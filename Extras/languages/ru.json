@@ -191,5 +191,13 @@
   "linkReaderPdf": "Документ PDF",
   "linkMetaTitle": "Заголовок",
   "linkMetaDescription": "Описание",
-  "linkMetaAuthor": "Автор"
+  "linkMetaAuthor": "Автор",
+  "linkReaderRawFile": "Исходный файл",
+  "linkReaderGithubFileGeneric": "Файл GitHub",
+  "linkReaderGithubContent": "Содержимое GitHub",
+  "linkReaderHttpError": "Сервер вернул HTTP {status}.",
+  "linkReaderTooLarge": "Ответ слишком велик для отображения (лимит: 1 МБ).",
+  "linkReaderInvalidApi": "GitHub вернул неверный ответ API.",
+  "linkReaderNoReadableText": "По этому URL не найден читаемый текст.",
+  "linkReaderCouldNotRead": "Не удалось прочитать эту ссылку."
 }
