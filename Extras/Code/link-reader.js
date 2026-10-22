@@ -210,6 +210,8 @@ async function analyzeDetectedUrl(rawUrl) {
   try {
     url = new URL(rawUrl);
     if (!["http:", "https:"].includes(url.protocol)) return;
+    // SVG/XML namespace URLs are identifiers, not web pages to fetch.
+    if (url.hostname === "www.w3.org" && url.pathname === "/2000/svg") return;
   } catch {
     return;
   }
