@@ -710,7 +710,7 @@ body {
   grid-column: 3;
   position: relative;
   flex-direction: column;
-  min-width: 0;
+  min-width: 310px;
 }
 
 #chat.show {
