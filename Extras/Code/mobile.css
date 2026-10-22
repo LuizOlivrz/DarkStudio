@@ -14,7 +14,7 @@ body {
   /* IE/Edge */
 }
 
-#Editor {
+#main-content {
   position: absolute;
   top: 5px;
   left: 5px;
@@ -673,7 +673,7 @@ body {
 }
 
 #options,
-#Editor,
+#main-content,
 #chat,
 #config,
 #mindmap-container {
@@ -691,13 +691,13 @@ body {
   overflow: auto;
 }
 
-#Editor,
+#main-content,
 #config,
 #mindmap-container {
   grid-column: 2;
 }
 
-#Editor {
+#main-content {
   overflow: hidden;
 }
 
@@ -733,7 +733,7 @@ body {
   overflow: auto;
 }
 
-#Website-Container.settings-active #Editor,
+#Website-Container.settings-active #main-content,
 #Website-Container.settings-active #mindmap-container {
   display: none !important;
 }
@@ -1011,13 +1011,13 @@ body {
    EDITOR DURANTE EXECUÇÃO
    ========================================================= */
 
-#Editor {
+#main-content {
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
 }
 
-#Editor.editor-hidden {
+#main-content.editor-hidden {
   opacity: 0;
   transform: translateY(-10px);
 
@@ -1446,7 +1446,7 @@ body {
 
 #extensions-panel[hidden] { display: none !important; }
 
-#Website-Container.extensions-active #Editor,
+#Website-Container.extensions-active #main-content,
 #Website-Container.extensions-active #mindmap-container,
 #Website-Container.extensions-active #config {
   display: none !important;
@@ -1564,4 +1564,67 @@ body {
 #messages .code-block pre {
   max-width: 100%;
   overflow-x: auto;
+}
+
+
+/* Main content views: the code surface is the default; settings/extensions are switched by JS. */
+#main-content {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+#main-content #Editor-Input {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+#main-content #config,
+#main-content #extensions-panel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  border-radius: inherit;
+  box-sizing: border-box;
+  overflow: auto;
+}
+#main-content #config[hidden],
+#main-content #extensions-panel[hidden],
+#main-content #Editor-Input[hidden],
+#main-content #mini-player-toggle[hidden] {
+  display: none !important;
+}
+/* Settings and extensions are child views; keep the workbench and options panel in place. */
+#Website-Container.settings-active #main-content,
+#Website-Container.extensions-active #main-content {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+#Website-Container.settings-active #main-content #config:not([hidden]) {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+#Website-Container.extensions-active #main-content #extensions-panel:not([hidden]) {
+  display: block;
+}
+#Website-Container.settings-active #mindmap-container,
+#Website-Container.extensions-active #mindmap-container {
+  display: none !important;
 }
