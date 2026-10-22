@@ -46,14 +46,14 @@ function persistExtensions() {
 
 function isEditorElement(element) {
   return Boolean(element?.nodeType === Node.ELEMENT_NODE &&
-    (element.matches("#main-content, #Editor-Input, .monaco-editor, .monaco-editor *") ||
-      element.closest("#main-content, #Editor-Input, .monaco-editor")));
+    (element.matches("#Editor-Input, .monaco-editor, .monaco-editor *") ||
+      element.closest("#Editor-Input, .monaco-editor")));
 }
 
 function sanitizedText(element) {
   if (isEditorElement(element)) throw new Error("Editor contents are not available to extensions.");
   const copy = element.cloneNode(true);
-  copy.querySelectorAll("#main-content, #Editor-Input, .monaco-editor").forEach((node) => node.remove());
+  copy.querySelectorAll("#Editor-Input, .monaco-editor").forEach((node) => node.remove());
   return String(copy.textContent || "").slice(0, 20000);
 }
 
