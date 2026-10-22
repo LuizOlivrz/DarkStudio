@@ -66,11 +66,11 @@ function getFetchTarget(url) {
   }
 
   if (url.hostname === "raw.githubusercontent.com") {
-    return { url: url.href, label: "Raw file", forceText: true };
+    return { url: url.href, label: t("linkReaderRawFile"), forceText: true };
   }
 
   if (url.hostname === "api.github.com" && /^\/repos\/[^/]+\/[^/]+\/contents\//.test(url.pathname)) {
-    return { url: url.href, label: "GitHub file", githubApi: true, forceText: true };
+    return { url: url.href, label: t("linkReaderGithubFileGeneric"), githubApi: true, forceText: true };
   }
 
   return { url: url.href, label: t("linkReaderWebPage"), forceText: false };
@@ -109,10 +109,10 @@ async function readUrl(input) {
       headers: target.githubApi ? { Accept: "application/vnd.github+json" } : { Accept: "text/plain, text/html, application/json, */*;q=0.5" },
     });
 
-    if (!response.ok) throw new Error(`The server returned HTTP ${response.status}.`);
+    if (!response.ok) throw new Error(t("linkReaderHttpError").replace("{status}", String(response.status)));
     const declaredLength = Number(response.headers.get("content-length"));
     if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
-      throw new Error("The response is too large to display (limit: 1 MB).");
+      throw new Error(t("linkReaderTooLarge"));
     }
 
     const raw = await response.text();
@@ -126,16 +126,16 @@ async function readUrl(input) {
 
     if (target.githubApi) {
       let payload;
-      try { payload = JSON.parse(raw); } catch { throw new Error("GitHub returned an invalid API response."); }
+      try { payload = JSON.parse(raw); } catch { throw new Error(t("linkReaderInvalidApi")); }
       if (payload.encoding === "base64" && payload.content) {
         content = decodeBase64Utf8(payload.content);
-        title = payload.name || payload.path || "GitHub file";
+        title = payload.name || payload.path || t("linkReaderGithubFileGeneric");
       } else if (typeof payload.content === "string") {
         content = payload.content;
         title = payload.name || payload.path || "GitHub file";
       } else {
         content = JSON.stringify(payload, null, 2);
-        title = payload.name || payload.full_name || "GitHub content";
+        title = payload.name || payload.full_name || t("linkReaderGithubContent");
       }
     } else if (!target.forceText && /text\/html/i.test(contentType)) {
       ({ title, content } = readableHtml(raw, title));
@@ -146,7 +146,7 @@ async function readUrl(input) {
     }
 
     content = String(content || "").trim();
-    if (!content) throw new Error("No readable text was found at this URL.");
+    if (!content) throw new Error(t("linkReaderNoReadableText"));
     return {
       title,
       content: content.slice(0, MAX_DISPLAY_CHARS),
@@ -180,7 +180,7 @@ form?.addEventListener("submit", async (event) => {
     resultElement.hidden = false;
     statusElement.textContent = t("linkReaderSuccess");
   } catch (error) {
-    statusElement.textContent = error.message || "Could not read this link.";
+    statusElement.textContent = error.message || t("linkReaderCouldNotRead");
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = t("linkReaderRead");
