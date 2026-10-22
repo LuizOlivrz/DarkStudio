@@ -28,7 +28,6 @@ import {
   EXECUTOR_CONFIG,
   loadLanguage,
   devLog,
-  getCurrentLanguage,
 } from "./config.js";
 import { detectLanguage } from "./language-detection.js";
 import { setupPanelResizers } from "./panel-resizers.js";
@@ -57,22 +56,9 @@ if (!blockWeb) {
   const resetSignatureButton = document.getElementById("reset-signature");
   const signatureElement = document.getElementById("signature");
   const WebsiteContainer = document.getElementById("Website-Container");
-  const dynamicPanel = document.getElementById("dynamic-panel");
-  const dynamicPanelText = document.getElementById("dynamic-panel-text");
-  const dynamicPanelCheckbox = document.getElementById("dynamic-panel-checkbox");
-  const pageOpenedAt = Date.now();
   let configValue = false;
-  let panelIndex = 0;
-  let panelRotationTimer = null;
-  let dynamicPanelChangeTimer = null;
-  let dynamicPanelChangeId = 0;
-  let typingTimer = null;
-  let isTyping = false;
-  let weatherKey = "loadingWeather";
-  let weatherTemperature = null;
-  let detectedSiteStatusItems = [];
-  let detectedSiteHoverText = "";
   let currentDetectedLanguage = "";
+  let lastLinkAnalysis = null;
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -120,14 +106,16 @@ if (!blockWeb) {
     const display = document.querySelector("#code-language h4");
     currentDetectedLanguage = language;
     const isUrl = language === "Link (URL)";
-    const displayText = isUrl && detectedSiteHoverText ? detectedSiteHoverText : language;
+    const rawUrl = isUrl ? (window.editor.getValue() || "").trim().replace(/[),.;!?]+$/, "") : "";
+    const metadata = lastLinkAnalysis?.url === rawUrl ? lastLinkAnalysis.metadata : null;
+    const displayText = isUrl
+      ? `${t("linkPrefix")} - ${getLinkSiteName(rawUrl, metadata || {})}`
+      : language;
 
-    if (display && display.textContent !== displayText) {
-      display.textContent = displayText;
-    }
+    if (display && display.textContent !== displayText) display.textContent = displayText;
     if (display) {
-      display.title = isUrl && detectedSiteHoverText
-        ? detectedSiteStatusItems.join("\n")
+      display.title = isUrl
+        ? buildLinkTooltip(rawUrl, metadata || {})
         : language;
       display.dataset.detectedLanguage = language;
     }
@@ -166,7 +154,6 @@ if (!blockWeb) {
     // 3️⃣ Atualiza a interface quando o usuário digitar
     window.editor.onDidChangeModelContent(() => {
       scheduleCodeAnalysis();
-      handleTypingActivity();
     });
 
     // Workspace tabs/files replace the Monaco model without necessarily changing
@@ -179,7 +166,6 @@ if (!blockWeb) {
       });
     });
 
-    initDynamicPanel();
   }
 
   let languageTimer = null;
@@ -236,316 +222,48 @@ if (!blockWeb) {
 
   initEditorEvents();
 
-  // ─────────────────────────────────────────────
-  // 🧭 Dynamic Panel / Painel Dinâmico
-  // ─────────────────────────────────────────────
-
-  function formatUptime(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${String(minutes).padStart(2, "0")}m ${String(
-        seconds,
-      ).padStart(2, "0")}s`;
-    }
-
-    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  function getLinkSiteName(rawUrl, metadata = {}) {
+    const metadataName = typeof metadata.ogSiteName === "string" ? metadata.ogSiteName.trim() : "";
+    if (metadataName) return metadataName;
+    let host = "";
+    try { host = new URL(rawUrl).hostname.toLowerCase().replace(/^www\./, ""); } catch {}
+    const knownSites = [
+      [/spotify\.com$/, "Spotify"], [/discord\.(?:com|gg)$/, "Discord"],
+      [/youtube\.com$|youtu\.be$/, "YouTube"], [/github\.com$/, "GitHub"],
+      [/gitlab\.com$/, "GitLab"], [/instagram\.com$/, "Instagram"],
+      [/facebook\.com$/, "Facebook"], [/twitter\.com$|x\.com$/, "X"],
+      [/tiktok\.com$/, "TikTok"], [/reddit\.com$/, "Reddit"],
+      [/twitch\.tv$/, "Twitch"], [/steamcommunity\.com$|steampowered\.com$/, "Steam"],
+      [/drive\.google\.com$|docs\.google\.com$|google\.com$/, "Google"],
+      [/whatsapp\.com$|wa\.me$/, "WhatsApp"], [/telegram\.org$|t\.me$/, "Telegram"],
+      [/soundcloud\.com$/, "SoundCloud"], [/musicbrainz\.org$/, "MusicBrainz"],
+      [/pinterest\.com$/, "Pinterest"], [/linkedin\.com$/, "LinkedIn"],
+      [/netflix\.com$/, "Netflix"], [/amazon\.[a-z.]+$/, "Amazon"],
+      [/apple\.com$/, "Apple"], [/openai\.com$|chatgpt\.com$/, "OpenAI"],
+    ];
+    const known = knownSites.find(([pattern]) => pattern.test(host));
+    if (known) return known[1];
+    const firstLabel = host.split(".")[0] || host || "URL";
+    return firstLabel.charAt(0).toUpperCase() + firstLabel.slice(1);
   }
 
-  function getClockText() {
-    return `🕒 ${new Date().toLocaleTimeString(getCurrentLanguage(), {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    })}`;
+  function buildLinkTooltip(rawUrl, metadata = {}) {
+    const details = [
+      metadata.title && `Title: ${metadata.title}`,
+      metadata.description && `Description: ${metadata.description}`,
+      metadata.author && `Author: ${metadata.author}`,
+      rawUrl,
+    ].filter(Boolean);
+    return details.join("\n");
   }
 
-  function getWeatherText() {
-    const temperature = Number.isFinite(weatherTemperature)
-      ? ` — ${weatherTemperature}°C`
-      : "";
-    return `☁️ ${t(weatherKey)}${temperature}`;
-  }
-
-  function getUptimeText() {
-    return `⏱️ ${t("openFor")} ${formatUptime(Date.now() - pageOpenedAt)}`;
-  }
-
-  function getPanelText() {
-    const panels = getAvailablePanels();
-    return panels[panelIndex % panels.length]();
-  }
-
-  function isAppFullscreen() {
-    return Boolean(
-      document.fullscreenElement ||
-      window.matchMedia?.("(display-mode: fullscreen)").matches,
-    );
-  }
-
-  function getAvailablePanels() {
-    return [...(isAppFullscreen() ? [getClockText] : []), getWeatherText, getUptimeText];
-  }
-
-  function setPanelText(text) {
-    if (!dynamicPanel || !dynamicPanelText) return;
-    if (
-      dynamicPanelText.textContent === text &&
-      dynamicPanelText.classList.contains("visible")
-    ) {
-      return;
-    }
-
-    if (dynamicPanelChangeTimer) clearTimeout(dynamicPanelChangeTimer);
-    const changeId = ++dynamicPanelChangeId;
-    const compact = window.matchMedia?.("(max-width: 700px)").matches;
-    const minWidth = compact ? 104 : 120;
-    const maxWidth = Math.max(minWidth, Math.min(compact ? 240 : 320, window.innerWidth * .42));
-    const currentWidth = dynamicPanel.getBoundingClientRect().width || minWidth;
-
-    dynamicPanel.classList.add("visible", "is-changing");
-    dynamicPanelText.classList.remove("visible");
-    dynamicPanel.style.flexBasis = `${currentWidth}px`;
-    dynamicPanelText.textContent = text;
-
-    const measure = document.createElement("span");
-    const textStyle = getComputedStyle(dynamicPanelText);
-    Object.assign(measure.style, {
-      position: "fixed", visibility: "hidden", width: "max-content", maxWidth: "none",
-      whiteSpace: "nowrap", font: textStyle.font, letterSpacing: textStyle.letterSpacing,
-    });
-    measure.textContent = text;
-    dynamicPanel.appendChild(measure);
-    const panelStyle = getComputedStyle(dynamicPanel);
-    const extraWidth = [panelStyle.paddingLeft, panelStyle.paddingRight, panelStyle.borderLeftWidth, panelStyle.borderRightWidth]
-      .reduce((total, value) => total + (Number.parseFloat(value) || 0), 0);
-    const contentWidth = measure.getBoundingClientRect().width + extraWidth;
-    measure.remove();
-    const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth));
-
-    dynamicPanel.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      if (changeId !== dynamicPanelChangeId) return;
-      dynamicPanel.style.flexBasis = `${targetWidth}px`;
-      dynamicPanelChangeTimer = window.setTimeout(() => {
-        if (changeId !== dynamicPanelChangeId) return;
-        dynamicPanelText.classList.add("visible");
-        dynamicPanel.style.flexBasis = "";
-        dynamicPanel.classList.remove("is-changing");
-        dynamicPanelChangeTimer = null;
-      }, 190);
-    });
-  }
-
-  function updateDynamicPanel() {
-    if (isTyping) {
-      setPanelText(t("typingHelp"));
-      return;
-    }
-
-    setPanelText(getPanelText());
-  }
-
-  function cycleDynamicPanel() {
-    if (isTyping) return;
-    panelIndex = (panelIndex + 1) % getAvailablePanels().length;
-    updateDynamicPanel();
-  }
-
-  function startPanelRotation() {
-    if (panelRotationTimer) clearInterval(panelRotationTimer);
-    panelRotationTimer = setInterval(cycleDynamicPanel, 8000);
-  }
-
-  function stopPanelRotation() {
-    if (panelRotationTimer) {
-      clearInterval(panelRotationTimer);
-      panelRotationTimer = null;
-    }
-  }
-
-  function handleTypingActivity() {
-    isTyping = true;
-    updateDynamicPanel();
-
-    if (typingTimer) clearTimeout(typingTimer);
-    typingTimer = window.setTimeout(() => {
-      isTyping = false;
-      panelIndex = 0;
-      updateDynamicPanel();
-    }, 3800);
-  }
-
-  async function fetchWeather() {
-    if (!navigator.geolocation) {
-      weatherKey = "weatherDefault";
-      updateDynamicPanel();
-      return;
-    }
-
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 6000,
-        });
-      });
-
-      const { latitude, longitude } = position.coords;
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`,
-      );
-      const data = await response.json();
-
-      if (data && data.current_weather) {
-        const weatherCode = data.current_weather.weathercode;
-        const temp = Math.round(data.current_weather.temperature);
-        weatherKey = mapWeatherCode(weatherCode);
-        weatherTemperature = temp;
-      } else {
-        weatherKey = "weatherDefault";
-        weatherTemperature = null;
-      }
-    } catch {
-      weatherKey = "weatherDefault";
-      weatherTemperature = null;
-    }
-
-    if (!isTyping) updateDynamicPanel();
-  }
-
-  function mapWeatherCode(code) {
-    switch (code) {
-      case 0:
-        return "weatherClear";
-      case 1:
-      case 2:
-        return "weatherPartlyCloudy";
-      case 3:
-        return "weatherCloudy";
-      case 45:
-      case 48:
-        return "weatherFog";
-      case 51:
-      case 53:
-      case 55:
-        return "weatherDrizzle";
-      case 61:
-      case 63:
-      case 65:
-      case 80:
-      case 81:
-      case 82:
-        return "weatherRain";
-      case 71:
-      case 73:
-      case 75:
-        return "weatherSnow";
-      case 95:
-      case 96:
-      case 99:
-        return "weatherStorm";
-      default:
-        return "weatherDefault";
-    }
-  }
-
-  function initDynamicPanel() {
-    if (!dynamicPanel || !dynamicPanelText) return;
-    const panelHidden = localStorage.getItem("darkstudio-hide-dynamic-panel") === "true";
-    if (dynamicPanelCheckbox) dynamicPanelCheckbox.checked = panelHidden;
-    let visibilityTimer = null;
-    let visibilityAnimationEnd = null;
-    const setDynamicPanelVisibility = (hidden, animate = true) => {
-      if (visibilityTimer) clearTimeout(visibilityTimer);
-      if (visibilityAnimationEnd) dynamicPanel.removeEventListener("animationend", visibilityAnimationEnd);
-      dynamicPanel.classList.remove("is-hiding", "is-showing");
-      dynamicPanel.hidden = false;
-
-      if (!animate) {
-        dynamicPanel.hidden = hidden;
-        dynamicPanel.setAttribute("aria-hidden", String(hidden));
-        return;
-      }
-
-      dynamicPanel.setAttribute("aria-hidden", String(hidden));
-      visibilityAnimationEnd = (event) => {
-        if (event.target !== dynamicPanel) return;
-        dynamicPanel.removeEventListener("animationend", visibilityAnimationEnd);
-        visibilityAnimationEnd = null;
-        dynamicPanel.classList.remove("is-hiding", "is-showing");
-        dynamicPanel.hidden = hidden;
-        visibilityTimer = null;
-      };
-      dynamicPanel.addEventListener("animationend", visibilityAnimationEnd);
-      dynamicPanel.classList.add(hidden ? "is-hiding" : "is-showing");
-      visibilityTimer = window.setTimeout(() => {
-        visibilityAnimationEnd?.({ target: dynamicPanel });
-      }, 500);
-    };
-
-    setDynamicPanelVisibility(panelHidden, false);
-    dynamicPanelCheckbox?.addEventListener("change", () => {
-      setDynamicPanelVisibility(dynamicPanelCheckbox.checked);
-      localStorage.setItem("darkstudio-hide-dynamic-panel", String(dynamicPanelCheckbox.checked));
-    });
-    document.addEventListener("fullscreenchange", () => {
-      panelIndex = 0;
-      updateDynamicPanel();
-    });
-    window.addEventListener("darkstudio:site-analysis", (event) => {
-      const detail = event.detail || {};
-      const metadata = detail.metadata || {};
-      if (!detail.ok) {
-        let host = detail.url || "";
-        try { host = new URL(host).hostname; } catch {}
-        detectedSiteStatusItems = host ? [`Link: ${host} — metadados indisponíveis`] : [];
-      } else {
-        detectedSiteStatusItems = [
-          metadata.title && `Título: ${metadata.title}`,
-          metadata.description && `Descrição: ${metadata.description}`,
-          metadata.author && `Autor: ${metadata.author}`,
-          metadata.keywords && `Palavras-chave: ${metadata.keywords}`,
-          metadata.canonical && `Canonical: ${metadata.canonical}`,
-          metadata.ogTitle && `Título OG: ${metadata.ogTitle}`,
-          metadata.ogDescription && `Descrição OG: ${metadata.ogDescription}`,
-          metadata.ogUrl && `URL OG: ${metadata.ogUrl}`,
-          metadata.ogType && `Tipo OG: ${metadata.ogType}`,
-          metadata.ogSiteName && `Site OG: ${metadata.ogSiteName}`,
-          metadata.ogLocale && `Idioma OG: ${metadata.ogLocale}`,
-          metadata.ogImage && `Imagem OG: ${metadata.ogImage}`,
-          metadata.ogImageAlt && `Descrição da imagem OG: ${metadata.ogImageAlt}`,
-          metadata.twitterCard && `Cartão Twitter: ${metadata.twitterCard}`,
-          metadata.robots && `Robots: ${metadata.robots}`,
-          metadata.verification && `Verificação Google: ${metadata.verification}`,
-        ].filter(Boolean);
-      }
-
-      const host = (() => {
-        try { return new URL(detail.url || metadata.canonical || metadata.ogUrl).hostname.replace(/^www\./, ""); }
-        catch { return ""; }
-      })();
-      const siteName = metadata.ogSiteName || metadata.title || metadata.ogTitle || host;
-      const description = metadata.description || metadata.ogDescription || "";
-      detectedSiteHoverText = [siteName, description].filter(Boolean).join(" — ") ||
-        (host ? `Link: ${host} — metadados indisponíveis` : "Link (URL)");
-      panelIndex = 0;
-      updateDynamicPanel();
-      if (currentDetectedLanguage === "Link (URL)") {
-        updateLanguageDisplay(currentDetectedLanguage);
-      }
-    });
-    window.addEventListener("resize", () => {
-      panelIndex %= getAvailablePanels().length;
-      updateDynamicPanel();
-    });
-    updateDynamicPanel();
-    startPanelRotation();
-    fetchWeather();
-  }
+  window.addEventListener("darkstudio:site-analysis", (event) => {
+    const detail = event.detail || {};
+    const currentUrl = (window.editor?.getValue() || "").trim().replace(/[),.;!?]+$/, "");
+    if (!currentUrl || currentDetectedLanguage !== "Link (URL)" || detail.url !== currentUrl) return;
+    lastLinkAnalysis = { url: currentUrl, metadata: detail.metadata || {}, ok: Boolean(detail.ok) };
+    updateLanguageDisplay("Link (URL)");
+  });
 
   // ─────────────────────────────────────────────
   // 🧹 Remove código Markdown (inline e blocos)
@@ -2239,7 +1957,6 @@ ${code}
     await loadLanguage(languageSelect.value);
     localStorage.setItem("darkstudio-language", getCurrentLanguage());
     fixLanguage();
-    updateDynamicPanel();
     handleNetworkChange();
     if (window.editor) {
       const currentCode = window.editor.getValue();
