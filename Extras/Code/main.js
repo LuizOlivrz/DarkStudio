@@ -1807,7 +1807,7 @@ ${code}
 
   window.config = config;
 
-  setupPanelResizers(WebsiteContainer);
+  setupPanelResizers(WebsiteContainer, () => { chatOpen = true; });
 
   // ─────────────────────────────────────────────
   // ⚙️ Shortcuts / Atalhos
