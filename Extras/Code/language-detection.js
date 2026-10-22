@@ -66,16 +66,16 @@ export function detectLanguage(code) {
   if (isMarkdown) return "Markdown";
 
   // SVG tem prioridade sobre HTML porque também usa marcação XML.
-  if (/<svg(?:\\s|>)/i.test(cleanCode) && /<\\/svg\\s*>/i.test(cleanCode)) {
+  if (/<svg(?:\s|>)/i.test(cleanCode) && /<\/svg\s*>/i.test(cleanCode)) {
     return "SVG";
   }
 
   // HTML tem prioridade sobre JavaScript e CSS
   const hasHtmlStructure =
-    /<!doctype\\s+html\\b/i.test(cleanCode) ||
-    /<html(?:\\s[^>]*)?>/i.test(cleanCode) ||
-    /<head(?:\\s[^>]*)?>/i.test(cleanCode) ||
-    /<body(?:\\s[^>]*)?>/i.test(cleanCode);
+    /<!doctype\s+html\b/i.test(cleanCode) ||
+    /<html(?:\s[^>]*)?>/i.test(cleanCode) ||
+    /<head(?:\s[^>]*)?>/i.test(cleanCode) ||
+    /<body(?:\s[^>]*)?>/i.test(cleanCode);
 
   if (hasHtmlStructure) {
     return "HTML";
@@ -83,7 +83,7 @@ export function detectLanguage(code) {
 
   // Fragmentos HTML sem documento completo
   const hasHtmlElements =
-    /<(div|main|section|header|footer|nav|article|form|button|script|style|h[1-6])\\b[^>]*>/i.test(
+    /<(div|main|section|header|footer|nav|article|form|button|script|style|h[1-6])\b[^>]*>/i.test(
       cleanCode,
     );
 
@@ -93,9 +93,9 @@ export function detectLanguage(code) {
 
   // XML: declaração explícita ou elemento raiz com namespace XML.
   if (
-    /^\\s*<\\?xml\\b/i.test(cleanCode) ||
-    (/<[A-Za-z_][\\w:.-]*(?:\\s[^>]*)?\\bxmlns(?::[\\w.-]+)?\\s*=/i.test(cleanCode) &&
-      /<\\/[A-Za-z_][\\w:.-]*\\s*>/i.test(cleanCode))
+    /^\s*<\?xml\b/i.test(cleanCode) ||
+    (/<[A-Za-z_][\w:.-]*(?:\s[^>]*)?\bxmlns(?::[\w.-]+)?\s*=/i.test(cleanCode) &&
+      /<\/[A-Za-z_][\w:.-]*\s*>/i.test(cleanCode))
   ) {
     return "XML";
   }
@@ -187,7 +187,7 @@ export function detectLanguage(code) {
   const normalized = cleanCode.replace(/\s+/g, "");
 
   const isMathExpression =
-    /^[0-9+\-*/%().,]+$/.test(normalized) && /[+\-*/%]/.test(normalized);
+    /^[0-9+\-*\/%().,]+$/.test(normalized) && /[+\-*\/%]/.test(normalized);
 
   if (isMathExpression) {
     try {
