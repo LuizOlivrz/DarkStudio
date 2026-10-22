@@ -13,7 +13,7 @@ export function setupPanelResizers(WebsiteContainer) {
   const chatMax = Math.max(180, Math.min(720, window.innerWidth * .58));
   const optionsMax = Math.max(optionMinimum, Math.min(360, window.innerWidth * .42));
   const optionsWidth = storedNumber("darkstudio-options-width", Math.min(optionDefault, optionsMax), optionMinimum, optionsMax);
-  const chatWidth = storedNumber("darkstudio-chat-width", Math.min(chatDefault, chatMax), 180, chatMax);
+  const chatWidth = storedNumber("darkstudio-chat-width", Math.min(chatDefault, chatMax), 310, chatMax);
   WebsiteContainer.style.setProperty("--options-width", `${optionsWidth}px`);
   WebsiteContainer.style.setProperty("--chat-width", `${chatWidth}px`);
 
@@ -24,7 +24,7 @@ export function setupPanelResizers(WebsiteContainer) {
     },
     "chat-resize-handle": {
       key: "darkstudio-chat-width", variable: "--chat-width", axis: "x", direction: -1,
-      min: 180, max: () => Math.min(720, WebsiteContainer.clientWidth * .58), initial: chatDefault, unit: "px",
+      min: 310, max: () => Math.max(310, Math.min(720, WebsiteContainer.clientWidth * .58)), initial: chatDefault, unit: "px",
     },
   };
 
