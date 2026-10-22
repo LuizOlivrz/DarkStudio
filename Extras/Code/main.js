@@ -71,6 +71,8 @@ if (!blockWeb) {
   let weatherKey = "loadingWeather";
   let weatherTemperature = null;
   let detectedSiteStatusItems = [];
+  let detectedSiteHoverText = "";
+  let currentDetectedLanguage = "";
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -114,9 +116,18 @@ if (!blockWeb) {
     if (!model) return;
 
     const display = document.querySelector("#code-language h4");
+    currentDetectedLanguage = language;
+    const isUrl = language === "Link (URL)";
+    const displayText = isUrl && detectedSiteHoverText ? detectedSiteHoverText : language;
 
-    if (display && display.textContent !== language) {
-      display.textContent = language;
+    if (display && display.textContent !== displayText) {
+      display.textContent = displayText;
+    }
+    if (display) {
+      display.title = isUrl && detectedSiteHoverText
+        ? detectedSiteStatusItems.join("\\n")
+        : language;
+      display.dataset.detectedLanguage = language;
     }
 
     const monacoLang =
@@ -274,7 +285,7 @@ if (!blockWeb) {
   }
 
   function getAvailablePanels() {
-    return [...(isAppFullscreen() ? [getClockText] : []), ...detectedSiteStatusItems.map((item) => () => item), getWeatherText, getUptimeText];
+    return [...(isAppFullscreen() ? [getClockText] : []), getWeatherText, getUptimeText];
   }
 
   function setPanelText(text) {
@@ -510,8 +521,20 @@ if (!blockWeb) {
           metadata.verification && `Verificação Google: ${metadata.verification}`,
         ].filter(Boolean);
       }
+
+      const host = (() => {
+        try { return new URL(detail.url || metadata.canonical || metadata.ogUrl).hostname.replace(/^www\\./, ""); }
+        catch { return ""; }
+      })();
+      const siteName = metadata.ogSiteName || metadata.title || metadata.ogTitle || host;
+      const description = metadata.description || metadata.ogDescription || "";
+      detectedSiteHoverText = [siteName, description].filter(Boolean).join(" — ") ||
+        (host ? `Link: ${host} — metadados indisponíveis` : "Link (URL)");
       panelIndex = 0;
       updateDynamicPanel();
+      if (currentDetectedLanguage === "Link (URL)") {
+        updateLanguageDisplay(currentDetectedLanguage);
+      }
     });
     window.addEventListener("resize", () => {
       panelIndex %= getAvailablePanels().length;
