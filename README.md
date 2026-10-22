@@ -78,7 +78,7 @@ O DarkStudio permite importar extensões personalizadas no formato `.dsx.json`.
 
 O sistema foi projetado para limitar o acesso das extensões ao editor, ao seu conteúdo e ao armazenamento local do aplicativo. Ainda assim, revise o código de toda extensão antes de instalá-la.
 
-Documentação: [API de extensões](https://github.com/LuizCDP/DarkStudio/blob/main/Extras/Extensions/API.md).
+Documentação: [API de extensões](https://github.com/LuizOlivrz/DarkStudio/blob/main/Extras/Extensions/API.md).
 
 ### Personalização da interface
 
@@ -202,10 +202,10 @@ Não utilize o assistente ou extensões com informações sensíveis sem antes a
 
 ## Desenvolvedor
 
-Desenvolvido por **Luiz (CDP)**.
+Desenvolvido por **Luiz.Olivrz**.
 
 - **Website:** https://darkstudio-code.netlify.app/
-- **GitHub:** https://github.com/LuizCDP
+- **GitHub:** https://github.com/LuizOlivrz
 
 ---
 

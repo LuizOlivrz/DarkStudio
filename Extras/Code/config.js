@@ -493,7 +493,7 @@ else {
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:red;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
       <h1>${t("siteBlockedTitle")}</h1>
       <p>${t("siteBlockedDesc")}</p>
-      <h5>By: CDP 💚</h5>
+      <h5>By: Luiz.Olivrz</h5>
       <div style="margin-top:20px;font-size:12px;">
         <strong>${t("reason")}:</strong><br/>
         ${t(blockReasonKey).replaceAll("\n", "<br/>")}
