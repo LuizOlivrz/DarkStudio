@@ -692,7 +692,7 @@ if (!blockWeb) {
     const playersEnabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
     player.hidden = !playersEnabled || !isEditorSurfaceVisible();
     player.classList.toggle("visible", playersEnabled && isEditorSurfaceVisible() && embeds.length > 0);
-    if (toggle) toggle.hidden = !playersEnabled || embeds.length === 0;
+    // O controle antigo `toggle` não existe mais no HTML; o estado do player é controlado por `player.hidden` e pela configuração.
     // Re-read the media ratio immediately when switching workspace files.
     // Expanded layout is owned by the mini-player controller below.
     // Let the geometry controller resize only the embedded content to the
