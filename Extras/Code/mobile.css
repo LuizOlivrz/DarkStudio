@@ -1728,3 +1728,40 @@ body {
   width: 8px;
   height: 8px;
 }
+
+
+/* Divisórias invisíveis usadas como áreas de redimensionamento. */
+#options, #main-content, #chat { position: relative; }
+#options::after, #main-content::after, #chat::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  z-index: 100;
+  background: transparent;
+  opacity: 0;
+  pointer-events: auto;
+  touch-action: none;
+}
+#options::after { right: -8px; cursor: col-resize; }
+#main-content::after { right: -8px; cursor: col-resize; }
+#chat::before { left: -8px; cursor: col-resize; }
+#options-resize-handle, #chat-resize-handle, .panel-resize-handle {
+  display: none !important;
+}
+#Website-Container.chat-resize-hidden #chat {
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+}
+#Website-Container.chat-resize-hidden #chat::before {
+  left: -16px;
+  width: 24px;
+}
+#Website-Container.chat-resize-hidden #chat > * {
+  display: none !important;
+}
