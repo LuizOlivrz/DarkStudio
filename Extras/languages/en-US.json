@@ -191,5 +191,13 @@
   "linkReaderPdf": "PDF document",
   "linkMetaTitle": "Title",
   "linkMetaDescription": "Description",
-  "linkMetaAuthor": "Author"
+  "linkMetaAuthor": "Author",
+  "linkReaderRawFile": "Raw file",
+  "linkReaderGithubFileGeneric": "GitHub file",
+  "linkReaderGithubContent": "GitHub content",
+  "linkReaderHttpError": "The server returned HTTP {status}.",
+  "linkReaderTooLarge": "The response is too large to display (limit: 1 MB).",
+  "linkReaderInvalidApi": "GitHub returned an invalid API response.",
+  "linkReaderNoReadableText": "No readable text was found at this URL.",
+  "linkReaderCouldNotRead": "Could not read this link."
 }
