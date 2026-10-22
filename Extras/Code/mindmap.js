@@ -2606,15 +2606,25 @@ function wireUI() {
     explorerToggle.setAttribute("aria-expanded", String(isOpen));
   });
   document.getElementById("explorer-files")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-node-id]");
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("button.explorer-file[data-node-id]");
     if (!button) return;
+
     const node = getNode(button.dataset.nodeId);
     if (!node) return;
-    if (node.type === "folder") toggleFolder(node);
-    else if (node.type === "binary") {
-      showMap();
-      setWorkspaceManagerView(false);
-    } else openNodeInEditor(node);
+
+    if (node.type === "folder") {
+      toggleFolder(node);
+      refreshExplorerList();
+      return;
+    }
+
+    // A single click opens the selected workspace file in its appropriate view.
+    // Text/code files go to Monaco; image and binary files keep their dedicated workspace views.
+    openNodeInEditor(node);
+    if (node.type !== "image" && node.type !== "binary") {
+      requestAnimationFrame(() => window.editor?.focus?.());
+    }
   });
 
   if (mapButton) {
