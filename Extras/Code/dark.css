@@ -3734,3 +3734,7 @@ body {
   #file-gutter-icon { width: 38px; height: 40px; }
   #file-gutter-icon svg { width: 30px; height: 30px; }
 }
+
+#Website-Container.no-chat {
+  grid-template-columns: 44px var(--options-width, 120px) minmax(0, 1fr);
+}
