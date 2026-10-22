@@ -506,6 +506,7 @@ async function renderBundledCatalog() {
 
 window.addEventListener("message", handleExtensionMessage);
 renderExtensions();
+renderBundledCatalog();
 
 document.getElementById("extensions-import-button")?.addEventListener("click", () => fileInput?.click());
 fileInput?.addEventListener("change", async () => {
