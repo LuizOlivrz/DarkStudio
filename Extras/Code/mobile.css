@@ -168,47 +168,6 @@ body {
   animation: none;
 }
 
-#dynamic-panel {
-  position: absolute;
-  bottom: 100px;
-  right: 14px;
-  max-width: 280px;
-  min-width: 200px;
-  padding: 14px 16px;
-  background: rgba(12, 12, 12, 0.95);
-  border: 2px solid var(--primary-color);
-  border-radius: 20px;
-  box-shadow: 0 16px 38px rgba(var(--secondary-rgb, 93, 0, 255), 0.25);
-  color: #f5f5f5;
-  font-family: monospace;
-  font-size: 13px;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
-  pointer-events: none;
-  z-index: 8;
-  backdrop-filter: blur(10px);
-}
-
-#dynamic-panel.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#dynamic-panel-text {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  color: var(--secondary-color);
-  font-weight: 700;
-}
-
-#dynamic-panel-text.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 button {
   background-color: black;
   color: var(--secondary-color);
@@ -904,14 +863,6 @@ body {
   width: auto !important;
 }
 
-#dynamic-panel {
-  position: absolute;
-  left: 8px;
-  bottom: calc(var(--workspace-height, 88dvh) - 99dvh);
-  max-width: min(320px, calc(100vw - 16px));
-  min-width: 0;
-}
-
 #signature {
   position: absolute;
   left: calc(var(--options-width, 120px) + 50%);
@@ -958,12 +909,6 @@ body {
   #inline-chat {
     width: calc(100vw - 16px);
     max-height: 55dvh;
-  }
-
-  #dynamic-panel {
-    bottom: -9dvh;
-    padding: 8px 12px;
-    font-size: 12px;
   }
 }
 
@@ -1086,21 +1031,6 @@ body {
   pointer-events: auto;
 }
 
-#workspace-footer #dynamic-panel {
-  position: relative;
-  inset: auto;
-  flex: 0 1 auto;
-  width: max-content;
-  max-width: min(320px, 42vw);
-  min-width: 0;
-  height: 58px;
-  min-height: 0;
-  box-sizing: border-box;
-  pointer-events: none;
-  order: 0;
-  animation: float 3s ease-in-out infinite;
-}
-
 #workspace-footer #code-language {
   position: relative;
   inset: auto;
@@ -1115,7 +1045,7 @@ body {
   margin: 0;
   overflow: hidden;
   transform: translateY(calc(100% - 10px));
-  order: 1;
+  order: 0;
   animation: float 3s ease-in-out infinite;
   transition: transform .3s ease, width .3s ease, border-radius .3s ease;
   z-index: 1;
@@ -1144,6 +1074,7 @@ body {
 
 #workspace-footer #config-toggle {
   position: relative;
+  order: 1;
   inset: auto;
   flex: 0 0 58px;
   width: 58px;
@@ -1204,13 +1135,6 @@ body {
     left: 6px;
     right: 6px;
     gap: 6px;
-  }
-
-  #workspace-footer #dynamic-panel {
-    max-width: min(240px, 42vw);
-    height: 52px;
-    padding: 10px 12px;
-    font-size: 12px;
   }
 
   #workspace-footer #config-toggle {
@@ -1328,9 +1252,6 @@ body {
 }
 
 @media (max-width: 700px) {
-  #workspace-footer #dynamic-panel {
-    height: 52px;
-  }
 }
 
 /* Keep the options content readable and its resize handle isolated. */
@@ -1380,60 +1301,12 @@ body {
   filter: none !important;
 }
 
-#workspace-footer #dynamic-panel {
-  flex-basis: max-content;
-  min-height: 58px;
-  transition: flex-basis .18s ease, opacity .18s ease, transform .18s ease;
-  transform: translateY(-8px);
-  overflow: hidden;
-}
-
-#workspace-footer #dynamic-panel.is-changing {
-  box-shadow: 0 0 28px rgba(var(--secondary-rgb, 93, 0, 255), .3);
-}
-
 #workspace-footer #code-language {
   transition: flex-basis .17s cubic-bezier(.2, .8, .2, 1), width .17s cubic-bezier(.2, .8, .2, 1);
 }
 
-#workspace-footer #dynamic-panel-text {
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: opacity .12s ease, transform .12s ease;
-}
-
-#workspace-footer #dynamic-panel-text:not(.visible) {
-  opacity: 0;
-  transform: translateY(4px);
-}
-
 #workspace-footer #config-toggle {
   transform: translateY(-8px);
-}
-
-#workspace-footer #dynamic-panel.is-hiding {
-  animation: dynamic-panel-hide .38s cubic-bezier(.22, .75, .32, 1) forwards;
-}
-
-#workspace-footer #dynamic-panel.is-showing {
-  animation: dynamic-panel-show .38s cubic-bezier(.22, .75, .32, 1) both;
-}
-
-@keyframes dynamic-panel-hide {
-  0% { opacity: 1; transform: translateY(-6px); }
-  22% { opacity: 1; transform: translateY(-13px); }
-  42% { opacity: 1; transform: translateY(-6px); }
-  100% { opacity: 0; transform: translateY(calc(100% + 16px)); }
-}
-
-@keyframes dynamic-panel-show {
-  0% { opacity: 0; transform: translateY(calc(100% + 16px)); }
-  58% { opacity: 1; transform: translateY(-6px); }
-  78% { opacity: 1; transform: translateY(-13px); }
-  100% { opacity: 1; transform: translateY(-6px); }
 }
 
 #bg-blur-range {
@@ -1453,14 +1326,8 @@ body {
     width: 12px;
   }
 
-  #workspace-footer #dynamic-panel,
   #workspace-footer #config-toggle {
     transform: translateY(-6px);
-  }
-
-  #workspace-footer #dynamic-panel {
-    min-height: 52px;
-    flex-basis: max-content;
   }
 
 }
