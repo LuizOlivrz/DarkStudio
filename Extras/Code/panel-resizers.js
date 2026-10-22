@@ -37,6 +37,14 @@ export function setupPanelResizers(WebsiteContainer) {
       return Number.isFinite(value) ? value : config.initial;
     };
     const apply = (value) => {
+      if (id === "chat-resize-handle") {
+        const hideChat = value < config.min;
+        WebsiteContainer.classList.toggle("chat-resize-hidden", hideChat);
+        if (hideChat) {
+          requestAnimationFrame(() => window.editor?.layout());
+          return;
+        }
+      }
       const maximum = typeof config.max === "function" ? config.max() : (config.max ?? 98);
       const clamped = Math.min(maximum, Math.max(config.min, value));
       WebsiteContainer.style.setProperty(config.variable, `${clamped}${config.unit}`);
