@@ -3,7 +3,7 @@
   "productName": "DarkStudio",
   "version": "1.0.0",
   "description": "DarkStudio web e desktop no mesmo repositório",
-  "main": "desktop/main.js",
+  "main": "Desktop/main.js",
   "author": "LuizOlivrz",
   "scripts": {
     "start": "electron .",
@@ -12,7 +12,7 @@
     "dist:win": "electron-builder --win nsis portable",
     "dist:linux": "electron-builder --linux",
     "dist:mac": "electron-builder --mac",
-    "check:desktop": "node --check desktop/main.js && node --check desktop/preload.js && node --check desktop/desktop-bridge.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\""
+    "check:desktop": "node --check Desktop/main.js && node --check Desktop/preload.js && node --check Desktop/desktop-bridge.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\""
   },
   "devDependencies": {
     "electron": "^30.0.0",
@@ -70,7 +70,7 @@
       "index.html",
       "help/**/*",
       "Extras/**/*",
-      "desktop/**/*",
+      "Desktop/**/*",
       "package.json",
       "node_modules/monaco-editor/**/*",
       "!**/*.map",
