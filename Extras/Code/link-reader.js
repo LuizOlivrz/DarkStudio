@@ -117,7 +117,7 @@ async function readUrl(input) {
 
     const raw = await response.text();
     if (new TextEncoder().encode(raw).byteLength > MAX_RESPONSE_BYTES) {
-      throw new Error("The response is too large to display (limit: 1 MB).");
+      throw new Error(t("linkReaderTooLarge"));
     }
 
     let title = url.hostname;
