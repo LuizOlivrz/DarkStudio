@@ -1,0 +1,7 @@
+{
+  "id": "darkstudio.exemplo-boas-vindas",
+  "name": "Exemplo: Boas-vindas",
+  "version": "1.0.0",
+  "description": "Demonstra uma extensão local carregada da pasta Extras/Extensões.",
+  "code": "(() => { const banner = document.createElement('div'); banner.textContent = 'Extensão instalada do catálogo local do DarkStudio.'; banner.setAttribute('role', 'status'); banner.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:9999;padding:12px 16px;border-radius:10px;background:#252535;color:#fff;font:14px system-ui;box-shadow:0 4px 18px #0005'; document.body.appendChild(banner); DS.on('click', '[data-ds-extension-dismiss]', () => banner.remove()).catch(() => {}); setTimeout(() => banner.remove(), 5000); })();"
+}
