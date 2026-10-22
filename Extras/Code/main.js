@@ -527,7 +527,10 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
   function isEditorSurfaceVisible() {
     const surface = document.getElementById("main-content");
-    if (!surface || surface.hidden) return false;
+    const editorInput = document.getElementById("Editor-Input");
+    if (!surface || surface.hidden || editorInput?.hidden ||
+        document.getElementById("Website-Container")?.classList.contains("settings-active") ||
+        document.getElementById("Website-Container")?.classList.contains("extensions-active")) return false;
     const style = getComputedStyle(surface);
     const rect = surface.getBoundingClientRect();
     return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
