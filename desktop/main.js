@@ -11,8 +11,8 @@ protocol.registerSchemesAsPrivileged([{
 
 // Public update manifest; the desktop client never accesses the private source repository.
 const UPDATE_MANIFEST_URLS = [
-  "https://raw.githubusercontent.com/LuizOlivrz/DarkStudio/main/Publico/version.json",
-  "https://cdn.jsdelivr.net/gh/LuizOlivrz/DarkStudio@main/Publico/version.json",
+  "https://raw.githubusercontent.com/LuizOlivrz/DarkStudio/main/Extras/Publico/version.json",
+  "https://cdn.jsdelivr.net/gh/LuizOlivrz/DarkStudio@main/Extras/Publico/version.json",
 ];
 const UPDATE_ROOT = () => path.join(app.getPath("userData"), "official-updates");
 const ACTIVE_VERSION_FILE = () => path.join(UPDATE_ROOT(), "active.json");
