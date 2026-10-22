@@ -223,53 +223,6 @@ body {
   animation: none;
 }
 
-#dynamic-panel {
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  max-width: 320px;
-  min-width: 220px;
-  padding: 16px 20px;
-  background: rgba(12, 12, 12, 0.94);
-  border: 2px solid var(--primary-color);
-  border-radius: 20px;
-  box-shadow: 0 18px 46px rgba(var(--secondary-rgb, 93, 0, 255), 0.28);
-  color: #f5f5f5;
-  font-family: "Zen Dots", sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  opacity: 0;
-  transform: translateY(18px);
-  transition:
-    opacity 0.45s ease,
-    transform 0.45s ease,
-    box-shadow 0.45s ease;
-  pointer-events: none;
-  z-index: 6;
-  backdrop-filter: blur(12px);
-}
-
-#dynamic-panel.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#dynamic-panel-text {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s ease;
-  color: var(--secondary-color);
-  font-weight: 700;
-}
-
-#dynamic-panel-text.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 button {
   background-color: black;
   color: var(--secondary-color);
@@ -1314,14 +1267,6 @@ body {
   width: auto !important;
 }
 
-#dynamic-panel {
-  position: absolute;
-  left: 8px;
-  bottom: calc(var(--workspace-height, 88dvh) - 99dvh);
-  max-width: min(320px, calc(100vw - 16px));
-  min-width: 0;
-}
-
 #signature {
   position: absolute;
   left: calc(var(--options-width, 120px) + 50%);
@@ -1371,12 +1316,6 @@ body {
   #inline-chat {
     width: calc(100vw - 16px);
     max-height: 55dvh;
-  }
-
-  #dynamic-panel {
-    bottom: -9dvh;
-    padding: 8px 12px;
-    font-size: 12px;
   }
 }
 
@@ -1470,7 +1409,7 @@ body {
   pointer-events: none;
 }
 
-/* Stable footer: the dynamic panel, collapsed editor status and Settings icon share one responsive row. */
+/* Stable footer: editor status and Settings icon share one responsive row. */
 :root {
   --workspace-height: min(88dvh, calc(100dvh - 72px));
 }
@@ -1498,21 +1437,6 @@ body {
   pointer-events: auto;
 }
 
-#workspace-footer #dynamic-panel {
-  position: relative;
-  inset: auto;
-  flex: 0 1 auto;
-  width: max-content;
-  max-width: min(320px, 42vw);
-  min-width: 0;
-  height: 58px;
-  min-height: 0;
-  box-sizing: border-box;
-  pointer-events: none;
-  order: 0;
-  animation: float 3s ease-in-out infinite;
-}
-
 #workspace-footer #code-language {
   position: relative;
   inset: auto;
@@ -1527,7 +1451,7 @@ body {
   margin: 0;
   overflow: hidden;
   transform: translateY(calc(100% - 10px));
-  order: 1;
+  order: 0;
   animation: float 3s ease-in-out infinite;
   transition:
     transform 0.3s ease,
@@ -1624,13 +1548,6 @@ body {
     left: 6px;
     right: 6px;
     gap: 6px;
-  }
-
-  #workspace-footer #dynamic-panel {
-    max-width: min(240px, 42vw);
-    height: 52px;
-    padding: 10px 12px;
-    font-size: 12px;
   }
 
   #workspace-footer #config-toggle {
@@ -1748,9 +1665,6 @@ body {
 }
 
 @media (max-width: 700px) {
-  #workspace-footer #dynamic-panel {
-    height: 52px;
-  }
 }
 
 /* Keep the options content readable and its resize handle isolated. */
@@ -1800,87 +1714,10 @@ body {
   filter: none !important;
 }
 
-#workspace-footer #dynamic-panel {
-  flex-basis: max-content;
-  min-height: 58px;
-  transition:
-    flex-basis 0.18s ease,
-    opacity 0.18s ease,
-    transform 0.18s ease;
-  transform: translateY(-8px);
-  overflow: hidden;
-}
-
-#workspace-footer #dynamic-panel.is-changing {
-  box-shadow: 0 0 28px rgba(var(--secondary-rgb, 93, 0, 255), 0.3);
-}
-
-#workspace-footer #dynamic-panel.is-hiding {
-  animation: dynamic-panel-hide 0.38s cubic-bezier(0.22, 0.75, 0.32, 1) forwards;
-}
-
-#workspace-footer #dynamic-panel.is-showing {
-  animation: dynamic-panel-show 0.38s cubic-bezier(0.22, 0.75, 0.32, 1) both;
-}
-
-@keyframes dynamic-panel-hide {
-  0% {
-    opacity: 1;
-    transform: translateY(-8px);
-  }
-  22% {
-    opacity: 1;
-    transform: translateY(-16px);
-  }
-  42% {
-    opacity: 1;
-    transform: translateY(-8px);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(calc(100% + 16px));
-  }
-}
-
-@keyframes dynamic-panel-show {
-  0% {
-    opacity: 0;
-    transform: translateY(calc(100% + 16px));
-  }
-  58% {
-    opacity: 1;
-    transform: translateY(-8px);
-  }
-  78% {
-    opacity: 1;
-    transform: translateY(-16px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(-8px);
-  }
-}
-
 #workspace-footer #code-language {
   transition:
     flex-basis 0.17s cubic-bezier(0.2, 0.8, 0.2, 1),
     width 0.17s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-#workspace-footer #dynamic-panel-text {
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition:
-    opacity 0.12s ease,
-    transform 0.12s ease;
-}
-
-#workspace-footer #dynamic-panel-text:not(.visible) {
-  opacity: 0;
-  transform: translateY(4px);
 }
 
 #workspace-footer #config-toggle {
@@ -1902,16 +1739,6 @@ body {
 
   #options-resize-handle {
     width: 12px;
-  }
-
-  #workspace-footer #dynamic-panel,
-  #workspace-footer #config-toggle {
-    transform: translateY(-6px);
-  }
-
-  #workspace-footer #dynamic-panel {
-    min-height: 52px;
-    flex-basis: max-content;
   }
 }
 
