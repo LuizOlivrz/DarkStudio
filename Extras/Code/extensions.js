@@ -46,14 +46,14 @@ function persistExtensions() {
 
 function isEditorElement(element) {
   return Boolean(element?.nodeType === Node.ELEMENT_NODE &&
-    (element.matches("#Editor, #Editor-Input, .monaco-editor, .monaco-editor *") ||
-      element.closest("#Editor, #Editor-Input, .monaco-editor")));
+    (element.matches("#main-content, #Editor-Input, .monaco-editor, .monaco-editor *") ||
+      element.closest("#main-content, #Editor-Input, .monaco-editor")));
 }
 
 function sanitizedText(element) {
   if (isEditorElement(element)) throw new Error("Editor contents are not available to extensions.");
   const copy = element.cloneNode(true);
-  copy.querySelectorAll("#Editor, #Editor-Input, .monaco-editor").forEach((node) => node.remove());
+  copy.querySelectorAll("#main-content, #Editor-Input, .monaco-editor").forEach((node) => node.remove());
   return String(copy.textContent || "").slice(0, 20000);
 }
 
@@ -524,11 +524,18 @@ list?.addEventListener("click", (event) => {
 
 document.getElementById("extensions-button")?.addEventListener("click", () => {
   if (!panel) return;
-  const opening = !document.getElementById("Website-Container")?.classList.contains("extensions-active");
   const container = document.getElementById("Website-Container");
+  const opening = !container?.classList.contains("extensions-active");
+  const editorInput = document.getElementById("Editor-Input");
+  const miniPlayerToggle = document.getElementById("mini-player-toggle");
+  const settingsPanel = document.getElementById("config");
+
   container?.classList.remove("settings-active");
   container?.classList.toggle("extensions-active", opening);
   panel.hidden = !opening;
+  if (settingsPanel) settingsPanel.hidden = true;
+  if (editorInput) editorInput.hidden = opening;
+  if (miniPlayerToggle) miniPlayerToggle.hidden = opening;
   requestAnimationFrame(() => window.editor?.layout());
 });
 
