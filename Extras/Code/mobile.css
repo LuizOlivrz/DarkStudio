@@ -668,8 +668,16 @@ body {
   overflow: visible;
 }
 
-#Website-Container.with-chat {
+#Website-Container.with-chat:not(.chat-resize-hidden) {
   grid-template-columns: var(--options-width, 120px) minmax(0, 1fr) var(--chat-width, 350px);
+}
+
+#Website-Container.with-chat.chat-resize-hidden {
+  grid-template-columns: var(--options-width, 120px) minmax(0, 1fr);
+}
+
+#Website-Container.chat-resize-hidden #chat {
+  display: none !important;
 }
 
 #options,
