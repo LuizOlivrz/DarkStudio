@@ -250,7 +250,7 @@
     </div>
 
     <!-- Quick file button in the gutter between the window edge and Options. -->
-    <button id="file-gutter-button" type="button" title="Open file" aria-label="Open file"
+    <button id="file-gutter-button" type="button" title="Open file" aria-label="Open file" onclick="document.getElementById('file-input')?.click()"
       data-i18n-title="uploadTitle" data-i18n-aria-label="uploadTitle">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
         aria-hidden="true" focusable="false">
@@ -370,7 +370,7 @@
 
     <!-- ====== FILE INPUT (HIDDEN) / INPUT DE ARQUIVOS INVISÍVEL ====== -->
     <input type="file" id="file-input" title="none" aria-hidden="true" tabindex="-1" style="display: none"
-      accept=".js,.html,.css,.txt,.json,.java,.py,.cpp,.c,.cmd,.pyw,.sbv,.txt,.vcf,.bat,.md" />
+      accept=".js,.html,.css,.txt,.json,.java,.py,.cpp,.c,.cmd,.pyw,.sbv,.vcf,.bat,.md,.xml,.svg" />
 
     <!-- ====== MAIN SCRIPTS / SCRIPTS PRINCIPAIS ====== -->
     <script src="desktop/desktop-bridge.js"></script>
