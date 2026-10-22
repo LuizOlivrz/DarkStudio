@@ -1760,3 +1760,21 @@ body {
 #Website-Container.chat-resize-hidden #chat > * {
   display: none !important;
 }
+
+
+/* Keep the file shortcut accessible without consuming too much mobile width. */
+#Website-Container {
+  --file-gutter-width: 46px;
+  padding-left: var(--file-gutter-width);
+}
+#file-gutter-button {
+  left: 7px;
+  top: 8px;
+  width: 30px;
+  height: 30px;
+  padding: 3px;
+}
+#file-gutter-button svg {
+  width: 22px;
+  height: 22px;
+}
