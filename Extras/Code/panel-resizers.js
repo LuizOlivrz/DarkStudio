@@ -70,7 +70,13 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     if (event.button !== undefined && event.button !== 0) return;
     event.preventDefault();
     const startX = event.clientX;
-    const startWidth = current(type === "options" ? "--options-width" : "--chat-width");
+    const chatIsHidden = WebsiteContainer.classList.contains("no-chat") ||
+      WebsiteContainer.classList.contains("chat-resize-hidden");
+    // Enquanto o chat está fechado, a largura começa visualmente em zero.
+    // Ele só aparece quando o arrasto alcançar os 310 px mínimos.
+    const startWidth = type === "chat" && chatIsHidden
+      ? 0
+      : current(type === "options" ? "--options-width" : "--chat-width");
     const direction = type === "options" ? 1 : -1;
     const move = nextEvent => {
       const nextWidth = startWidth + (nextEvent.clientX - startX) * direction;
