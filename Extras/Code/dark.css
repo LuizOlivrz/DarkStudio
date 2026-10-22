@@ -1483,6 +1483,7 @@ body {
 
 #workspace-footer #config-toggle {
   position: relative;
+  order: 1;
   inset: auto;
   flex: 0 0 58px;
   width: 58px;
