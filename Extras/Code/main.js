@@ -1858,7 +1858,7 @@ ${code}
         chat.style.display = "flex";
         chat.style.pointerEvents = "auto";
 
-        WebsiteContainer.classList.remove("no-chat");
+        WebsiteContainer.classList.remove("no-chat", "chat-resize-hidden");
         WebsiteContainer.classList.add("with-chat");
 
         chatOpen = true;
