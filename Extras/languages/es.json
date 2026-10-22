@@ -194,5 +194,13 @@
   "linkReaderPdf": "Documento PDF",
   "linkMetaTitle": "Título",
   "linkMetaDescription": "Descripción",
-  "linkMetaAuthor": "Autor"
+  "linkMetaAuthor": "Autor",
+  "linkReaderRawFile": "Archivo sin procesar",
+  "linkReaderGithubFileGeneric": "Archivo de GitHub",
+  "linkReaderGithubContent": "Contenido de GitHub",
+  "linkReaderHttpError": "El servidor devolvió HTTP {status}.",
+  "linkReaderTooLarge": "La respuesta es demasiado grande para mostrarla (límite: 1 MB).",
+  "linkReaderInvalidApi": "GitHub devolvió una respuesta de API no válida.",
+  "linkReaderNoReadableText": "No se encontró texto legible en esta URL.",
+  "linkReaderCouldNotRead": "No se pudo leer este enlace."
 }
