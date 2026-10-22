@@ -523,7 +523,7 @@ if (!blockWeb) {
       }
 
       const host = (() => {
-        try { return new URL(detail.url || metadata.canonical || metadata.ogUrl).hostname.replace(/^www\\./, ""); }
+        try { return new URL(detail.url || metadata.canonical || metadata.ogUrl).hostname.replace(/^www\./, ""); }
         catch { return ""; }
       })();
       const siteName = metadata.ogSiteName || metadata.title || metadata.ogTitle || host;
