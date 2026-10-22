@@ -562,7 +562,6 @@ if (!blockWeb) {
   function updateMediaPlayer(code) {
     const player = document.getElementById("mini-player");
     const list = document.getElementById("mini-player-list");
-    const toggle = document.getElementById("mini-player-toggle");
     if (!player || !list) return;
     const enabled = localStorage.getItem("darkstudio-mini-players-enabled") !== "false";
     player.hidden = !enabled || !isEditorSurfaceVisible();
@@ -789,38 +788,13 @@ if (!blockWeb) {
     miniPlayerEnabledCheckbox.addEventListener("change", () => {
       localStorage.setItem("darkstudio-mini-players-enabled", String(miniPlayerEnabledCheckbox.checked));
       const player = document.getElementById("mini-player");
-      const toggle = document.getElementById("mini-player-toggle");
       if (player) {
         player.hidden = !miniPlayerEnabledCheckbox.checked;
         player.classList.toggle("visible", miniPlayerEnabledCheckbox.checked && Boolean(player.querySelector("iframe")));
       }
-      if (toggle) toggle.hidden = !miniPlayerEnabledCheckbox.checked || !Boolean(player?.querySelector("iframe"));
     });
   }
 
-  document.getElementById("mini-player-toggle")?.addEventListener("click", (event) => {
-    const toggle = event.currentTarget;
-    const player = document.getElementById("mini-player");
-    const collapsed = !player.classList.contains("collapsed");
-    setMiniPlayersCollapsed(player, toggle, collapsed);
-  });
-
-  function setMiniPlayersCollapsed(player, toggle, collapsed) {
-    if (!player || !toggle) return;
-    player.classList.toggle("collapsed", collapsed);
-    toggle.setAttribute("aria-pressed", String(collapsed));
-    toggle.dataset.i18nTitle = collapsed ? "showMiniPlayers" : "hideMiniPlayers";
-    toggle.dataset.i18nAriaLabel = toggle.dataset.i18nTitle;
-    toggle.textContent = collapsed ? "▶" : "▾";
-    toggle.title = t(toggle.dataset.i18nTitle);
-    toggle.setAttribute("aria-label", toggle.title);
-  }
-
-  document.getElementById("mini-player")?.addEventListener("click", (event) => {
-    const player = event.currentTarget;
-    if (!player.classList.contains("collapsed") || event.target !== player) return;
-    setMiniPlayersCollapsed(player, document.getElementById("mini-player-toggle"), false);
-  });
   
   // Mini-player geometry: isolate player layout from the app grid and AI panel.
   (function initMiniPlayerMovement() {
@@ -1198,7 +1172,6 @@ if (!blockWeb) {
     const resizeHandles = [...player.querySelectorAll(".mini-player-resize-handle[data-resize]")];
     resizeHandles.forEach(resizeHandle => {
       resizeHandle.addEventListener("pointerdown", event => {
-        if (player.classList.contains("collapsed")) return;
         if (event.button !== 0) return;
         const r = player.getBoundingClientRect();
         const bounds = editorSurface.getBoundingClientRect();
@@ -1819,7 +1792,6 @@ ${code}
     const opening = !WebsiteContainer.classList.contains("settings-active");
     const extensionsPanel = document.getElementById("extensions-panel");
     const editorInput = document.getElementById("Editor-Input");
-    const miniPlayerToggle = document.getElementById("mini-player-toggle");
 
     WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
@@ -1828,7 +1800,6 @@ ${code}
     WebsiteContainer.classList.toggle("settings-active", opening);
     configMenu.hidden = !opening;
     if (editorInput) editorInput.hidden = opening;
-    if (miniPlayerToggle) miniPlayerToggle.hidden = opening;
 
     configMenu.scrollTop = 0;
     requestAnimationFrame(() => window.editor?.layout());
