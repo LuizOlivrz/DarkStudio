@@ -1,7 +1,7 @@
 // DarkStudio — Panel Resizers
 // Redimensionamento pelas divisórias invisíveis entre os painéis.
 
-export function setupPanelResizers(WebsiteContainer) {
+export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
   const storedNumber = (key, fallback, minimum, maximum) => {
     const value = Number(localStorage.getItem(key));
     return Number.isFinite(value) && value >= minimum && value <= maximum ? value : fallback;
@@ -35,15 +35,27 @@ export function setupPanelResizers(WebsiteContainer) {
   };
 
   const setChatWidth = value => {
-    const hidden = WebsiteContainer.classList.contains("chat-resize-hidden");
-    if (value <= 295) {
+    const closed = WebsiteContainer.classList.contains("no-chat");
+    const collapsed = WebsiteContainer.classList.contains("chat-resize-hidden");
+
+    if (!closed && !collapsed && value <= 295) {
       WebsiteContainer.classList.add("chat-resize-hidden");
       WebsiteContainer.style.setProperty("--chat-width", "310px");
       layout();
       return;
     }
-    if (hidden && value < 310) return;
-    WebsiteContainer.classList.remove("chat-resize-hidden");
+
+    // Arrastar a borda do editor para dentro deve realmente abrir o chat,
+    // não apenas alterar a largura de um painel que continua em display:none.
+    if ((closed || collapsed) && value < 310) return;
+    if (closed || collapsed) {
+      chat.style.display = "flex";
+      chat.style.pointerEvents = "auto";
+      WebsiteContainer.classList.remove("no-chat", "chat-resize-hidden");
+      WebsiteContainer.classList.add("with-chat");
+      onChatOpen();
+    }
+
     const clamped = Math.max(310, Math.min(chatMax(), value));
     WebsiteContainer.style.setProperty("--chat-width", `${clamped}px`);
     localStorage.setItem("darkstudio-chat-width", String(clamped));
