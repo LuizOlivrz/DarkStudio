@@ -2187,8 +2187,6 @@ ${code}
   }
 
   function fixLanguage() {
-    const upload = document.getElementById("load-button");
-    const mindMap = document.getElementById("mindmap-button");
     const clear = document.getElementById("clear");
     const execute = document.getElementById("execute");
     const dowload = document.getElementById("download-file");
@@ -2200,11 +2198,9 @@ ${code}
       const content = element.querySelector("[data-i18n]") || element;
       content.textContent = t(key);
     };
-    setLabel(upload, "upload");
     setLabel(clear, "clear");
     setLabel(execute, "execute");
     setLabel(dowload, "download");
-    setLabel(mindMap, "mindMap");
     setLabel(mindMapClear, "mindMapClear");
     setLabel(mindMapConnect, "mindMapConnect");
     setLabel(mindMapAdd, "mindMapAdd");
