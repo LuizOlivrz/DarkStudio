@@ -3549,40 +3549,6 @@ body {
 }
 
 
-/* File shortcut in the expanded left gutter. */
-#Website-Container {
-  --file-gutter-width: 56px;
-  padding-left: var(--file-gutter-width);
-}
-#file-gutter-button {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  z-index: 120;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 4px;
-  color: var(--secondary-color, #5d00ff);
-  background: rgba(9, 9, 9, 0.88);
-  border: 1px solid var(--primary-color, #5d00ff);
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-}
-#file-gutter-button svg {
-  display: block;
-  width: 24px;
-  height: 24px;
-}
-#file-gutter-button:hover,
-#file-gutter-button:focus-visible {
-  color: #fff;
-  background: var(--primary-color, #5d00ff);
-  outline: none;
-}
-
 /* Divisórias invisíveis usadas como áreas de redimensionamento. */
 #options, #main-content, #chat { position: relative; }
 #options::after, #main-content::after {
