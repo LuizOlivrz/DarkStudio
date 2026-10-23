@@ -1837,7 +1837,7 @@ async function readFileContent(file) {
   return file.text();
 }
 
-async function importWorkspaceFiles(fileList) {
+async function importWorkspaceFiles(fileList, targetFolder = null) {
   const files = Array.from(fileList || []);
 
   if (!files.length) return;
@@ -1874,8 +1874,10 @@ async function importWorkspaceFiles(fileList) {
     if (!parts.length) continue;
 
     const filename = parts.pop();
-    const directoryPath = parts.join("/");
-    const filePath = [...parts, filename].join("/");
+    const relativeDirectoryPath = parts.join("/");
+    const basePath = targetFolder?.filePath || "";
+    const directoryPath = [basePath, relativeDirectoryPath].filter(Boolean).join("/");
+    const filePath = [basePath, relativeDirectoryPath, filename].filter(Boolean).join("/");
     prepared.push({ file, filename, directoryPath, filePath, content: await readFileContent(file) });
   }
 
@@ -1883,7 +1885,7 @@ async function importWorkspaceFiles(fileList) {
 
   // Importing a directory represents opening a new project: replace all old
   // nodes and edges only after the complete directory was read successfully.
-  if (isDirectoryImport) {
+  if (isDirectoryImport && !targetFolder) {
     syncCurrentEditorToMap();
     nodes = [];
     connections = [];
@@ -1900,7 +1902,7 @@ async function importWorkspaceFiles(fileList) {
     seenPaths.add(entry.filePath);
     // Um caminho já existente representa o mesmo arquivo do projeto; evite duplicá-lo.
     if (!isDirectoryImport && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
-    const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : null;
+    const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : targetFolder;
     const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
     const extension = entry.filename.split(".").pop().toLowerCase();
     const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(entry.file.type || "");
@@ -1920,7 +1922,7 @@ async function importWorkspaceFiles(fileList) {
     importedCount++;
   }
 
-  if (rootName) {
+  if (rootName && !targetFolder) {
     workspaceName = rootName;
   }
 
