@@ -3617,3 +3617,20 @@ body {
   background: transparent;
   color: var(--secondary-color, #5d00ff);
 }
+
+
+/* Linguagem detectada e destino de soltura na raiz do Explorer. */
+#explorer-files .explorer-file-language {
+  flex: 0 0 auto;
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: auto;
+  font-size: 10px;
+  opacity: .65;
+}
+#explorer-files.explorer-root-drop-target {
+  outline: 1px dashed var(--secondary-color, #5d00ff);
+  outline-offset: -2px;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .08);
+}

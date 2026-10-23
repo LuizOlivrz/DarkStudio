@@ -30,6 +30,7 @@ export const WORKSPACE_LANGUAGES = [
   { label: "Git", extension: "git", monaco: "plaintext" },
   { label: "Texto", extension: "txt", monaco: "plaintext" },
   { label: "Rust", extension: "rs", monaco: "rust" },
+  { label: "PowerShell", extension: "ps1", monaco: "powershell" },
 ];
 
 export function getWorkspaceLanguage(label) {
@@ -91,6 +92,7 @@ export function getLanguageFromFile(filename) {
     yml: "yaml",
     sh: "shell",
     bash: "shell",
+    ps1: "powershell",
     bat: "bat",
     cmd: "bat",
     php: "php",
