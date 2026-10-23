@@ -200,5 +200,7 @@
   "linkReaderInvalidApi": "GitHub returned an invalid API response.",
   "linkReaderNoReadableText": "No readable text was found at this URL.",
   "linkReaderCouldNotRead": "Could not read this link.",
-  "enableMiniPlayers": "Enable media mini-players"
+  "enableMiniPlayers": "Enable media mini-players",
+  "explorerEmpty": "No project files",
+  "editorDropTextOnly": "Drop a text or code file into the editor."
 }
