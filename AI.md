@@ -192,6 +192,7 @@ Formato obrigatório:
 | 2026-10-19 19:59 (UTC-03:00) | ChatGPT — GPT-6 | Extrai a lógica de redimensionamento dos painéis para `panel-resizers.js`, recebendo o contêiner por parâmetro. | PR #10: https://github.com/LuizOlivrz/DarkStudio/pull/10 |
 
 | 2026-10-22 10:20 (UTC-03:00) | ChatGPT — GPT-6 | Organiza a área de extensões da comunidade, move o manifesto de atualização para Extras e padroniza a pasta do desktop. | PR #13: https://github.com/LuizOlivrz/DarkStudio/pull/13 |
+| 2026-10-23 10:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a visibilidade dos botões do editor ao abrir arquivos pelo Workspace. | Branch `fix/botoes-editor-ao-abrir-arquivo` |
 
 ## 13. Checklist rápido antes de enviar uma PR
 

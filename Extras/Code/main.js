@@ -225,6 +225,10 @@ if (!blockWeb) {
     updateMediaPlayer(code);
   }
 
+  // Permite que o Workspace atualize imediatamente os botões quando um arquivo
+  // é aberto, sem depender apenas do debounce da análise de conteúdo.
+  window.darkStudioRefreshEditorUI = () => updateUI();
+
   initEditorEvents();
 
   function getLinkSiteName(rawUrl, metadata = {}) {
