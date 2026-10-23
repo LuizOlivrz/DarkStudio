@@ -1663,6 +1663,46 @@ function attachNodeToFolder(node, folder) {
   folder.isOpen = true;
 }
 
+function moveNodeIntoExplorerFolder(node, folder) {
+  if (!node || !folder || !validFolderTarget(node, folder)) return false;
+
+  const oldPath = node.filePath || node.name;
+  const oldParent = getParentFolder(node);
+  const newParentPath = folder.filePath || folder.name;
+  const newPath = `${newParentPath}/${node.name}`;
+  const affected = node.type === "folder"
+    ? nodes.filter((item) => item.id === node.id || String(item.filePath || "").startsWith(`${oldPath}/`))
+    : [node];
+
+  const pathFor = (item) => {
+    const currentPath = item.filePath || item.name;
+    return item.id === node.id
+      ? newPath
+      : newPath + currentPath.slice(oldPath.length);
+  };
+  const affectedIds = new Set(affected.map((item) => item.id));
+  const nextPaths = new Set();
+  for (const item of affected) {
+    const nextPath = pathFor(item);
+    if (nextPaths.has(nextPath) || nodes.some((other) =>
+      !affectedIds.has(other.id) && (other.filePath || other.name) === nextPath
+    )) {
+      alert(tr("fileExists"));
+      return false;
+    }
+    nextPaths.add(nextPath);
+  }
+
+  node.parentFolderId = folder.id;
+  attachNodeToFolder(node, folder);
+  for (const item of affected) item.filePath = pathFor(item);
+  folder.isOpen = true;
+  if (oldParent && oldParent.id !== folder.id) oldParent.isOpen = oldParent.isOpen !== false;
+  saveState();
+  renderNodes();
+  return true;
+}
+
 function showDeleteZone() {
   if (document.getElementById("mindmap-delete-zone")) return;
 
@@ -2744,6 +2784,47 @@ function wireUI() {
     openNodeInEditor(node);
     if (node.type !== "image" && node.type !== "binary") {
       requestAnimationFrame(() => window.editor?.focus?.());
+    }
+  });
+  explorerFiles?.addEventListener("dragstart", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("button.explorer-file[data-node-id]");
+    const node = button ? getNode(button.dataset.nodeId) : null;
+    if (!node || !event.dataTransfer) return;
+    event.dataTransfer.setData("application/x-darkstudio-node", node.id);
+    event.dataTransfer.setData("text/plain", node.filePath || node.name);
+    event.dataTransfer.effectAllowed = "move";
+  });
+  explorerFiles?.addEventListener("dragover", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("button.explorer-file[data-node-id]");
+    const folder = button ? getNode(button.dataset.nodeId) : null;
+    if (event.dataTransfer?.types?.includes("application/x-darkstudio-node")) {
+      if (folder?.type === "folder") {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        button.classList.add("explorer-drop-target");
+      }
+    } else if (event.dataTransfer?.types?.includes("Files")) {
+      event.preventDefault();
+      if (folder?.type === "folder") button.classList.add("explorer-drop-target");
+    }
+  });
+  explorerFiles?.addEventListener("dragleave", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    target?.closest("button.explorer-file")?.classList.remove("explorer-drop-target");
+  });
+  explorerFiles?.addEventListener("drop", async (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("button.explorer-file[data-node-id]");
+    const folder = button ? getNode(button.dataset.nodeId) : null;
+    explorerFiles.querySelectorAll(".explorer-drop-target").forEach((item) => item.classList.remove("explorer-drop-target"));
+    if (event.dataTransfer?.types?.includes("application/x-darkstudio-node")) {
+      if (folder?.type !== "folder") return;
+      event.preventDefault();
+      event.stopPropagation();
+      const dragged = getNode(event.dataTransfer.getData("application/x-darkstudio-node"));
+      if (dragged) moveNodeIntoExplorerFolder(dragged, folder);
     }
   });
   explorer?.addEventListener("contextmenu", (event) => {
