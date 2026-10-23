@@ -100,6 +100,33 @@ export function detectLanguage(code) {
     return "XML";
   }
 
+  // PowerShell precisa ser identificado antes de JavaScript: declarações
+  // "function Nome { ... }" são válidas nos dois, e scripts PS também podem
+  // conter palavras como "const" ou "function" em comentários e strings.
+  // Removemos comentários para que documentação isolada não conte como sintaxe.
+  const powerShellCode = cleanCode
+    .replace(/<#(?:[\s\S]*?)#>/g, " ")
+    .replace(/^\s*#.*$/gm, " ");
+
+  const powerShellSignals = [
+    { pattern: /#requires\s+-version|\[CmdletBinding\s*\(|\$PSScriptRoot|\$PSCommandPath|\$ErrorActionPreference/i, score: 5 },
+    { pattern: /^\s*param\s*\(/im, score: 4 },
+    { pattern: /\b(?:Write-Host|Write-Output|Write-Warning|Write-Error|Get-ChildItem|Get-Content|Set-Content|Get-Process|Get-Service|Where-Object|ForEach-Object|Select-Object|Import-Module|Export-Csv|ConvertTo-Json|Invoke-WebRequest|Start-Process|Test-Path|Join-Path|New-Item|Remove-Item|Get-ItemProperty)\b/i, score: 2 },
+    { pattern: /\s-(?:LiteralPath|PathType|ErrorAction|Force|Recurse|Filter|Include|Exclude|WhatIf|Confirm|eq|ne|gt|lt|ge|le|like|match|notmatch|contains|replace|split|join|in|notin)\b/i, score: 2 },
+    { pattern: /\$[A-Za-z_][\w:]*\s*(?:=|\|)/, score: 2 },
+    { pattern: /\$script:[\w]+|\$_|\$args\b|\$input\b|\$env:[\w]+|\$using:[\w]+/i, score: 2 },
+    { pattern: /\[[\w.]+\]::[A-Za-z_]/, score: 2 },
+    { pattern: /\|\s*(?:Where-Object|ForEach-Object|Select-Object|Sort-Object|Group-Object|Measure-Object)\b/i, score: 3 },
+    { pattern: /\b(?:try|catch|finally)\s*\{[\s\S]*?\}/i, score: 1 },
+  ];
+
+  const powerShellScore = powerShellSignals.reduce(
+    (score, signal) => score + (signal.pattern.test(powerShellCode) ? signal.score : 0),
+    0,
+  );
+
+  if (powerShellScore >= 4) return "PowerShell";
+
   // 👇 SÓ DEPOIS disso vem o JS
   const isJavaScript =
     (/\b(import|export)\s+.*from\s+['"]/.test(cleanCode) ||
@@ -181,13 +208,7 @@ export function detectLanguage(code) {
 
   if (/BEGIN:VCARD/.test(cleanCode)) return "VCF";
 
-  // PowerShell scripts and common cmdlets/operators.
-  if (
-    /\b(?:Write-Host|Write-Output|Get-ChildItem|Get-Content|Set-Content|Get-Process|Get-Service|Where-Object|ForEach-Object|Select-Object|Import-Module|Export-Csv|ConvertTo-Json|Invoke-WebRequest|Start-Process)\b/i.test(cleanCode) ||
-    /^\s*param\s*\(/im.test(cleanCode) ||
-    /\$[A-Za-z_][\w:]*\s*(?:=|\|)/.test(cleanCode) ||
-    /\s-(?:eq|ne|gt|lt|ge|le|like|match|contains|replace|split|join)\b/i.test(cleanCode)
-  ) return "PowerShell";
+
 
   if (/^@echo\s+off|set\s+\w+=|pause/i.test(cleanCode))
     return "Batch (BAT/CMD)";
