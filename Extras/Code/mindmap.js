@@ -1966,10 +1966,13 @@ async function readFileContent(file) {
   return file.text();
 }
 
-async function importWorkspaceFiles(fileList, targetFolder = null) {
+async function importWorkspaceFiles(fileList, targetFolder = null, options = {}) {
   const files = Array.from(fileList || []);
+  const directoryPaths = Array.isArray(options.directoryPaths) ? options.directoryPaths : [];
+  const preserveRoot = Boolean(options.preserveRoot);
+  const replaceWorkspace = Boolean(options.replaceWorkspace);
 
-  if (!files.length) return;
+  if (!files.length && !directoryPaths.length) return;
 
   const isDirectoryImport = files.some((file) => file.webkitRelativePath);
 
@@ -1996,7 +1999,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null) {
     const parts = sourcePath.replace(/\\/g, "/").split("/").filter((part) => part && part !== ".");
     if (parts.some((part) => part === "..")) continue;
 
-    if (isDirectoryImport && parts[0] === rootName) {
+    if (isDirectoryImport && !preserveRoot && parts[0] === rootName) {
       parts.shift();
     }
 
@@ -2010,11 +2013,11 @@ async function importWorkspaceFiles(fileList, targetFolder = null) {
     prepared.push({ file, filename, directoryPath, filePath, content: await readFileContent(file) });
   }
 
-  if (!prepared.length) throw new Error("A pasta não contém arquivos importáveis.");
+  if (!prepared.length && !directoryPaths.length) throw new Error("A pasta não contém arquivos importáveis.");
 
-  // Importing a directory represents opening a new project: replace all old
-  // nodes and edges only after the complete directory was read successfully.
-  if (isDirectoryImport && !targetFolder) {
+  // Só o seletor de pasta usado para abrir um projeto substitui o Workspace.
+  // Arrastar arquivos/pastas para o site sempre adiciona conteúdo ao Workspace atual.
+  if (replaceWorkspace && isDirectoryImport && !targetFolder) {
     syncCurrentEditorToMap();
     nodes = [];
     connections = [];
@@ -2025,6 +2028,12 @@ async function importWorkspaceFiles(fileList, targetFolder = null) {
   }
 
   let importedCount = 0;
+  const basePath = targetFolder?.filePath || "";
+  for (const directoryPath of directoryPaths) {
+    const normalizedDirectory = String(directoryPath || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+    if (!normalizedDirectory) continue;
+    ensureFolderPath([basePath, normalizedDirectory].filter(Boolean).join("/"));
+  }
   const seenPaths = new Set();
   for (const entry of prepared) {
     if (seenPaths.has(entry.filePath)) continue;
@@ -2051,7 +2060,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null) {
     importedCount++;
   }
 
-  if (rootName && !targetFolder) {
+  if (rootName && replaceWorkspace && !targetFolder) {
     workspaceName = rootName;
   }
 
@@ -2745,7 +2754,7 @@ function setupFileInputs() {
 
   folderInput.addEventListener("change", async () => {
     try {
-      await importWorkspaceFiles(folderInput.files);
+      await importWorkspaceFiles(folderInput.files, null, { replaceWorkspace: true });
     } catch (error) {
       console.error("Erro ao importar pasta:", error);
       alert(tr("folderImportError"));
@@ -3014,35 +3023,95 @@ if (document.readyState === "loading") {
   initMindmap();
 }
 
+async function readDroppedFileEntry(fileEntry, relativePath, files) {
+  const file = await new Promise((resolve, reject) => fileEntry.file(resolve, reject));
+  try {
+    Object.defineProperty(file, "webkitRelativePath", {
+      configurable: true,
+      value: relativePath,
+    });
+  } catch {
+    // File objects are normally extensible; retain a wrapper for unusual browsers.
+    const original = file;
+    files.push(Object.assign(Object.create(original), original, {
+      name: original.name,
+      type: original.type,
+      size: original.size,
+      lastModified: original.lastModified,
+      webkitRelativePath: relativePath,
+      text: () => original.text(),
+      arrayBuffer: () => original.arrayBuffer(),
+      slice: (...args) => original.slice(...args),
+    }));
+    return;
+  }
+  files.push(file);
+}
+
+async function readDroppedEntry(entry, parentPath, files, directories) {
+  const relativePath = [parentPath, entry.name].filter(Boolean).join("/");
+  if (entry.isFile) {
+    await readDroppedFileEntry(entry, relativePath, files);
+    return;
+  }
+  if (!entry.isDirectory) return;
+
+  directories.push(relativePath);
+  const reader = entry.createReader();
+  while (true) {
+    const entries = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    if (!entries.length) break;
+    for (const child of entries) {
+      await readDroppedEntry(child, relativePath, files, directories);
+    }
+  }
+}
+
+async function collectDroppedItems(dataTransfer) {
+  const files = [];
+  const directories = [];
+  const items = Array.from(dataTransfer?.items || []);
+  const entries = items.map((item) => item.webkitGetAsEntry?.()).filter(Boolean);
+
+  if (entries.length) {
+    for (const entry of entries) await readDroppedEntry(entry, "", files, directories);
+  } else {
+    files.push(...Array.from(dataTransfer?.files || []));
+  }
+  return { files, directories };
+}
+
 for (const eventName of ["dragenter", "dragover"]) {
   document.addEventListener(eventName, (event) => {
     if (event.dataTransfer?.types?.includes("Files")) event.preventDefault();
   });
 }
 document.addEventListener("drop", async (event) => {
-  const files = event.dataTransfer?.files;
-  if (!files?.length) return;
-  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-  const droppedOnExplorer = Boolean(target?.closest("#explorer, #explorer-files"));
-  const droppedOnEditor = Boolean(target?.closest("#Editor, #Editor-Input, .monaco-editor"));
-  if (!droppedOnExplorer && !droppedOnEditor) return;
+  const dataTransfer = event.dataTransfer;
+  if (!dataTransfer?.types?.includes("Files")) return;
+
   event.preventDefault();
   event.stopPropagation();
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+  const row = target?.closest("button.explorer-file[data-node-id]");
+  const candidate = row ? getNode(row.dataset.nodeId) : null;
+  const targetFolder = candidate?.type === "folder" ? candidate : null;
+
   try {
-    if (droppedOnExplorer) {
-      const row = target?.closest("button.explorer-file[data-node-id]");
-      const candidate = row ? getNode(row.dataset.nodeId) : null;
-      const targetFolder = candidate?.type === "folder" ? candidate : null;
-      await importWorkspaceFiles(files, targetFolder);
-      showMap();
-    } else {
-      await window.darkStudioHandleDroppedFiles?.(files);
-    }
+    const { files, directories } = await collectDroppedItems(dataTransfer);
+    if (!files.length && !directories.length) return;
+    await importWorkspaceFiles(files, targetFolder, {
+      preserveRoot: true,
+      directoryPaths: directories,
+    });
+    // Importar arquivos não deve trocar a tela para o modo gráfico.
   } catch (error) {
-    console.error("Erro ao processar arquivos arrastados:", error);
+    console.error("Erro ao processar arquivos/pastas arrastados:", error);
     alert(tr("fileImportError"));
   } finally {
     document.querySelectorAll("#explorer .explorer-drop-target").forEach((item) => item.classList.remove("explorer-drop-target"));
+    document.getElementById("explorer")?.classList.remove("explorer-drop-target");
+    document.getElementById("explorer-files")?.classList.remove("explorer-root-drop-target");
   }
 });
 
