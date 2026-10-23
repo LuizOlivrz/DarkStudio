@@ -95,6 +95,9 @@ function readableHtml(html, fallbackTitle) {
 
 async function readUrl(input) {
   const url = normalizeUrl(input);
+  if (url.hostname === "darkstudio-code.netlify.app" && url.origin !== location.origin) {
+    throw new Error(t("linkReaderCors"));
+  }
   const target = getFetchTarget(url);
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -214,6 +217,16 @@ async function analyzeDetectedUrl(rawUrl) {
   }
   if (url.href === activeAnalysisUrl) return;
   activeAnalysisUrl = url.href;
+
+  // O site publicado não permite leitura cross-origin por fetch. Não tente
+  // buscar seus metadados quando o editor está aberto em localhost/outra origem.
+  if (url.hostname === "darkstudio-code.netlify.app" && url.origin !== location.origin) {
+    window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", {
+      detail: { url: url.href, ok: false },
+    }));
+    return;
+  }
+
   const sequence = ++analysisSequence;
 
   const controller = new AbortController();

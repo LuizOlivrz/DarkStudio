@@ -14,6 +14,8 @@ import {
   getLanguageFromFile,
 } from "./workspace-language.js";
 const STORAGE_KEY = "darkstudio_mindmap_v1";
+const MAX_LOCAL_STORAGE_STATE_CHARS = 350_000;
+let storageQuotaWarningShown = false;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 function applyLanguageToNode(node, language, manual = false) {
@@ -285,20 +287,69 @@ function readWorkspaceRegistry() {
     return Array.isArray(stored) ? stored.filter((item) => item && typeof item.id === "string") : [];
   } catch { return []; }
 }
+function makeWorkspaceRegistryEntry(snapshot, includeContent = true) {
+  const entry = {
+    id: snapshot.id,
+    name: snapshot.name || "workspace 1",
+    description: snapshot.description || "",
+    tags: Array.isArray(snapshot.tags) ? [...snapshot.tags] : [],
+    photo: typeof snapshot.photo === "string" && snapshot.photo.length <= 100_000 ? snapshot.photo : "",
+    workspacePan: snapshot.workspacePan || { x: 0, y: 0 },
+    nodeCount: Array.isArray(snapshot.nodes) ? snapshot.nodes.length : Number(snapshot.nodeCount) || 0,
+  };
+  if (includeContent) {
+    entry.nodes = Array.isArray(snapshot.nodes) ? snapshot.nodes : [];
+    entry.connections = Array.isArray(snapshot.connections) ? snapshot.connections : [];
+  }
+  return entry;
+}
+
 function saveState() {
   const snapshot = getWorkspaceSnapshot();
+  const state = { nodes, connections, workspaceName, workspaceDescription, workspaceTags, workspacePan };
+  // Estime o volume pelo conteúdo antes de serializar para não criar strings
+  // gigantes só para descobrir que localStorage não tem espaço suficiente.
+  const estimatedContentChars = nodes.reduce(
+    (total, node) => total + (typeof node.content === "string" ? node.content.length : 0),
+    0,
+  );
+  const keepContentInLocalStorage = estimatedContentChars <= MAX_LOCAL_STORAGE_STATE_CHARS;
+  const serializedState = keepContentInLocalStorage ? JSON.stringify(state) : "";
+  const registryEntry = makeWorkspaceRegistryEntry(snapshot, keepContentInLocalStorage);
+  const workspaces = readWorkspaceRegistry();
+  const index = workspaces.findIndex((item) => item.id === workspaceId);
+  if (index >= 0) workspaces[index] = registryEntry;
+  else workspaces.push(registryEntry);
+
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      nodes, connections, workspaceName, workspaceDescription, workspaceTags, workspacePan,
-    }));
-    const workspaces = readWorkspaceRegistry();
-    const index = workspaces.findIndex((item) => item.id === workspaceId);
-    if (index >= 0) workspaces[index] = snapshot; else workspaces.push(snapshot);
+    if (keepContentInLocalStorage) {
+      localStorage.setItem(STORAGE_KEY, serializedState);
+    } else {
+      // Conteúdo grande deve ficar no IndexedDB, não duplicado em localStorage.
+      localStorage.removeItem(STORAGE_KEY);
+    }
     localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces));
     localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
   } catch (error) {
-    console.warn("DarkStudio: não foi possível salvar o Workspace.", error);
+    if (error?.name === "QuotaExceededError") {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      try {
+        const compactRegistry = workspaces.map((item) => makeWorkspaceRegistryEntry(item, false));
+        localStorage.setItem(WORKSPACES_KEY, JSON.stringify(compactRegistry));
+        localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+      } catch {}
+      if (!storageQuotaWarningShown) {
+        console.warn(
+          "DarkStudio: o Workspace é grande para localStorage; os conteúdos serão mantidos no IndexedDB.",
+        );
+        storageQuotaWarningShown = true;
+      }
+    } else {
+      console.warn("DarkStudio: não foi possível salvar os metadados do Workspace.", error);
+    }
   }
+
+  // O IndexedDB armazena o conteúdo completo e suporta Workspaces maiores.
   persistStateToIndexedDB();
   updateWorkspaceNameUI();
   if (workspaceManagerView) renderWorkspaceManager();
@@ -321,11 +372,15 @@ function openWorkspaceDB() {
 }
 
 async function persistStateToIndexedDB() {
+  // Capture snapshot and ID before the asynchronous DB open. Otherwise a fast
+  // Workspace switch could save the previous contents under the next Workspace ID.
+  const snapshot = getWorkspaceSnapshot();
+  const id = workspaceId || "current";
   try {
     const db = await openWorkspaceDB();
     await new Promise((resolve, reject) => {
       const transaction = db.transaction("workspace", "readwrite");
-      transaction.objectStore("workspace").put(getWorkspaceSnapshot(), workspaceId || "current");
+      transaction.objectStore("workspace").put(snapshot, id);
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
@@ -336,21 +391,23 @@ async function persistStateToIndexedDB() {
   }
 }
 
-async function restoreStateFromIndexedDB() {
+async function restoreStateFromIndexedDB(id = workspaceId) {
   try {
     const db = await openWorkspaceDB();
     const saved = await new Promise((resolve, reject) => {
-      const request = db.transaction("workspace", "readonly").objectStore("workspace").get(workspaceId || "current");
+      const request = db.transaction("workspace", "readonly").objectStore("workspace").get(id || "current");
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
-    if (!saved || !Array.isArray(saved.nodes)) return;
+    if (!saved || !Array.isArray(saved.nodes)) return false;
     if (Number.isFinite(saved.workspacePan?.x) && Number.isFinite(saved.workspacePan?.y)) {
       workspacePan = { x: saved.workspacePan.x, y: saved.workspacePan.y };
     }
     normalizeWorkspaceData(saved);
+    return true;
   } catch (error) {
     console.warn("DarkStudio: não foi possível restaurar o Workspace ampliado.", error);
+    return false;
   }
 }
 
@@ -472,14 +529,26 @@ function renderWorkspaceManager() {
   panel.appendChild(list);
 }
 
-function activateWorkspace(id) {
-  const target = readWorkspaceRegistry().find((item) => item.id === id); if (!target) return;
+async function activateWorkspace(id) {
+  const target = readWorkspaceRegistry().find((item) => item.id === id);
+  if (!target) return;
   if (id !== workspaceId) {
-    syncCurrentEditorToMap(); saveState(); workspaceId = target.id;
-    localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId); normalizeWorkspaceData(target);
-    currentEditingNode = null; connectMode = false; connectSource = null; applyWorkspacePan(); saveState();
+    syncCurrentEditorToMap();
+    saveState();
+    workspaceId = target.id;
+    try { localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId); } catch {}
+    const restored = await restoreStateFromIndexedDB(workspaceId);
+    if (!restored) normalizeWorkspaceData(target);
+    currentEditingNode = null;
+    window.darkStudioWorkspaceCurrentFile = null;
+    connectMode = false;
+    connectSource = null;
+    applyWorkspacePan();
+    saveState();
   }
-  setWorkspaceManagerView(false); renderNodes(); updateWorkspaceNameUI();
+  setWorkspaceManagerView(false);
+  renderNodes();
+  updateWorkspaceNameUI();
 }
 
 // ============================================================
