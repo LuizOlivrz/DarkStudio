@@ -1975,7 +1975,7 @@ const MAX_IMPORT_FILE_BYTES = 4 * 1024 * 1024;
 const MAX_IMPORT_TOTAL_BYTES = 25 * 1024 * 1024;
 
 function shouldIgnoreImportedPath(path) {
-  return String(path || "").replace(/\\\\/g, "/").split("/").some((part) =>
+  return String(path || "").replace(/\\/g, "/").split("/").some((part) =>
     IMPORT_IGNORED_DIRECTORIES.has(part.toLowerCase())
   );
 }
@@ -2009,7 +2009,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   // de dependências/builds e arquivos gigantes na memória do navegador.
   for (const file of files) {
     const sourcePath = file.webkitRelativePath || file.name;
-    const parts = sourcePath.replace(/\\\\/g, "/").split("/").filter((part) => part && part !== ".");
+    const parts = sourcePath.replace(/\\/g, "/").split("/").filter((part) => part && part !== ".");
     if (parts.some((part) => part === "..")) continue;
     if (shouldIgnoreImportedPath(parts.join("/"))) {
       ignoredDirectoryFiles++;
@@ -2057,7 +2057,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   }
 
   for (const directoryPath of filteredDirectories) {
-    const normalizedDirectory = String(directoryPath || "").replace(/\\\\/g, "/").replace(/^\\/+|\\/+$/g, "");
+    const normalizedDirectory = String(directoryPath || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
     if (!normalizedDirectory) continue;
     ensureFolderPath([basePath, normalizedDirectory].filter(Boolean).join("/"));
   }
@@ -2075,7 +2075,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     const content = await readFileContent(entry.file);
     const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
     const extension = entry.filename.split(".").pop().toLowerCase();
-    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\\//i.test(entry.file.type || "");
+    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(entry.file.type || "");
     const node = addNode(
       entry.filename,
       content,
