@@ -95,6 +95,9 @@ function readableHtml(html, fallbackTitle) {
 
 async function readUrl(input) {
   const url = normalizeUrl(input);
+  if (url.hostname === "darkstudio-code.netlify.app" && url.origin !== location.origin) {
+    throw new Error(t("linkReaderCors"));
+  }
   const target = getFetchTarget(url);
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
