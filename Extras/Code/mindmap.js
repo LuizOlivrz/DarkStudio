@@ -2667,6 +2667,8 @@ function deleteNode(nodeId) {
 
   if (currentEditingNode && idsToDelete.has(currentEditingNode.id)) {
     currentEditingNode = null;
+    window.darkStudioWorkspaceCurrentFile = null;
+    window.editor?.setValue?.("");
   }
 
   saveState();
