@@ -1184,18 +1184,40 @@ function refreshExplorerList() {
   if (!nodes.length) {
     const empty = document.createElement("div");
     empty.className = "explorer-empty";
-    empty.textContent = "No workspace files";
+    empty.textContent = tr("explorerEmpty");
     list.appendChild(empty);
     return;
   }
-  for (const node of nodes) {
+
+  const depthOf = (node) => {
+    let depth = 0;
+    let parent = getParentFolder(node);
+    const visited = new Set([node.id]);
+    while (parent && !visited.has(parent.id)) {
+      visited.add(parent.id);
+      depth++;
+      parent = getParentFolder(parent);
+    }
+    return depth;
+  };
+  const ordered = [...nodes].sort((a, b) => {
+    const pathA = String(a.filePath || a.name).toLowerCase();
+    const pathB = String(b.filePath || b.name).toLowerCase();
+    return pathA.localeCompare(pathB);
+  });
+
+  for (const node of ordered) {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "explorer-file";
     item.setAttribute("role", "listitem");
     item.dataset.nodeId = node.id;
     item.title = node.filePath || node.name;
-    const prefix = node.type === "folder" ? (node.isOpen === false ? "▸ " : "▾ ") : node.type === "image" ? "▧ " : node.type === "binary" ? "▤ " : "· ";
+    item.style.paddingInlineStart = `${8 + depthOf(node) * 16}px`;
+    item.hidden = isInsideClosedFolder(node);
+    const prefix = node.type === "folder"
+      ? (node.isOpen === false ? "▸ " : "▾ ")
+      : node.type === "image" ? "▧ " : node.type === "binary" ? "▤ " : "· ";
     item.textContent = prefix + node.name;
     list.appendChild(item);
   }
@@ -2516,26 +2538,22 @@ function clearMap() {
 
 window.darkStudioHandleDroppedFiles = async (fileList) => {
   const files = Array.from(fileList || []);
-  if (!files.length) return;
+  if (!files.length || !window.editor) return;
   const isTextFile = (file) => {
     const extension = file.name.split(".").pop().toLowerCase();
     return TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(file.type || "");
   };
-  const textFiles = files.filter(isTextFile);
-  const binaryFiles = files.filter((file) => !isTextFile(file));
-  if (textFiles.length && window.editor) {
-    const file = textFiles.shift();
-    window.editor.setValue(await file.text());
-    const language = getWorkspaceLanguageForFile(file.name);
-    const label = document.querySelector("#code-language h4");
-    if (label && language?.label) label.textContent = language.label;
-    window.darkStudioDroppedFileName = file.name;
+  const file = files.find(isTextFile);
+  if (!file) {
+    alert(tr("editorDropTextOnly"));
+    return;
   }
-  const workspaceFiles = [...binaryFiles, ...textFiles];
-  if (workspaceFiles.length) {
-    await importWorkspaceFiles(workspaceFiles);
-    showMap();
-  }
+  window.editor.setValue(await file.text());
+  const language = getWorkspaceLanguageForFile(file.name);
+  const label = document.querySelector("#code-language h4");
+  if (label && language?.label) label.textContent = language.label;
+  window.darkStudioDroppedFileName = file.name;
+  window.darkStudioWorkspaceCurrentFile = null;
 };
 
 function setupFileInputs() {
@@ -2577,6 +2595,83 @@ function setupFileInputs() {
   });
 }
 
+function showExplorerContextMenu(node, x, y) {
+  document.getElementById("explorer-context-menu")?.remove();
+  const menu = document.createElement("div");
+  menu.id = "explorer-context-menu";
+  Object.assign(menu.style, {
+    position: "fixed",
+    left: `${Math.max(8, Math.min(x, window.innerWidth - 230))}px`,
+    top: `${Math.max(8, Math.min(y, window.innerHeight - 250))}px`,
+    zIndex: "1000004", minWidth: "205px", padding: "6px",
+    border: "1px solid var(--secondary-color, #5d00ff)", borderRadius: "8px",
+    background: "#151515", color: "#fff", boxShadow: "0 12px 32px #0009",
+  });
+
+  const addAction = (label, action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    Object.assign(button.style, {
+      display: "block", width: "100%", padding: "9px 10px", border: "0",
+      borderRadius: "5px", background: "transparent", color: "inherit",
+      textAlign: "left", font: "inherit", cursor: "pointer",
+    });
+    button.addEventListener("mouseenter", () => { button.style.background = "#ffffff18"; });
+    button.addEventListener("mouseleave", () => { button.style.background = "transparent"; });
+    button.addEventListener("click", async () => {
+      menu.remove();
+      try { await action(); }
+      catch (error) { console.error(error); alert(tr("actionError")); }
+    });
+    menu.appendChild(button);
+  };
+
+  const parentFolder = node?.type === "folder" ? node : getParentFolder(node);
+  addAction("＋ " + tr("newFile"), async () => {
+    const suggested = tr("newFile") + ".txt";
+    const name = (await showNameDialog(suggested, tr("createFile")) || "").trim();
+    if (!name) return;
+    const parentPath = parentFolder?.filePath || "";
+    const filePath = parentPath ? `${parentPath}/${name}` : name;
+    if (nodes.some((item) => item.filePath === filePath)) { alert(tr("fileExists")); return; }
+    const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
+    file.filePath = filePath;
+    if (parentFolder) attachNodeToFolder(file, parentFolder);
+    saveState(); renderNodes();
+    openNodeInEditor(file);
+  });
+  addAction("📁 " + tr("newFolder"), async () => {
+    const name = (await showNameDialog("", tr("createFolder")) || "").trim();
+    if (!name) return;
+    if (/[\\/]/.test(name)) { alert(tr("invalidName")); return; }
+    const parentPath = parentFolder?.filePath || "";
+    const filePath = parentPath ? `${parentPath}/${name}` : name;
+    if (nodes.some((item) => item.filePath === filePath)) { alert(tr("fileExists")); return; }
+    const folder = addNode(name, "", "folder", centerPosition((nodes.length % 8) * 18));
+    folder.filePath = filePath;
+    if (parentFolder) attachNodeToFolder(folder, parentFolder);
+    saveState(); renderNodes();
+  });
+  if (node) {
+    addAction("✎ " + tr(node.type === "folder" ? "renameFolder" : "renameFile"), async () => {
+      const name = (await showNameDialog(node.name, tr(node.type === "folder" ? "renameFolder" : "renameFile")) || "").trim();
+      if (!name || name === node.name) return;
+      if (node.type === "folder") renameFolderNode(node, name);
+      else renameFileNode(node, name);
+    });
+  }
+
+  document.body.appendChild(menu);
+  const close = (event) => {
+    if (!menu.contains(event.target)) {
+      menu.remove();
+      document.removeEventListener("pointerdown", close, true);
+    }
+  };
+  setTimeout(() => document.addEventListener("pointerdown", close, true), 0);
+}
+
 function wireUI() {
   const mapButton = document.getElementById("explorer-graph-button");
   const detailsButton = document.getElementById("workspace-details-button");
@@ -2605,27 +2700,41 @@ function wireUI() {
     const isOpen = explorer?.classList.toggle("explorer-open") ?? false;
     explorerToggle.setAttribute("aria-expanded", String(isOpen));
   });
-  document.getElementById("explorer-files")?.addEventListener("click", (event) => {
+  const explorerFiles = document.getElementById("explorer-files");
+  explorerFiles?.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
     const button = target?.closest("button.explorer-file[data-node-id]");
     if (!button) return;
-
     const node = getNode(button.dataset.nodeId);
     if (!node) return;
-
     if (node.type === "folder") {
       toggleFolder(node);
       refreshExplorerList();
       return;
     }
-
-    // A single click opens the selected workspace file in its appropriate view.
-    // Text/code files go to Monaco; image and binary files keep their dedicated workspace views.
     openNodeInEditor(node);
     if (node.type !== "image" && node.type !== "binary") {
       requestAnimationFrame(() => window.editor?.focus?.());
     }
   });
+  explorerFiles?.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("button.explorer-file[data-node-id]");
+    const node = button ? getNode(button.dataset.nodeId) : null;
+    showExplorerContextMenu(node, event.clientX, event.clientY);
+  });
+  const explorer = document.getElementById("explorer");
+  explorer?.addEventListener("dragover", (event) => {
+    if (event.dataTransfer?.types?.includes("Files")) {
+      event.preventDefault();
+      explorer.classList.add("explorer-drop-target");
+    }
+  });
+  for (const eventName of ["dragleave", "drop"]) {
+    explorer?.addEventListener(eventName, () => explorer.classList.remove("explorer-drop-target"));
+  }
 
   if (mapButton) {
     mapButton.addEventListener("click", () => {
@@ -2696,12 +2805,22 @@ for (const eventName of ["dragenter", "dragover"]) {
 document.addEventListener("drop", async (event) => {
   const files = event.dataTransfer?.files;
   if (!files?.length) return;
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+  const droppedOnExplorer = Boolean(target?.closest("#explorer, #explorer-files"));
+  const droppedOnEditor = Boolean(target?.closest("#Editor, #Editor-Input, .monaco-editor"));
+  if (!droppedOnExplorer && !droppedOnEditor) return;
   event.preventDefault();
+  event.stopPropagation();
   try {
-    await window.darkStudioHandleDroppedFiles?.(files);
+    if (droppedOnExplorer) {
+      await importWorkspaceFiles(files);
+      showMap();
+    } else {
+      await window.darkStudioHandleDroppedFiles?.(files);
+    }
   } catch (error) {
-    console.error("Erro ao abrir arquivos arrastados:", error);
-    alert("Não foi possível abrir os arquivos arrastados.");
+    console.error("Erro ao processar arquivos arrastados:", error);
+    alert(tr("fileImportError"));
   }
 });
 
