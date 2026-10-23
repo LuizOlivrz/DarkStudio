@@ -2922,7 +2922,10 @@ document.addEventListener("drop", async (event) => {
   event.stopPropagation();
   try {
     if (droppedOnExplorer) {
-      await importWorkspaceFiles(files);
+      const row = target?.closest("button.explorer-file[data-node-id]");
+      const candidate = row ? getNode(row.dataset.nodeId) : null;
+      const targetFolder = candidate?.type === "folder" ? candidate : null;
+      await importWorkspaceFiles(files, targetFolder);
       showMap();
     } else {
       await window.darkStudioHandleDroppedFiles?.(files);
@@ -2930,6 +2933,8 @@ document.addEventListener("drop", async (event) => {
   } catch (error) {
     console.error("Erro ao processar arquivos arrastados:", error);
     alert(tr("fileImportError"));
+  } finally {
+    document.querySelectorAll("#explorer .explorer-drop-target").forEach((item) => item.classList.remove("explorer-drop-target"));
   }
 });
 
