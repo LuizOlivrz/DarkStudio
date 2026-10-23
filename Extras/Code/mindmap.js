@@ -3095,7 +3095,11 @@ document.addEventListener("drop", async (event) => {
   const target = event.target instanceof Element ? event.target : event.target?.parentElement;
   const row = target?.closest("button.explorer-file[data-node-id]");
   const candidate = row ? getNode(row.dataset.nodeId) : null;
-  const targetFolder = candidate?.type === "folder" ? candidate : null;
+  const childrenContainer = target?.closest(".explorer-children");
+  const parentId = childrenContainer?.dataset.parentFolderId;
+  const targetFolder = candidate?.type === "folder"
+    ? candidate
+    : parentId ? getNode(parentId) : null;
 
   try {
     const { files, directories } = await collectDroppedItems(dataTransfer);
