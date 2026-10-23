@@ -2721,7 +2721,6 @@ function wireUI() {
       requestAnimationFrame(() => window.editor?.focus?.());
     }
   });
-  const explorer = document.getElementById("explorer");
   explorer?.addEventListener("contextmenu", (event) => {
     event.preventDefault();
     event.stopPropagation();
