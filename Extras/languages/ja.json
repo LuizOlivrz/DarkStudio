@@ -203,5 +203,7 @@
   "linkReaderInvalidApi": "GitHubから無効なAPI応答が返されました。",
   "linkReaderNoReadableText": "このURLに読み取り可能なテキストがありません。",
   "linkReaderCouldNotRead": "このリンクを読み取れませんでした。",
-  "enableMiniPlayers": "メディアのミニプレーヤーを有効にする"
+  "enableMiniPlayers": "メディアのミニプレーヤーを有効にする",
+  "explorerEmpty": "プロジェクトにファイルがありません",
+  "editorDropTextOnly": "テキストまたはコードファイルをエディターにドロップしてください。"
 }
