@@ -1941,7 +1941,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null) {
     if (seenPaths.has(entry.filePath)) continue;
     seenPaths.add(entry.filePath);
     // Um caminho já existente representa o mesmo arquivo do projeto; evite duplicá-lo.
-    if (!isDirectoryImport && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
+    if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
     const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : targetFolder;
     const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
     const extension = entry.filename.split(".").pop().toLowerCase();
