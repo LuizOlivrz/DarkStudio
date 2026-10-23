@@ -1927,7 +1927,6 @@ ${code}
   function fixLanguage() {
     const clear = document.getElementById("clear");
     const execute = document.getElementById("execute");
-    const dowload = document.getElementById("download-file");
     const mindMapClear = document.getElementById("mindmap-clear");
     const mindMapConnect = document.getElementById("mindmap-connect");
     const mindMapAdd = document.getElementById("mindmap-add-files");
@@ -1938,7 +1937,6 @@ ${code}
     };
     setLabel(clear, "clear");
     setLabel(execute, "execute");
-    setLabel(dowload, "download");
     setLabel(mindMapClear, "mindMapClear");
     setLabel(mindMapConnect, "mindMapConnect");
     setLabel(mindMapAdd, "mindMapAdd");
