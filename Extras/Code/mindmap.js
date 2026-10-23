@@ -1966,6 +1966,20 @@ async function readFileContent(file) {
   return file.text();
 }
 
+const IMPORT_IGNORED_DIRECTORIES = new Set([
+  ".git", "node_modules", ".next", ".nuxt", ".output", "dist", "build",
+  "coverage", "vendor", ".venv", "venv", "__pycache__", ".pytest_cache",
+  ".mypy_cache", ".tox", "target", ".cache", "bower_components"
+]);
+const MAX_IMPORT_FILE_BYTES = 4 * 1024 * 1024;
+const MAX_IMPORT_TOTAL_BYTES = 25 * 1024 * 1024;
+
+function shouldIgnoreImportedPath(path) {
+  return String(path || "").replace(/\\\\/g, "/").split("/").some((part) =>
+    IMPORT_IGNORED_DIRECTORIES.has(part.toLowerCase())
+  );
+}
+
 async function importWorkspaceFiles(fileList, targetFolder = null, options = {}) {
   const files = Array.from(fileList || []);
   const directoryPaths = Array.isArray(options.directoryPaths) ? options.directoryPaths : [];
@@ -1975,48 +1989,63 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   if (!files.length && !directoryPaths.length) return;
 
   const isDirectoryImport = files.some((file) => file.webkitRelativePath);
-
   let rootName = "";
-
   if (isDirectoryImport) {
-    const firstPath = files.find(
-      (file) => file.webkitRelativePath,
-    )?.webkitRelativePath;
-
+    const firstPath = files.find((file) => file.webkitRelativePath)?.webkitRelativePath;
     rootName = firstPath?.split("/")[0] || "";
-
     if (!rootName || files.some((file) => !file.webkitRelativePath)) {
       throw new Error("Não foi possível identificar a pasta importada.");
     }
   }
 
-  // Read every file before mutating the current workspace. A failed import
-  // leaves the existing project untouched.
+  const basePath = targetFolder?.filePath || "";
   const prepared = [];
+  let ignoredDirectoryFiles = 0;
+  let oversizedFiles = 0;
+  let overBudgetFiles = 0;
+  let totalBytes = 0;
+
+  // Filtra caminhos e tamanhos antes de ler conteúdo para evitar alocar pastas
+  // de dependências/builds e arquivos gigantes na memória do navegador.
   for (const file of files) {
     const sourcePath = file.webkitRelativePath || file.name;
-
-    const parts = sourcePath.replace(/\\/g, "/").split("/").filter((part) => part && part !== ".");
+    const parts = sourcePath.replace(/\\\\/g, "/").split("/").filter((part) => part && part !== ".");
     if (parts.some((part) => part === "..")) continue;
-
-    if (isDirectoryImport && !preserveRoot && parts[0] === rootName) {
-      parts.shift();
+    if (shouldIgnoreImportedPath(parts.join("/"))) {
+      ignoredDirectoryFiles++;
+      continue;
     }
-
+    if (isDirectoryImport && !preserveRoot && parts[0] === rootName) parts.shift();
     if (!parts.length) continue;
 
     const filename = parts.pop();
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+      oversizedFiles++;
+      continue;
+    }
+    if (totalBytes + file.size > MAX_IMPORT_TOTAL_BYTES) {
+      overBudgetFiles++;
+      continue;
+    }
+
     const relativeDirectoryPath = parts.join("/");
-    const basePath = targetFolder?.filePath || "";
     const directoryPath = [basePath, relativeDirectoryPath].filter(Boolean).join("/");
     const filePath = [basePath, relativeDirectoryPath, filename].filter(Boolean).join("/");
-    prepared.push({ file, filename, directoryPath, filePath, content: await readFileContent(file) });
+    if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === filePath)) continue;
+    prepared.push({ file, filename, directoryPath, filePath });
+    totalBytes += file.size;
   }
 
-  if (!prepared.length && !directoryPaths.length) throw new Error("A pasta não contém arquivos importáveis.");
+  const filteredDirectories = directoryPaths.filter((path) => !shouldIgnoreImportedPath(path));
+  if (!prepared.length && !filteredDirectories.length) {
+    if (ignoredDirectoryFiles || oversizedFiles || overBudgetFiles) {
+      alert("Nenhum arquivo foi importado. Pastas de dependências/build e arquivos grandes são ignorados para evitar falta de memória.");
+      return;
+    }
+    throw new Error("A pasta não contém arquivos importáveis.");
+  }
 
-  // Só o seletor de pasta usado para abrir um projeto substitui o Workspace.
-  // Arrastar arquivos/pastas para o site sempre adiciona conteúdo ao Workspace atual.
+  // Apenas o seletor de pasta usado para abrir projeto substitui o Workspace.
   if (replaceWorkspace && isDirectoryImport && !targetFolder) {
     syncCurrentEditorToMap();
     nodes = [];
@@ -2027,47 +2056,50 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     closeImageViewer();
   }
 
-  let importedCount = 0;
-  const basePath = targetFolder?.filePath || "";
-  for (const directoryPath of directoryPaths) {
-    const normalizedDirectory = String(directoryPath || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  for (const directoryPath of filteredDirectories) {
+    const normalizedDirectory = String(directoryPath || "").replace(/\\\\/g, "/").replace(/^\\/+|\\/+$/g, "");
     if (!normalizedDirectory) continue;
     ensureFolderPath([basePath, normalizedDirectory].filter(Boolean).join("/"));
   }
+
+  // Leia um arquivo por vez. Não mantenha todas as strings/base64 na memória
+  // em um array intermediário, o que multiplicava o pico de uso de RAM.
+  let importedCount = 0;
   const seenPaths = new Set();
   for (const entry of prepared) {
     if (seenPaths.has(entry.filePath)) continue;
     seenPaths.add(entry.filePath);
-    // Um caminho já existente representa o mesmo arquivo do projeto; evite duplicá-lo.
     if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
+
     const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : targetFolder;
+    const content = await readFileContent(entry.file);
     const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
     const extension = entry.filename.split(".").pop().toLowerCase();
-    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(entry.file.type || "");
+    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\\//i.test(entry.file.type || "");
     const node = addNode(
       entry.filename,
-      entry.content,
+      content,
       isImage ? "image" : isText ? "text" : "binary",
       centerPosition((nodes.length % 8) * 18),
     );
-
     node.filePath = entry.filePath;
-
-    if (parent) {
-      attachNodeToFolder(node, parent);
-    }
-
+    if (parent) attachNodeToFolder(node, parent);
     importedCount++;
   }
 
-  if (rootName && replaceWorkspace && !targetFolder) {
-    workspaceName = rootName;
-  }
-
+  if (rootName && replaceWorkspace && !targetFolder) workspaceName = rootName;
   saveState();
   renderNodes();
 
-  console.info(`DarkStudio: ${importedCount} arquivo(s) importado(s).`);
+  const skipped = ignoredDirectoryFiles + oversizedFiles + overBudgetFiles;
+  console.info(`DarkStudio: ${importedCount} arquivo(s) importado(s); ${skipped} ignorado(s) por filtros de memória.`);
+  if (skipped) {
+    const reasons = [];
+    if (ignoredDirectoryFiles) reasons.push(`${ignoredDirectoryFiles} em pastas de dependências/build`);
+    if (oversizedFiles) reasons.push(`${oversizedFiles} acima de 4 MB`);
+    if (overBudgetFiles) reasons.push(`${overBudgetFiles} além do limite total de 25 MB`);
+    alert(`Importação concluída: ${importedCount} arquivo(s) importado(s). Ignorados: ${reasons.join("; ")}.`);
+  }
 }
 
 function normalizeProjectPath(path) {
