@@ -2637,9 +2637,7 @@ function showExplorerContextMenu(node, x, y) {
     const parentPath = parentFolder?.filePath || "";
     const filePath = parentPath ? `${parentPath}/${name}` : name;
     if (nodes.some((item) => item.filePath === filePath)) { alert(tr("fileExists")); return; }
-    const extension = getFileExtension(name);
-    const type = TEXT_FILE_EXTENSIONS.has(extension) ? "text" : "binary";
-    const file = addNode(name, "", type, centerPosition((nodes.length % 8) * 18));
+    const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
     file.filePath = filePath;
     if (parentFolder) attachNodeToFolder(file, parentFolder);
     saveState(); renderNodes();
