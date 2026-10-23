@@ -4,6 +4,7 @@
 // ============================================================
 
 import { devLog } from "./config.js";
+import { detectLanguage } from "./language-detection.js";
 import {
   TEXT_FILE_EXTENSIONS,
   WORKSPACE_LANGUAGES,
@@ -80,6 +81,49 @@ function showLanguageContextMenu(node, x, y) {
     border: "1px solid var(--secondary-color, #5d00ff)",
     background: "#151515", color: "#fff", boxShadow: "0 12px 32px #0009",
   });
+
+  const autoButton = document.createElement("button");
+  autoButton.type = "button";
+  autoButton.textContent = "Detectar automaticamente";
+  Object.assign(autoButton.style, {
+    display: "block", width: "100%", padding: "9px 10px", border: "0",
+    borderRadius: "5px", background: "transparent", color: "inherit",
+    textAlign: "left", font: "inherit", fontSize: "13px", cursor: "pointer",
+  });
+  autoButton.addEventListener("mouseenter", () => { autoButton.style.background = "rgba(120,90,255,.2)"; });
+  autoButton.addEventListener("mouseleave", () => { autoButton.style.background = "transparent"; });
+  autoButton.addEventListener("click", () => {
+    menu.remove();
+    const detected = getFileExtension(node.name) === "ps1"
+      ? "PowerShell"
+      : detectLanguage(String(node.content || ""));
+    node.languageOverride = false;
+    node.languageOverrideLabel = "";
+    node.detectedLanguageLabel = detected;
+
+    const language = getWorkspaceLanguage(detected) ||
+      (detected === tr("text") || detected === tr("gitText") ? getWorkspaceLanguage("Texto") : null);
+    if (language && getFileExtension(node.name) !== language.extension) {
+      if (!applyLanguageToNode(node, language, false)) {
+        alert(tr("fileExists"));
+        return;
+      }
+    } else {
+      saveState();
+      renderNodes();
+    }
+
+    if (currentEditingNode?.id === node.id) {
+      window.darkStudioWorkspaceCurrentFile = node;
+      const monacoLanguage = language?.monaco || getLanguageFromFile(node.filePath || node.name);
+      if (window.editor?.getModel() && window.monaco?.editor?.setModelLanguage) {
+        window.monaco.editor.setModelLanguage(window.editor.getModel(), monacoLanguage);
+      }
+      const display = document.querySelector("#code-language h4");
+      if (display) display.textContent = detected;
+    }
+  });
+  menu.appendChild(autoButton);
 
   const heading = document.createElement("div");
   heading.textContent = "Definir linguagem / extensão";
@@ -1066,6 +1110,9 @@ function createNodeElement(node) {
   label.className = "name";
   label.textContent = node.name;
   element.appendChild(label);
+  if (node.detectedLanguageLabel) {
+    element.title = `${node.name} — ${node.detectedLanguageLabel}`;
+  }
 
   for (const edge of ["n", "e", "s", "w", "ne", "nw", "se", "sw"]) {
     const handle = document.createElement("span");
@@ -1232,6 +1279,13 @@ function refreshExplorerList() {
       label.className = "explorer-file-name";
       label.textContent = node.name;
       item.append(icon, label);
+      if (node.detectedLanguageLabel && node.type !== "folder") {
+        const languageBadge = document.createElement("span");
+        languageBadge.className = "explorer-file-language";
+        languageBadge.textContent = node.detectedLanguageLabel;
+        languageBadge.title = `Linguagem detectada: ${node.detectedLanguageLabel}`;
+        item.appendChild(languageBadge);
+      }
       row.appendChild(item);
       container.appendChild(row);
 
@@ -1698,6 +1752,41 @@ function moveNodeIntoExplorerFolder(node, folder) {
   for (const item of affected) item.filePath = pathFor(item);
   folder.isOpen = true;
   if (oldParent && oldParent.id !== folder.id) oldParent.isOpen = oldParent.isOpen !== false;
+  saveState();
+  renderNodes();
+  return true;
+}
+
+function moveNodeToExplorerRoot(node) {
+  if (!node || !node.parentFolderId) return false;
+
+  const oldPath = node.filePath || node.name;
+  const newPath = node.name;
+  const affected = node.type === "folder"
+    ? nodes.filter((item) => item.id === node.id || String(item.filePath || "").startsWith(`${oldPath}/`))
+    : [node];
+  const affectedIds = new Set(affected.map((item) => item.id));
+  const pathFor = (item) => item.id === node.id
+    ? newPath
+    : newPath + String(item.filePath || item.name).slice(oldPath.length);
+
+  const nextPaths = new Set();
+  for (const item of affected) {
+    const nextPath = pathFor(item);
+    if (nextPaths.has(nextPath) || nodes.some((other) =>
+      !affectedIds.has(other.id) && (other.filePath || other.name) === nextPath
+    )) {
+      alert(tr("fileExists"));
+      return false;
+    }
+    nextPaths.add(nextPath);
+  }
+
+  node.parentFolderId = null;
+  delete node.folderOffsetX;
+  delete node.folderOffsetY;
+  for (const item of affected) item.filePath = pathFor(item);
+
   saveState();
   renderNodes();
   return true;
@@ -2729,6 +2818,11 @@ function showExplorerContextMenu(node, x, y) {
       if (node.type === "folder") renameFolderNode(node, name);
       else renameFileNode(node, name);
     });
+    addAction("🗑 Apagar", () => {
+      const detail = node.type === "folder" ? " e todo o conteúdo dela" : "";
+      if (!confirm(`Deseja apagar "${node.name}"${detail}?`)) return;
+      deleteNode(node.id);
+    });
   }
 
   document.body.appendChild(menu);
@@ -2800,11 +2894,10 @@ function wireUI() {
     const button = target?.closest("button.explorer-file[data-node-id]");
     const folder = button ? getNode(button.dataset.nodeId) : null;
     if (event.dataTransfer?.types?.includes("application/x-darkstudio-node")) {
-      if (folder?.type === "folder") {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-        button.classList.add("explorer-drop-target");
-      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      if (folder?.type === "folder") button.classList.add("explorer-drop-target");
+      else if (!target?.closest(".explorer-children") && !button) explorerFiles.classList.add("explorer-root-drop-target");
     } else if (event.dataTransfer?.types?.includes("Files")) {
       event.preventDefault();
       if (folder?.type === "folder") button.classList.add("explorer-drop-target");
@@ -2817,14 +2910,24 @@ function wireUI() {
   explorerFiles?.addEventListener("drop", async (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
     const button = target?.closest("button.explorer-file[data-node-id]");
-    const folder = button ? getNode(button.dataset.nodeId) : null;
+    const buttonNode = button ? getNode(button.dataset.nodeId) : null;
+    const childrenContainer = target?.closest(".explorer-children");
+    const parentId = childrenContainer?.dataset.parentFolderId;
+    const destinationFolder = buttonNode?.type === "folder"
+      ? buttonNode
+      : parentId ? getNode(parentId) : null;
     explorerFiles.querySelectorAll(".explorer-drop-target").forEach((item) => item.classList.remove("explorer-drop-target"));
+    explorerFiles.classList.remove("explorer-root-drop-target");
     if (event.dataTransfer?.types?.includes("application/x-darkstudio-node")) {
-      if (folder?.type !== "folder") return;
       event.preventDefault();
       event.stopPropagation();
       const dragged = getNode(event.dataTransfer.getData("application/x-darkstudio-node"));
-      if (dragged) moveNodeIntoExplorerFolder(dragged, folder);
+      if (!dragged) return;
+      if (destinationFolder?.type === "folder") {
+        moveNodeIntoExplorerFolder(dragged, destinationFolder);
+      } else {
+        moveNodeToExplorerRoot(dragged);
+      }
     }
   });
   explorer?.addEventListener("contextmenu", (event) => {
@@ -2842,7 +2945,10 @@ function wireUI() {
     }
   });
   for (const eventName of ["dragleave", "drop"]) {
-    explorer?.addEventListener(eventName, () => explorer.classList.remove("explorer-drop-target"));
+    explorer?.addEventListener(eventName, () => {
+      explorer.classList.remove("explorer-drop-target");
+      document.getElementById("explorer-files")?.classList.remove("explorer-root-drop-target");
+    });
   }
 
   if (mapButton) {
