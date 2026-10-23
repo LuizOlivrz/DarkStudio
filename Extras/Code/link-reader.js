@@ -214,6 +214,16 @@ async function analyzeDetectedUrl(rawUrl) {
   }
   if (url.href === activeAnalysisUrl) return;
   activeAnalysisUrl = url.href;
+
+  // O site publicado não permite leitura cross-origin por fetch. Não tente
+  // buscar seus metadados quando o editor está aberto em localhost/outra origem.
+  if (url.hostname === "darkstudio-code.netlify.app" && url.origin !== location.origin) {
+    window.dispatchEvent(new CustomEvent("darkstudio:site-analysis", {
+      detail: { url: url.href, ok: false },
+    }));
+    return;
+  }
+
   const sequence = ++analysisSequence;
 
   const controller = new AbortController();
