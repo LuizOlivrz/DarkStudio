@@ -2721,7 +2721,8 @@ function wireUI() {
       requestAnimationFrame(() => window.editor?.focus?.());
     }
   });
-  explorerFiles?.addEventListener("contextmenu", (event) => {
+  const explorer = document.getElementById("explorer");
+  explorer?.addEventListener("contextmenu", (event) => {
     event.preventDefault();
     event.stopPropagation();
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
@@ -2729,7 +2730,6 @@ function wireUI() {
     const node = button ? getNode(button.dataset.nodeId) : null;
     showExplorerContextMenu(node, event.clientX, event.clientY);
   });
-  const explorer = document.getElementById("explorer");
   explorer?.addEventListener("dragover", (event) => {
     if (event.dataTransfer?.types?.includes("Files")) {
       event.preventDefault();
