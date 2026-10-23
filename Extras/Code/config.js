@@ -243,7 +243,9 @@ document.documentElement.lang = currentLang;
 
 detectDevice();
 const isDesktopApp = window.darkStudioDesktop?.isDesktop === true;
-if (!isDesktopApp && !OFFICIAL_ORIGINS.has(window.location.origin)) {
+const isLocalDevelopmentOrigin = window.location.protocol === "http:" &&
+  ["localhost", "127.0.0.1", "::1", "[::1]"].includes(window.location.hostname);
+if (!isDesktopApp && !OFFICIAL_ORIGINS.has(window.location.origin) && !isLocalDevelopmentOrigin) {
   if (sessionStorage.getItem(OFFICIAL_ORIGIN_UNLOCK_KEY) !== "true") {
     block = true;
     blockReasonKey = "blockedOrigin";
