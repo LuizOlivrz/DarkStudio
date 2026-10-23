@@ -211,8 +211,6 @@ if (!blockWeb) {
       window.darkStudioWorkspaceSyncExtension?.(language);
     }
 
-    const isEmpty = code.trim() === "";
-
     updateLanguageDisplay(language);
 
     const canExecute = language === "HTML" || language === "JavaScript";
