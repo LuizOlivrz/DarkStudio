@@ -200,5 +200,7 @@
   "linkReaderInvalidApi": "GitHub вернул неверный ответ API.",
   "linkReaderNoReadableText": "По этому URL не найден читаемый текст.",
   "linkReaderCouldNotRead": "Не удалось прочитать эту ссылку.",
-  "enableMiniPlayers": "Включить мини-плееры медиа"
+  "enableMiniPlayers": "Включить мини-плееры медиа",
+  "explorerEmpty": "В проекте нет файлов",
+  "editorDropTextOnly": "Перетащите текстовый файл или файл кода в редактор."
 }
