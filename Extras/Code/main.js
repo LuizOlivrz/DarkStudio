@@ -46,7 +46,6 @@ if (!blockWeb) {
   const resetAccentColorButton = document.getElementById("reset-accent-color");
   const executeButton = document.getElementById("execute");
   const iframeButton = document.getElementById("new-iframe-button");
-  const downloadButton = document.getElementById("download-file");
   const clearButton = document.getElementById("clear");
   const editor = document.getElementById("main-content");
   const executorPanel = document.getElementById("executor-panel");
@@ -57,6 +56,10 @@ if (!blockWeb) {
   const resetSignatureButton = document.getElementById("reset-signature");
   const signatureElement = document.getElementById("signature");
   const WebsiteContainer = document.getElementById("Website-Container");
+  // A execução ocupa o próprio espaço de #main-content; #options permanece independente.
+  if (editor && executorPanel && executorPanel.parentElement !== editor) {
+    editor.appendChild(executorPanel);
+  }
   let configValue = false;
   let currentDetectedLanguage = "";
   let lastLinkAnalysis = null;
@@ -215,8 +218,6 @@ if (!blockWeb) {
       language === "HTML" || language === "JavaScript" ? "block" : "none";
 
     iframeButton.style.display = language === "HTML" ? "block" : "none";
-
-    downloadButton.style.display = isEmpty ? "none" : "inline-block";
 
     clearButton.style.display = isEmpty ? "none" : "inline-block";
 
@@ -1081,7 +1082,9 @@ if (!blockWeb) {
   // 💾 File Download / Download de Arquivo
   // ─────────────────────────────────────────────
 
-  document.getElementById("download-file").addEventListener("click", () => {
+  function downloadCurrentCode() {
+    if (!window.editor) return;
+
     const code = window.editor.getValue();
     const language = detectLanguage(code);
 
@@ -1123,7 +1126,7 @@ if (!blockWeb) {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-  });
+  }
 
   // ─────────────────────────────────────────────
   // ▶️ Execute Code / Executar Código
@@ -1144,7 +1147,7 @@ if (!blockWeb) {
       }
 
       if (editor) {
-        editor.classList.remove("editor-hidden");
+        editor.classList.remove("execution-active");
       }
 
       executeButton.textContent = t("execute");
@@ -1253,7 +1256,7 @@ if (!blockWeb) {
     // força o navegador a reconhecer o display antes da animação
     requestAnimationFrame(() => {
       if (editor) {
-        editor.classList.add("editor-hidden");
+        editor.classList.add("execution-active");
       }
 
       executorPanel.classList.add("executor-visible");
@@ -1550,7 +1553,15 @@ ${code}
   });
 
   document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      e.stopPropagation();
+      downloadCurrentCode();
+      return;
+    }
+
     if (e.ctrlKey && (e.key === "`" || e.code === "Backquote")) {
+      e.preventDefault();
       execute();
     }
   });
