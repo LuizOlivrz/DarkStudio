@@ -1999,6 +1999,13 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   }
 
   const basePath = targetFolder?.filePath || "";
+  const importedFolderPaths = new Set();
+  const markImportedFolderPath = (path) => {
+    const parts = String(path || "").replace(/\\/g, "/").split("/").filter(Boolean);
+    for (let i = 1; i <= parts.length; i++) {
+      importedFolderPaths.add(parts.slice(0, i).join("/"));
+    }
+  };
   const prepared = [];
   let ignoredDirectoryFiles = 0;
   let oversizedFiles = 0;
@@ -2030,6 +2037,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
 
     const relativeDirectoryPath = parts.join("/");
     const directoryPath = [basePath, relativeDirectoryPath].filter(Boolean).join("/");
+    if (directoryPath) markImportedFolderPath(directoryPath);
     const filePath = [basePath, relativeDirectoryPath, filename].filter(Boolean).join("/");
     if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === filePath)) continue;
     prepared.push({ file, filename, directoryPath, filePath });
@@ -2059,7 +2067,9 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   for (const directoryPath of filteredDirectories) {
     const normalizedDirectory = String(directoryPath || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
     if (!normalizedDirectory) continue;
-    ensureFolderPath([basePath, normalizedDirectory].filter(Boolean).join("/"));
+    const fullDirectoryPath = [basePath, normalizedDirectory].filter(Boolean).join("/");
+    markImportedFolderPath(fullDirectoryPath);
+    ensureFolderPath(fullDirectoryPath);
   }
 
   // Leia um arquivo por vez. Não mantenha todas as strings/base64 na memória
@@ -2088,6 +2098,19 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   }
 
   if (rootName && replaceWorkspace && !targetFolder) workspaceName = rootName;
+
+  // Toda pasta que pertence à importação começa recolhida no Explorer.
+  // A pasta de destino preexistente permanece aberta ao importar dentro dela.
+  for (const node of nodes) {
+    if (
+      node.type === "folder" &&
+      node.id !== targetFolder?.id &&
+      importedFolderPaths.has(String(node.filePath || node.name).replace(/\\/g, "/"))
+    ) {
+      node.isOpen = false;
+    }
+  }
+
   saveState();
   renderNodes();
 
