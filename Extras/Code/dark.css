@@ -3503,6 +3503,53 @@ body {
   background: rgba(var(--secondary-rgb, 93, 0, 255), .18);
   color: #fff;
 }
+#explorer-files .explorer-entry {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+#explorer-files .explorer-children {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 12px;
+  padding-left: 7px;
+  border-left: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .42);
+}
+#explorer-files .explorer-children > .explorer-entry > .explorer-file::before {
+  content: "";
+  position: absolute;
+  width: 7px;
+  left: -7px;
+  top: 50%;
+  border-top: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .42);
+}
+#explorer-files .explorer-file {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+}
+#explorer-files .explorer-file-icon {
+  flex: 0 0 16px;
+  text-align: center;
+}
+#explorer-files .explorer-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#explorer-files .explorer-file.explorer-drop-target {
+  outline: 1px dashed var(--secondary-color, #5d00ff);
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .24);
+  color: #fff;
+}
+#explorer.explorer-drop-target {
+  outline: 1px dashed var(--secondary-color, #5d00ff);
+  outline-offset: 2px;
+}
 #explorer-files .explorer-empty {
   padding: 8px 4px;
   color: #888;
