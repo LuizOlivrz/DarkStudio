@@ -1330,34 +1330,22 @@ body {
    ========================================================= */
 
 #executor-panel {
-  grid-column: 2;
-  grid-row: 1;
-
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 92.2vh;
-
-  min-width: 300px;
-
+  height: 100%;
+  min-width: 0;
   box-sizing: border-box;
-
   background: #090909;
-
   border: 2px solid var(--primary-color);
   border-radius: 8px;
-
   overflow: hidden;
-
   display: none;
-
   opacity: 0;
   transform: translateY(10px);
-
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
-
-  position: relative;
-
   z-index: 10;
 }
 
@@ -1402,11 +1390,8 @@ body {
     transform 0.3s ease;
 }
 
-#main-content.editor-hidden {
-  opacity: 0;
-  transform: translateY(-10px);
-
-  pointer-events: none;
+#main-content.execution-active #Editor-Input {
+  visibility: hidden;
 }
 
 /* Stable footer: editor status and Settings icon share one responsive row. */
