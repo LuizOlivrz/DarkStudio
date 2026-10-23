@@ -293,7 +293,7 @@ function makeWorkspaceRegistryEntry(snapshot, includeContent = true) {
     name: snapshot.name || "workspace 1",
     description: snapshot.description || "",
     tags: Array.isArray(snapshot.tags) ? [...snapshot.tags] : [],
-    photo: snapshot.photo || "",
+    photo: typeof snapshot.photo === "string" && snapshot.photo.length <= 100_000 ? snapshot.photo : "",
     workspacePan: snapshot.workspacePan || { x: 0, y: 0 },
     nodeCount: Array.isArray(snapshot.nodes) ? snapshot.nodes.length : Number(snapshot.nodeCount) || 0,
   };
@@ -307,10 +307,14 @@ function makeWorkspaceRegistryEntry(snapshot, includeContent = true) {
 function saveState() {
   const snapshot = getWorkspaceSnapshot();
   const state = { nodes, connections, workspaceName, workspaceDescription, workspaceTags, workspacePan };
-  const serializedState = JSON.stringify(state);
-  const keepContentInLocalStorage =
-    serializedState.length <= MAX_LOCAL_STORAGE_STATE_CHARS &&
-    JSON.stringify(snapshot).length <= MAX_LOCAL_STORAGE_STATE_CHARS;
+  // Estime o volume pelo conteúdo antes de serializar para não criar strings
+  // gigantes só para descobrir que localStorage não tem espaço suficiente.
+  const estimatedContentChars = nodes.reduce(
+    (total, node) => total + (typeof node.content === "string" ? node.content.length : 0),
+    0,
+  );
+  const keepContentInLocalStorage = estimatedContentChars <= MAX_LOCAL_STORAGE_STATE_CHARS;
+  const serializedState = keepContentInLocalStorage ? JSON.stringify(state) : "";
   const registryEntry = makeWorkspaceRegistryEntry(snapshot, keepContentInLocalStorage);
   const workspaces = readWorkspaceRegistry();
   const index = workspaces.findIndex((item) => item.id === workspaceId);
