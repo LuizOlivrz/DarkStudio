@@ -93,6 +93,7 @@ if (!blockWeb) {
     [t("text")]: "plaintext",
     [t("gitText")]: "plaintext",
     Rust: "rust",
+    PowerShell: "powershell",
     "Comece a escrever seu código e veja a linguagem aqui!": "plaintext",
     "Start writing your code and see the language here!": "plaintext",
   };
