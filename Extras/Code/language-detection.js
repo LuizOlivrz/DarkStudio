@@ -181,6 +181,14 @@ export function detectLanguage(code) {
 
   if (/BEGIN:VCARD/.test(cleanCode)) return "VCF";
 
+  // PowerShell scripts and common cmdlets/operators.
+  if (
+    /\b(?:Write-Host|Write-Output|Get-ChildItem|Get-Content|Set-Content|Get-Process|Get-Service|Where-Object|ForEach-Object|Select-Object|Import-Module|Export-Csv|ConvertTo-Json|Invoke-WebRequest|Start-Process)\b/i.test(cleanCode) ||
+    /^\s*param\s*\(/im.test(cleanCode) ||
+    /\$[A-Za-z_][\w:]*\s*(?:=|\|)/.test(cleanCode) ||
+    /\s-(?:eq|ne|gt|lt|ge|le|like|match|contains|replace|split|join)\b/i.test(cleanCode)
+  ) return "PowerShell";
+
   if (/^@echo\s+off|set\s+\w+=|pause/i.test(cleanCode))
     return "Batch (BAT/CMD)";
 
