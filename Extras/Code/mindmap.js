@@ -2530,6 +2530,10 @@ function showEditor() {
 
     element.style.display = previousDisplays[id] ?? "";
   }
+
+  // Recalcula os botões conforme a linguagem do arquivo recém-aberto.
+  // O Workspace pode tê-los ocultado ao alternar para a visão gráfica.
+  window.darkStudioRefreshEditorUI?.();
 }
 
 function ensureCurrentEditorInWorkspace() {
