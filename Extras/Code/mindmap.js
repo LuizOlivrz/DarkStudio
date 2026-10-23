@@ -1181,6 +1181,7 @@ function refreshExplorerList() {
   const list = document.getElementById("explorer-files");
   if (!list) return;
   list.replaceChildren();
+
   if (!nodes.length) {
     const empty = document.createElement("div");
     empty.className = "explorer-empty";
@@ -1189,38 +1190,62 @@ function refreshExplorerList() {
     return;
   }
 
-  const depthOf = (node) => {
-    let depth = 0;
-    let parent = getParentFolder(node);
-    const visited = new Set([node.id]);
-    while (parent && !visited.has(parent.id)) {
-      visited.add(parent.id);
-      depth++;
-      parent = getParentFolder(parent);
-    }
-    return depth;
-  };
-  const ordered = [...nodes].sort((a, b) => {
-    const pathA = String(a.filePath || a.name).toLowerCase();
-    const pathB = String(b.filePath || b.name).toLowerCase();
-    return pathA.localeCompare(pathB);
-  });
+  const compareNames = (a, b) =>
+    String(a.name || "").localeCompare(String(b.name || ""), undefined, {
+      sensitivity: "base",
+      numeric: true,
+    });
+  const childrenOf = (parent) => nodes
+    .filter((node) => (node.parentFolderId || null) === (parent?.id || null))
+    .sort((a, b) => {
+      const aFolder = a.type === "folder";
+      const bFolder = b.type === "folder";
+      if (aFolder !== bFolder) return aFolder ? -1 : 1;
+      return compareNames(a, b);
+    });
 
-  for (const node of ordered) {
-    const item = document.createElement("button");
-    item.type = "button";
-    item.className = "explorer-file";
-    item.setAttribute("role", "listitem");
-    item.dataset.nodeId = node.id;
-    item.title = node.filePath || node.name;
-    item.style.paddingInlineStart = `${8 + depthOf(node) * 16}px`;
-    item.hidden = isInsideClosedFolder(node);
-    const prefix = node.type === "folder"
-      ? (node.isOpen === false ? "▸ " : "▾ ")
-      : node.type === "image" ? "▧ " : node.type === "binary" ? "▤ " : "· ";
-    item.textContent = prefix + node.name;
-    list.appendChild(item);
-  }
+  const renderBranch = (parent, container) => {
+    for (const node of childrenOf(parent)) {
+      const row = document.createElement("div");
+      row.className = "explorer-entry";
+      row.dataset.nodeId = node.id;
+
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "explorer-file";
+      item.setAttribute("role", "listitem");
+      item.dataset.nodeId = node.id;
+      item.title = node.filePath || node.name;
+      item.draggable = true;
+      item.setAttribute("aria-expanded", node.type === "folder" ? String(node.isOpen !== false) : "false");
+
+      const icon = document.createElement("span");
+      icon.className = "explorer-file-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = node.type === "folder"
+        ? (node.isOpen === false ? "📁" : "📂")
+        : node.type === "image" ? "▧"
+        : node.type === "binary" ? "▤"
+        : getNodeIcon(node);
+
+      const label = document.createElement("span");
+      label.className = "explorer-file-name";
+      label.textContent = node.name;
+      item.append(icon, label);
+      row.appendChild(item);
+      container.appendChild(row);
+
+      if (node.type === "folder" && node.isOpen !== false) {
+        const branch = document.createElement("div");
+        branch.className = "explorer-children";
+        branch.dataset.parentFolderId = node.id;
+        row.appendChild(branch);
+        renderBranch(node, branch);
+      }
+    }
+  };
+
+  renderBranch(null, list);
 }
 
 // ============================================================
