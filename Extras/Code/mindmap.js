@@ -1873,6 +1873,8 @@ async function importWorkspaceFiles(fileList) {
   for (const entry of prepared) {
     if (seenPaths.has(entry.filePath)) continue;
     seenPaths.add(entry.filePath);
+    // Um caminho já existente representa o mesmo arquivo do projeto; evite duplicá-lo.
+    if (!isDirectoryImport && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
     const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : null;
     const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
     const extension = entry.filename.split(".").pop().toLowerCase();
@@ -2629,13 +2631,15 @@ function showExplorerContextMenu(node, x, y) {
 
   const parentFolder = node?.type === "folder" ? node : getParentFolder(node);
   addAction("＋ " + tr("newFile"), async () => {
-    const suggested = tr("newFile") + ".txt";
-    const name = (await showNameDialog(suggested, tr("createFile")) || "").trim();
+    const name = (await showNameDialog("", tr("newFile")) || "").trim();
     if (!name) return;
+    if (/[\\/]/.test(name)) { alert(tr("invalidName")); return; }
     const parentPath = parentFolder?.filePath || "";
     const filePath = parentPath ? `${parentPath}/${name}` : name;
     if (nodes.some((item) => item.filePath === filePath)) { alert(tr("fileExists")); return; }
-    const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
+    const extension = getFileExtension(name);
+    const type = TEXT_FILE_EXTENSIONS.has(extension) ? "text" : "binary";
+    const file = addNode(name, "", type, centerPosition((nodes.length % 8) * 18));
     file.filePath = filePath;
     if (parentFolder) attachNodeToFolder(file, parentFolder);
     saveState(); renderNodes();
