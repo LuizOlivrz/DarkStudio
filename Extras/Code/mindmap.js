@@ -372,11 +372,15 @@ function openWorkspaceDB() {
 }
 
 async function persistStateToIndexedDB() {
+  // Capture snapshot and ID before the asynchronous DB open. Otherwise a fast
+  // Workspace switch could save the previous contents under the next Workspace ID.
+  const snapshot = getWorkspaceSnapshot();
+  const id = workspaceId || "current";
   try {
     const db = await openWorkspaceDB();
     await new Promise((resolve, reject) => {
       const transaction = db.transaction("workspace", "readwrite");
-      transaction.objectStore("workspace").put(getWorkspaceSnapshot(), workspaceId || "current");
+      transaction.objectStore("workspace").put(snapshot, id);
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
