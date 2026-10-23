@@ -215,12 +215,20 @@ if (!blockWeb) {
 
     updateLanguageDisplay(language);
 
-    executeButton.style.display =
-      language === "HTML" || language === "JavaScript" ? "block" : "none";
+    const canExecute = language === "HTML" || language === "JavaScript";
+    const canCreateIframe = language === "HTML";
 
-    iframeButton.style.display = language === "HTML" ? "block" : "none";
+    // Mantenha as ações visíveis para evitar que a barra pareça perder botões
+    // ao abrir arquivos de outras linguagens; desabilite as incompatíveis.
+    executeButton.style.display = "block";
+    executeButton.disabled = !canExecute;
+    executeButton.title = canExecute ? t("runTitle") : `Execução disponível para HTML e JavaScript (arquivo atual: ${language}).`;
 
-    clearButton.style.display = isEmpty ? "none" : "inline-block";
+    iframeButton.style.display = "block";
+    iframeButton.disabled = !canCreateIframe;
+    iframeButton.title = canCreateIframe ? t("iframeTitle") : `Iframe disponível apenas para HTML (arquivo atual: ${language}).`;
+
+    clearButton.style.display = "inline-block";
 
     updateMediaPlayer(code);
   }
