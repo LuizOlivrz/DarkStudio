@@ -1,7 +1,6 @@
 import { detectLanguage } from "./language-detection.js";
 
 const container = document.getElementById("Website-Container");
-const options = document.getElementById("options");
 const fileLauncher = document.getElementById("file-gutter-icon");
 const debuggerLauncher = document.getElementById("debugger-launcher");
 const fileView = document.getElementById("file-manager-view");
