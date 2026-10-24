@@ -3645,7 +3645,8 @@ body {
   opacity: 0.7;
 }
 
-#creator-donation-button {
+#creator-donation-button,
+#creator-pix-copy {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--primary-color, #5d00ff);
@@ -3654,5 +3655,80 @@ body {
   color: inherit;
   font: inherit;
   text-align: center;
-  cursor: default;
+  cursor: pointer;
+}
+
+#creator-donation-button:hover,
+#creator-pix-copy:hover,
+#creator-donation-button:focus-visible,
+#creator-pix-copy:focus-visible {
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .12);
+  outline: 2px solid var(--secondary-color, #5d00ff);
+  outline-offset: 2px;
+}
+
+#creator-donation-dialog {
+  width: min(460px, calc(100% - 40px));
+  max-width: calc(100% - 40px);
+  padding: 0;
+  border: 1px solid var(--primary-color, #5d00ff);
+  border-radius: 10px;
+  background: var(--bg, #080808);
+  color: var(--text, #e6e6e6);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .55);
+}
+
+#creator-donation-dialog::backdrop {
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(3px);
+}
+
+.donation-dialog-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+}
+
+.donation-dialog-content h2,
+.donation-dialog-content p {
+  margin: 0;
+}
+
+.donation-dialog-content h2 {
+  padding-right: 24px;
+  color: var(--secondary-color, #5d00ff);
+}
+
+.donation-dialog-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+#creator-pix-code {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  padding: 10px;
+  resize: vertical;
+  user-select: text;
+  -webkit-user-select: text;
+  color: inherit;
+  background: rgba(127, 127, 127, .1);
+  border: 1px solid rgba(127, 127, 127, .4);
+  border-radius: 6px;
+  font: 12px/1.5 monospace;
+  overflow-wrap: anywhere;
+}
+
+#creator-pix-status {
+  min-height: 1em;
+  font-size: .9em;
 }
