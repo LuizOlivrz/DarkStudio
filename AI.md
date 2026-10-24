@@ -197,7 +197,7 @@ Formato obrigatório:
 | 2026-10-24 19:25 (UTC-03:00) | ChatGPT — GPT-6 | Combina a interface atual do Workspace com o botão de doações e a extração dos eventos inline para arquivos JavaScript. | PR #29: https://github.com/LuizOlivrz/DarkStudio/pull/29 |
 | 2026-10-24 19:40 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona janela de doação Pix com código Copia e Cola e ação para copiar, em módulo JavaScript separado. | Branch `feature/pix` |
 | 2026-10-24 19:55 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a inicialização do Monaco removendo a importação duplicada dos módulos de contribuição HTML/TypeScript, que provocava erro AMD e impedia a criação do editor. | PR #32 |
-| 2026-10-24 20:46 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona a navegação lateral entre Estação de Arquivos e Debugger, com ação de execução e aviso visual para linguagens ainda não suportadas. | PR #32 |
+| 2026-10-24 20:46 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona a navegação lateral entre Estação de Arquivos e Debugger, com ação de execução e aviso visual para linguagens ainda não suportadas. | PR #33 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
