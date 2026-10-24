@@ -3898,3 +3898,69 @@ body {
   color: #fff;
   background: rgba(var(--secondary-rgb, 93, 0, 255), .3);
 }
+
+
+/* Empty workspace presentation. */
+#main-content #workspace-empty-state {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  pointer-events: none;
+}
+#main-content #workspace-empty-state[hidden] {
+  display: none !important;
+}
+#workspace-empty-state img {
+  display: block;
+  width: clamp(76px, 11vw, 132px);
+  height: auto;
+  max-height: 132px;
+  object-fit: contain;
+  opacity: .92;
+}
+#workspace-empty-state p {
+  margin: 0;
+  color: var(--secondary-color, #fff);
+  font-size: clamp(16px, 2vw, 22px);
+  letter-spacing: .04em;
+}
+
+/* The Debugger section header mirrors the Explorer's quiet, borderless style. */
+#explorer-toggle,
+#debugger-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 2px;
+  border: 0 !important;
+  border-radius: 0;
+  box-shadow: none !important;
+  color: var(--secondary-color, #5d00ff);
+  background: transparent !important;
+  text-align: left;
+  cursor: pointer;
+  transition: color .18s ease;
+}
+#explorer-toggle:hover,
+#debugger-toggle:hover {
+  color: #fff;
+  background: transparent !important;
+}
+#explorer-toggle:focus-visible,
+#debugger-toggle:focus-visible {
+  outline: 1px solid var(--secondary-color, #5d00ff);
+  outline-offset: 2px;
+}
+#debugger-toggle .explorer-chevron {
+  flex: 0 0 auto;
+  margin-left: 8px;
+}
