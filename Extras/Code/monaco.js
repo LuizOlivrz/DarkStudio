@@ -319,15 +319,11 @@ if (!blockWeb) {
 
     initialTheme = theme;
 
-    // Registra os serviços de HTML e JavaScript/TypeScript. O serviço HTML
-    // usa a gramática JavaScript para destacar código dentro de <script>.
-    require(
-      [
-        "vs/editor/editor.main",
-        "vs/language/html/monaco.contribution",
-        "vs/language/typescript/monaco.contribution",
-      ],
-      (monacoInstance) => {
+    // O bundle editor.main já carrega as contribuições internas do Monaco
+    // e os módulos compartilhados de HTML/TypeScript desta distribuição.
+    // Importar novamente os wrappers monaco.contribution pode fazer o AMD
+    // definir o mesmo módulo duas vezes e impedir a criação do editor.
+    require(["vs/editor/editor.main"], (monacoInstance) => {
       window.monaco = monacoInstance;
 
       // 1️⃣ Definir tema inicial
