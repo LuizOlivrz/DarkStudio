@@ -157,6 +157,17 @@
       </div>
       <hr class="donation-separator" aria-hidden="true" />
       <button id="creator-donation-button" type="button">Doações para o criador (LuizOlivrz)</button>
+      <dialog id="creator-donation-dialog" aria-labelledby="creator-donation-title">
+        <div class="donation-dialog-content">
+          <button id="creator-donation-close" class="donation-dialog-close" type="button" aria-label="Fechar">×</button>
+          <h2 id="creator-donation-title">Doações para o criador</h2>
+          <p>Ajude a apoiar o desenvolvimento do DarkStudio via Pix.</p>
+          <label for="creator-pix-code">Pix Copia e Cola</label>
+          <textarea id="creator-pix-code" readonly spellcheck="false">00020126830014BR.GOV.BCB.PIX0136ac649743-2477-4b5a-a1bd-66527c657f560221Criador Do DarkStudio5204000053039865802BR5925Luiz Eduardo Ribeiro de O6009SAO PAULO62140510nV4ve7K7fI63042B42</textarea>
+          <button id="creator-pix-copy" type="button">Copiar código Pix</button>
+          <p id="creator-pix-status" role="status" aria-live="polite"></p>
+        </div>
+      </dialog>
       <div id="app-version" aria-label="DarkStudio version">Versão</div>
       <!-- <div id="Patreons">
           <h4>Confiado por:</h4>
@@ -334,6 +345,7 @@
     <script src="Extras/Code/mindmap.js" type="module"></script>
     <script src="Extras/Code/link-reader.js" type="module"></script>
     <script src="Extras/Code/html-events.js" type="module"></script>
+    <script src="Extras/Code/donations.js" type="module"></script>
   </div>
 </body>
 
