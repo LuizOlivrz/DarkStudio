@@ -1298,6 +1298,13 @@ function refreshExplorerList() {
   if (!list) return;
   list.replaceChildren();
 
+  // Pastas não contam como arquivos para o estado vazio do editor.
+  const hasWorkspaceFiles = nodes.some((node) => node.type !== "folder");
+  const editorInput = document.getElementById("Editor-Input");
+  const emptyState = document.getElementById("workspace-empty-state");
+  if (editorInput) editorInput.hidden = !hasWorkspaceFiles;
+  if (emptyState) emptyState.hidden = hasWorkspaceFiles;
+
   if (!nodes.length) {
     const empty = document.createElement("div");
     empty.className = "explorer-empty";
