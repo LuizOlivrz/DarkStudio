@@ -19,12 +19,6 @@ document.addEventListener("click", (event) => {
     case "clear-editor":
       window.editor?.setValue("");
       break;
-    case "execute-code":
-      if (typeof window.execute === "function") window.execute();
-      break;
-    case "new-iframe":
-      if (typeof window.newIframe === "function") window.newIframe();
-      break;
     case "toggle-settings":
       if (typeof window.config === "function") window.config();
       break;
