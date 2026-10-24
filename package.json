@@ -1,0 +1,85 @@
+{
+  "name": "darkstudio",
+  "productName": "DarkStudio",
+  "version": "1.0.0",
+  "description": "DarkStudio web e desktop no mesmo repositório",
+  "main": "Desktop/main.js",
+  "author": "LuizOlivrz",
+  "scripts": {
+    "start": "electron .",
+    "start:debug": "electron . --enable-logging",
+    "dist": "npm run dist:win",
+    "dist:win": "electron-builder --win nsis portable",
+    "dist:linux": "electron-builder --linux",
+    "dist:mac": "electron-builder --mac",
+    "check:desktop": "node --check Desktop/main.js && node --check Desktop/preload.js && node --check Desktop/desktop-bridge.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\""
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "dev.darkstudio.desktop",
+    "productName": "DarkStudio",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DarkStudio",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Windows-Portable-${arch}.${ext}"
+    },
+    "files": [
+      "index.html",
+      "help/**/*",
+      "Extras/**/*",
+      "Desktop/**/*",
+      "package.json",
+      "node_modules/monaco-editor/**/*",
+      "!**/*.map",
+      "!**/.git/**"
+    ],
+    "asar": true
+  },
+  "dependencies": {
+    "monaco-editor": "0.52.2",
+    "extract-zip": "^2.0.1"
+  }
+}

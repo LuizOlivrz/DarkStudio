@@ -1,0 +1,178 @@
+{
+  "foreground": "", // Cor geral do primeiro plano. Essa cor só é usada se não for substituída por um componente.
+  "errorForeground": "", // Cor geral do primeiro plano para mensagens de erro. Só é usada se não for substituída por um componente.
+  "descriptionForeground": "", // Cor do texto de descrição que fornece informações adicionais, por exemplo, para um rótulo.
+  "focusBorder": "", // Cor geral da borda de elementos focados. Só é usada se não for substituída por um componente.
+  "contrastBorder": "", // Uma borda extra em torno dos elementos para separá-los de outros e aumentar o contraste.
+  "contrastActiveBorder": "", // Uma borda extra em torno dos elementos ativos para separá-los de outros e aumentar o contraste.
+  "selection.background": "", // Cor de fundo das seleções de texto na área de trabalho (por exemplo, em campos de entrada ou áreas de texto). Não se aplica às seleções dentro do editor.
+  "textSeparator.foreground": "", // Cor para separadores de texto.
+
+  // Cores de links de texto
+  "textLink.foreground": "", // Cor do primeiro plano para links em texto.
+  "textLink.activeForeground": "", // Cor do primeiro plano para links ativos em texto.
+
+  // Cores de texto pré-formatado
+  "textPreformat.foreground": "", // Cor do primeiro plano para segmentos de texto pré-formatados.
+  "textBlockQuote.background": "", // Cor de fundo para citações em bloco no texto.
+  "textBlockQuote.border": "", // Cor da borda para citações em bloco no texto.
+  "textCodeBlock.background": "", // Cor de fundo para blocos de código em texto.
+
+  // Cores de widgets
+  "widget.shadow": "", // Cor da sombra de widgets, como localizar/substituir dentro do editor.
+
+  // Cores de entrada
+  "input.background": "", // Fundo da caixa de entrada.
+  "input.foreground": "", // Cor do texto da caixa de entrada.
+  "input.border": "", // Cor da borda da caixa de entrada.
+  "inputOption.activeBorder": "", // Cor da borda de opções ativadas em campos de entrada.
+  "input.placeholderForeground": "", // Cor do texto placeholder em campos de entrada.
+  "inputValidation.infoBackground": "", // Cor de fundo da validação de entrada para informações.
+  "inputValidation.infoBorder": "", // Cor da borda da validação de entrada para informações.
+  "inputValidation.warningBackground": "", // Cor de fundo da validação de entrada para avisos.
+  "inputValidation.warningBorder": "", // Cor da borda da validação de entrada para avisos.
+  "inputValidation.errorBackground": "", // Cor de fundo da validação de entrada para erros.
+  "inputValidation.errorBorder": "", // Cor da borda da validação de entrada para erros.
+
+  // Cores de menus suspensos (dropdown)
+  "dropdown.background": "", // Fundo do menu suspenso.
+  "dropdown.foreground": "", // Texto do menu suspenso.
+  "dropdown.border": "", // Borda do menu suspenso.
+
+  // Listas e árvores
+  "list.focusBackground": "", // Fundo do item focado quando a lista/árvore está ativa (com foco no teclado).
+  "list.focusForeground": "", // Texto do item focado quando a lista/árvore está ativa.
+  "list.activeSelectionBackground": "", // Fundo do item selecionado quando a lista/árvore está ativa.
+  "list.activeSelectionForeground": "", // Texto do item selecionado quando a lista/árvore está ativa.
+  "list.inactiveSelectionBackground": "", // Fundo do item selecionado quando a lista/árvore está inativa.
+  "list.inactiveSelectionForeground": "", // Texto do item selecionado quando a lista/árvore está inativa.
+  "list.hoverBackground": "", // Fundo ao passar o mouse sobre os itens.
+  "list.hoverForeground": "", // Texto ao passar o mouse sobre os itens.
+  "list.dropBackground": "", // Fundo ao arrastar e soltar itens.
+  "list.highlightForeground": "", // Cor do texto destacado ao buscar dentro da lista/árvore.
+
+  // Cores do seletor rápido (Quick Open, sugestões, etc.)
+  "pickerGroup.foreground": "", // Cor do rótulo de grupo do seletor rápido.
+  "pickerGroup.border": "", // Cor da borda do grupo do seletor rápido.
+
+  // Botões
+  "button.foreground": "", // Cor do texto do botão.
+  "button.background": "", // Cor de fundo do botão.
+  "button.hoverBackground": "", // Cor de fundo do botão ao passar o mouse.
+
+  // Distintivos (badges)
+  "badge.background": "", // Fundo do distintivo (badge). Usado para contadores de resultados, etc.
+  "badge.foreground": "", // Texto do distintivo.
+
+  // Barra de rolagem
+  "scrollbar.shadow": "", // Sombra da barra de rolagem indicando que a visão foi rolada.
+  "scrollbarSlider.background": "", // Fundo do controle deslizante.
+  "scrollbarSlider.hoverBackground": "", // Fundo do controle deslizante ao passar o mouse.
+  "scrollbarSlider.activeBackground": "", // Fundo do controle deslizante ativo.
+
+  // Barra de progresso
+  "progressBar.background": "", // Cor de fundo da barra de progresso exibida em operações longas.
+
+  // Editor
+  "editor.background": "#090909", // Cor de fundo do editor.
+  "editor.foreground": "", // Cor padrão do texto no editor.
+
+  // Widgets do editor
+  "editorWidget.background": "", // Fundo de widgets do editor (ex: localizar/substituir).
+  "editorWidget.border": "", // Cor da borda dos widgets do editor.
+
+  // Seleção no editor
+  "editor.selectionBackground": "", // Cor da seleção no editor.
+  "editor.selectionForeground": "", // Cor do texto selecionado (alto contraste).
+  "editor.inactiveSelectionBackground": "", // Cor da seleção em editor inativo.
+  "editor.selectionHighlightBackground": "", // Cor para regiões com o mesmo conteúdo da seleção.
+
+  // Resultados de busca no editor
+  "editor.findMatchBackground": "", // Cor da ocorrência atual da busca.
+  "editor.findMatchHighlightBackground": "", // Cor das outras ocorrências da busca.
+  "editor.findRangeHighlightBackground": "", // Cor da área que limita a busca.
+
+  // Realce ao passar o mouse
+  "editor.hoverHighlightBackground": "", // Realce abaixo da palavra com dica (hover).
+
+  // Dicas flutuantes (hover)
+  "editorHoverWidget.background": "", // Fundo da dica flutuante.
+  "editorHoverWidget.border": "", // Borda da dica flutuante.
+
+  // Links ativos no editor
+  "editorLink.activeForeground": "", // Cor dos links ativos.
+
+  // Editor de diferenças (diff)
+  "diffEditor.insertedTextBackground": "", // Fundo do texto inserido.
+  "diffEditor.removedTextBackground": "", // Fundo do texto removido.
+  "diffEditor.insertedTextBorder": "", // Borda do texto inserido.
+  "diffEditor.removedTextBorder": "", // Borda do texto removido.
+
+  // Editor de conflitos de mesclagem
+  "merge.currentHeaderBackground": "", // Fundo do cabeçalho atual em conflitos inline.
+  "merge.currentContentBackground": "", // Fundo do conteúdo atual em conflitos inline.
+  "merge.incomingHeaderBackground": "", // Fundo do cabeçalho de entrada em conflitos inline.
+  "merge.incomingContentBackground": "", // Fundo do conteúdo de entrada em conflitos inline.
+  "merge.commonHeaderBackground": "", // Fundo do cabeçalho comum em conflitos inline.
+  "merge.commonContentBackground": "", // Fundo do conteúdo comum em conflitos inline.
+  "merge.border": "", // Cor da borda nos cabeçalhos e divisores em conflitos inline.
+
+  // Régua de visão geral do editor
+  "editorOverviewRuler.currentContentForeground": "", // Cor do conteúdo atual na régua de visão geral.
+  "editorOverviewRuler.incomingContentForeground": "", // Cor do conteúdo de entrada na régua de visão geral.
+  "editorOverviewRuler.commonContentForeground": "", // Cor do conteúdo comum na régua de visão geral.
+
+  // Destaque de linha do cursor
+  "editor.lineHighlightBackground": "", // Fundo da linha onde está o cursor.
+  "editor.lineHighlightBorder": "", // Cor da borda da linha do cursor.
+
+  // Cores gerais do editor
+  "editor.rangeHighlightBackground": "", // Fundo de intervalos destacados (ex: busca rápida).
+  "editorCursor.foreground": "", // Cor do cursor.
+  "editorWhitespace.foreground": "", // Cor dos espaços em branco.
+  "editorIndentGuide.background": "", // Cor das guias de indentação.
+  "editorLineNumber.foreground": "", // Cor dos números de linha.
+  "editorRuler.foreground": "", // Cor das réguas do editor.
+  "editorCodeLens.foreground": "", // Cor do texto das CodeLens.
+  "editorBracketMatch.background": "", // Fundo atrás dos colchetes correspondentes.
+  "editorBracketMatch.border": "", // Cor das bordas dos colchetes correspondentes.
+  "editorOverviewRuler.border": "", // Cor da borda da régua de visão geral.
+  "editorGutter.background": "", // Fundo da área lateral (números e ícones).
+
+  // Erros e avisos
+  "editorError.foreground": "", // Cor das ondulações de erro no editor.
+  "editorError.border": "", // Cor da borda das ondulações de erro.
+  "editorWarning.foreground": "", // Cor das ondulações de aviso no editor.
+  "editorWarning.border": "", // Cor da borda das ondulações de aviso.
+
+  // Navegação de marcadores
+  "editorMarkerNavigationError.background": "", // Cor do erro no widget de navegação de marcadores.
+  "editorMarkerNavigationWarning.background": "", // Cor de aviso no widget de navegação de marcadores.
+  "editorMarkerNavigation.background": "", // Fundo do widget de navegação de marcadores.
+
+  // Widget de sugestões
+  "editorSuggestWidget.background": "", // Fundo do widget de sugestões.
+  "editorSuggestWidget.border": "", // Borda do widget de sugestões.
+  "editorSuggestWidget.foreground": "", // Texto do widget de sugestões.
+  "editorSuggestWidget.selectedBackground": "", // Fundo da sugestão selecionada.
+  "editorSuggestWidget.highlightForeground": "", // Cor do texto destacado nas sugestões.
+
+  // Destaques de palavra
+  "editor.wordHighlightBackground": "", // Fundo de símbolos em leitura (ex: variável sendo lida).
+  "editor.wordHighlightStrongBackground": "", // Fundo de símbolos em escrita (ex: variável sendo modificada).
+
+  // Visualização (Peek View)
+  "peekViewTitle.background": "", // Fundo da área de título da visualização.
+  "peekViewTitleLabel.foreground": "", // Cor do título da visualização.
+  "peekViewTitleDescription.foreground": "", // Cor das informações do título da visualização.
+  "peekView.border": "", // Cor das bordas e setas da visualização.
+  "peekViewResult.background": "", // Fundo da lista de resultados.
+  "peekViewResult.lineForeground": "", // Cor do texto das linhas nos resultados.
+  "peekViewResult.fileForeground": "", // Cor do texto dos arquivos nos resultados.
+  "peekViewResult.selectionBackground": "", // Fundo do item selecionado na lista de resultados.
+  "peekViewResult.selectionForeground": "", // Texto do item selecionado na lista de resultados.
+  "peekViewEditor.background": "", // Fundo do editor na visualização.
+  "peekViewEditorGutter.background": "", // Fundo da área lateral no editor da visualização.
+  "peekViewResult.matchHighlightBackground": "", // Cor do destaque de correspondência na lista de resultados.
+  "peekViewEditor.matchHighlightBackground": "" // Cor do destaque de correspondência no editor da visualização.
+}
