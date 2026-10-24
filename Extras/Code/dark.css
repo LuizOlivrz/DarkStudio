@@ -3632,3 +3632,25 @@ body {
   background: transparent;
   color: var(--secondary-color, #5d00ff);
 }
+
+
+/* Separador e botão de doações nas configurações */
+.donation-separator {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--primary-color, #5d00ff);
+  margin: 18px 0 12px;
+  opacity: 0.7;
+}
+
+#creator-donation-button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--primary-color, #5d00ff);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: default;
+}
