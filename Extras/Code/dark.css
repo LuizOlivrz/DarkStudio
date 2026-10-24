@@ -3876,3 +3876,19 @@ body {
   .workspace-launcher { width: 36px; height: 38px; }
   .workspace-launcher svg { width: 27px; height: 27px; }
 }
+
+
+/* Ensure the legacy decorative-icon rules do not disable the new rail buttons. */
+#workspace-launcher-rail #file-gutter-icon,
+#workspace-launcher-rail #debugger-launcher {
+  grid-column: auto;
+  grid-row: auto;
+  place-self: auto;
+  margin-top: 0;
+  pointer-events: auto;
+  border: 1px solid transparent;
+}
+#workspace-launcher-rail #file-gutter-icon.is-active,
+#workspace-launcher-rail #debugger-launcher.is-active {
+  border-color: var(--secondary-color, #5d00ff);
+}
