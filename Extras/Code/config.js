@@ -20,7 +20,7 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
-export const version = "18.10.26"; // Current version / versão atual
+export const version = "24.10.26"; // Current version / versão atual
 
 const versionLabel = document.getElementById("app-version");
 if (versionLabel) versionLabel.textContent = `v${version}`;
@@ -243,9 +243,14 @@ document.documentElement.lang = currentLang;
 
 detectDevice();
 const isDesktopApp = window.darkStudioDesktop?.isDesktop === true;
-const isLocalDevelopmentOrigin = window.location.protocol === "http:" &&
+const isLocalDevelopmentOrigin =
+  window.location.protocol === "http:" &&
   ["localhost", "127.0.0.1", "::1", "[::1]"].includes(window.location.hostname);
-if (!isDesktopApp && !OFFICIAL_ORIGINS.has(window.location.origin) && !isLocalDevelopmentOrigin) {
+if (
+  !isDesktopApp &&
+  !OFFICIAL_ORIGINS.has(window.location.origin) &&
+  !isLocalDevelopmentOrigin
+) {
   if (sessionStorage.getItem(OFFICIAL_ORIGIN_UNLOCK_KEY) !== "true") {
     block = true;
     blockReasonKey = "blockedOrigin";
