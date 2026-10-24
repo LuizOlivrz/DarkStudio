@@ -44,8 +44,6 @@ if (!blockWeb) {
   const resetBorderColorButton = document.getElementById("reset-border-color");
   const accentColorInput = document.getElementById("accent-color-input");
   const resetAccentColorButton = document.getElementById("reset-accent-color");
-  const executeButton = document.getElementById("execute");
-  const iframeButton = document.getElementById("new-iframe-button");
   const clearButton = document.getElementById("clear");
   const editor = document.getElementById("main-content");
   const executorPanel = document.getElementById("executor-panel");
@@ -191,8 +189,8 @@ if (!blockWeb) {
   }
 
   /**
-   * Atualiza os botões e linguagem com base no código atual
-   * Updates the buttons and language display based on current code
+   * Atualiza a linguagem e a interface de mídia com base no código atual
+   * Updates the language display and media UI based on current code
    */
   function updateUI(code, language) {
     // Se não foram fornecidos, obtém do editor
@@ -213,25 +211,15 @@ if (!blockWeb) {
 
     updateLanguageDisplay(language);
 
-    const canExecute = language === "HTML" || language === "JavaScript";
-    const canCreateIframe = language === "HTML";
 
-    // Mantenha as ações visíveis para evitar que a barra pareça perder botões
-    // ao abrir arquivos de outras linguagens; desabilite as incompatíveis.
-    executeButton.style.display = "block";
-    executeButton.disabled = !canExecute;
-    executeButton.title = canExecute ? t("runTitle") : `Execução disponível para HTML e JavaScript (arquivo atual: ${language}).`;
 
-    iframeButton.style.display = "block";
-    iframeButton.disabled = !canCreateIframe;
-    iframeButton.title = canCreateIframe ? t("iframeTitle") : `Iframe disponível apenas para HTML (arquivo atual: ${language}).`;
 
     clearButton.style.display = "inline-block";
 
     updateMediaPlayer(code);
   }
 
-  // Permite que o Workspace atualize imediatamente os botões quando um arquivo
+  // Permite que o Workspace atualize imediatamente a interface quando um arquivo
   // é aberto, sem depender apenas do debounce da análise de conteúdo.
   window.darkStudioRefreshEditorUI = () => updateUI();
 
@@ -1161,7 +1149,6 @@ if (!blockWeb) {
         editor.classList.remove("execution-active");
       }
 
-      executeButton.textContent = t("execute");
 
       setTimeout(() => {
         if (!executorActive && executorOutput) {
@@ -1273,7 +1260,6 @@ if (!blockWeb) {
       executorPanel.classList.add("executor-visible");
     });
 
-    executeButton.textContent = t("returnToEditor");
   }
 
   // ─────────────────────────────────────────────
