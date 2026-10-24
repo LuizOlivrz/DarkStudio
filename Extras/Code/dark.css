@@ -3732,3 +3732,147 @@ body {
   min-height: 1em;
   font-size: .9em;
 }
+
+
+/* Workspace tool rail and switchable options views. */
+#workspace-launcher-rail {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 44px;
+  margin-top: 5px;
+  z-index: 5;
+}
+.workspace-launcher {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 42px;
+  padding: 4px;
+  color: var(--secondary-color, #5d00ff);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+.workspace-launcher svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+.workspace-launcher:hover,
+.workspace-launcher:focus-visible {
+  color: #fff;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .18);
+  border-color: rgba(var(--secondary-rgb, 93, 0, 255), .55);
+  outline: none;
+}
+.workspace-launcher.is-active {
+  color: #fff;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .3);
+  border-color: var(--secondary-color, #5d00ff);
+}
+#Website-Container.with-chat #workspace-launcher-rail {
+  display: none;
+}
+#options .options-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  width: 100%;
+}
+#options .options-view[hidden] {
+  display: none !important;
+}
+#options .options-view-heading {
+  margin: 0;
+  padding: 2px 0 8px;
+  color: var(--secondary-color, #7654ff);
+  font-size: 1rem;
+  line-height: 1.3;
+  border-bottom: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .35);
+}
+#debugger-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+#debugger-toggle,
+#debugger-run-button {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .45);
+  border-radius: 7px;
+  color: var(--secondary-color, #7654ff);
+  background: rgba(10, 10, 10, .75);
+  cursor: pointer;
+}
+#debugger-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+#debugger-toggle:hover,
+#debugger-run-button:hover {
+  color: #fff;
+  background: var(--primary-color, #5d00ff);
+}
+#debugger-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#debugger-section:not(.debugger-open) #debugger-content {
+  display: none;
+}
+#debugger-run-button {
+  color: #fff;
+  background: var(--primary-color, #5d00ff);
+}
+#main-content {
+  position: relative;
+}
+#debugger-unsupported-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 8, 8, .38);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+  text-align: center;
+}
+#debugger-unsupported-overlay[hidden] {
+  display: none !important;
+}
+#debugger-unsupported-overlay p {
+  max-width: 360px;
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .55);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(12, 12, 12, .9);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, .35);
+}
+#Website-Container.debugger-unsupported #Editor-Input {
+  filter: blur(4px);
+}
+@media (max-width: 600px) {
+  #workspace-launcher-rail { width: 38px; }
+  .workspace-launcher { width: 36px; height: 38px; }
+  .workspace-launcher svg { width: 27px; height: 27px; }
+}
