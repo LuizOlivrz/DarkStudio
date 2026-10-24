@@ -2,42 +2,7 @@
 <html lang="en-US" translate="no">
 
 <head>
-  <script>
-    (() => {
-      const supportedLanguages = ["en-US", "pt-BR", "ru", "ja", "ko", "zh-CN", "de", "es"];
-      let savedLanguage = null;
-      try {
-        savedLanguage = localStorage.getItem("darkstudio-language");
-      } catch {
-        // Browser language detection still works when storage is unavailable.
-      }
-
-      if (supportedLanguages.includes(savedLanguage)) {
-        document.documentElement.lang = savedLanguage;
-        return;
-      }
-
-      const browserLanguages = navigator.languages?.length
-        ? navigator.languages
-        : [navigator.language || "en-US"];
-      const normalizedLanguages = browserLanguages.map((locale) =>
-        String(locale).toLowerCase(),
-      );
-      const exactMatch = normalizedLanguages
-        .map((locale) =>
-          supportedLanguages.find((code) => code.toLowerCase() === locale),
-        )
-        .find(Boolean);
-      const languageMatch =
-        normalizedLanguages.some((locale) => locale.startsWith("pt"))
-          ? "pt-BR"
-          : normalizedLanguages.some((locale) => locale.startsWith("ru"))
-            ? "ru"
-            : "en-US";
-
-      document.documentElement.lang = exactMatch || languageMatch;
-    })();
-  </script>
+  <script src="Extras/Code/language-init.js"></script>
   <!-- ====== BASIC META / METADADOS BÁSICOS ====== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -70,7 +35,7 @@
   <div id="Website-Container" class="no-chat" style="opacity: 0">
     <!-- Full-page background element (controlled from Settings) -->
     <div id="page-bg" aria-hidden="true">
-      <img onclick="hideAll()" id="page-bg-img" src="" alt="Background image" data-i18n-alt="backgroundAlt" />
+      <img data-action="hide-all" id="page-bg-img" src="" alt="Background image" data-i18n-alt="backgroundAlt" />
     </div>
 
     <!-- ====== NETWORK STATUS / STATUS DA REDE ====== -->
@@ -95,7 +60,7 @@
       </details>
       <details class="settings-tree">
         <summary data-i18n="aiHeading">AI (NightCoder)</summary>
-        <button id="clearIAChat" onclick="clearChatStorage()" data-i18n="deleteAIChat">
+        <button id="clearIAChat" data-action="clear-ai-chat" data-i18n="deleteAIChat">
           Delete AI Chat
         </button>
         <br /><br />
@@ -103,8 +68,8 @@
         <br /><textarea id="system-prompt-editor" placeholder="NightCoder system behavior..."
           data-i18n-placeholder="aiPromptPlaceholder" style="height: 120px"></textarea><br />
 
-        <button onclick="saveSystemPrompt()" data-i18n="saveAIBehavior">Save AI Behavior</button>
-        <button onclick="deleteSystemPrompt()" data-i18n="resetAIBehavior">Reset AI Behavior</button>
+        <button data-action="save-ai-prompt" data-i18n="saveAIBehavior">Save AI Behavior</button>
+        <button data-action="reset-ai-prompt" data-i18n="resetAIBehavior">Reset AI Behavior</button>
       </details>
       <details class="settings-tree">
         <summary data-i18n="appearanceSettings">Appearance</summary>
@@ -190,6 +155,8 @@
           </svg>
         </a>
       </div>
+      <hr class="donation-separator" aria-hidden="true" />
+      <button id="creator-donation-button" type="button">Doações para o criador (LuizOlivrz)</button>
       <div id="app-version" aria-label="DarkStudio version">Versão</div>
       <!-- <div id="Patreons">
           <h4>Confiado por:</h4>
@@ -258,14 +225,14 @@
     <!-- ====== OPTIONS PANEL / PAINEL DE OPÇÕES ====== -->
     <div id="options">
       <button id="save-button" style="display: none" title="Save" data-i18n-title="save"></button>
-      <button id="clear" title="Clear all code" data-i18n-title="clearTitle" onclick="window.editor.setValue('')">
+      <button id="clear" title="Clear all code" data-i18n-title="clearTitle" data-action="clear-editor">
         <span data-i18n="clear">Clear</span>
       </button>
-      <button id="execute" style="display: none" title="Run your code" data-i18n-title="runTitle" onclick="execute()">
+      <button id="execute" style="display: none" title="Run your code" data-i18n-title="runTitle" data-action="execute-code">
         <span data-i18n="execute">Run</span>
       </button>
       <button id="new-iframe-button" style="display: none" title="Copy a new Iframe" data-i18n-title="iframeTitle"
-        onclick="newIframe()">
+        data-action="new-iframe">
         Iframe
       </button>
       <button id="mindmap-add-files" title="Add to workspace" data-i18n-title="mindMapAddTitle" data-i18n="mindMapAdd" style="display: none">
@@ -298,7 +265,7 @@
 
 <!-- ====== CONFIGURATION ICON / ÍCONE DE CONFIGURAÇÃO ====== -->
       <div id="config-toggle" role="button" tabindex="0" aria-label="Open settings" data-i18n-aria-label="settings"
-        onclick="config()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();config()}">
+        data-action="toggle-settings">
         <svg id="Config-SVG" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100"
           viewBox="0 0 30 30">
           <path
@@ -357,7 +324,7 @@
       </div>
     </div>
 
-    <h1 id="signature" onclick="if (!document.getElementById('Website-Container').classList.contains('settings-active')) config(); document.getElementById('signature-input')?.focus();">
+    <h1 id="signature" data-action="focus-signature">
       LUIZzz
     </h1>
 
@@ -366,6 +333,7 @@
     <script src="Extras/Code/config.js" type="module"></script>
     <script src="Extras/Code/mindmap.js" type="module"></script>
     <script src="Extras/Code/link-reader.js" type="module"></script>
+    <script src="Extras/Code/html-events.js" type="module"></script>
   </div>
 </body>
 
