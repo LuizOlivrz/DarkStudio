@@ -3892,3 +3892,9 @@ body {
 #workspace-launcher-rail #debugger-launcher.is-active {
   border-color: var(--secondary-color, #5d00ff);
 }
+
+#workspace-launcher-rail #file-gutter-icon.is-active,
+#workspace-launcher-rail #debugger-launcher.is-active {
+  color: #fff;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .3);
+}
