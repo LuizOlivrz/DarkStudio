@@ -195,6 +195,7 @@ Formato obrigatório:
 | 2026-10-23 10:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a visibilidade dos botões do editor ao abrir arquivos pelo Workspace. | Branch `fix/botoes-editor-ao-abrir-arquivo` |
 | 2026-10-23 14:29 (UTC-03:00) | ChatGPT — GPT-6 | Corrige visibilidade dos botões, persistência de Workspaces grandes, origem local de desenvolvimento e ícone SVG. | PR #28: https://github.com/LuizOlivrz/DarkStudio/pull/28 |
 | 2026-10-24 19:25 (UTC-03:00) | ChatGPT — GPT-6 | Combina a interface atual do Workspace com o botão de doações e a extração dos eventos inline para arquivos JavaScript. | PR #29: https://github.com/LuizOlivrz/DarkStudio/pull/29 |
+| 2026-10-24 19:40 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona janela de doação Pix com código Copia e Cola e ação para copiar, em módulo JavaScript separado. | Branch `feature/pix` |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
