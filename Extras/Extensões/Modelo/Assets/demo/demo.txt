@@ -1,0 +1,3 @@
+Arquivo obrigatório de demonstração da extensão DarkStudio.
+Mantenha este arquivo em Assets/demo/demo.txt.
+Se este arquivo estiver ausente, o pacote será listado como quebrado e não poderá ser ativado.
