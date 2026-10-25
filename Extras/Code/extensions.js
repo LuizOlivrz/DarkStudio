@@ -522,19 +522,32 @@ list?.addEventListener("click", (event) => {
   renderExtensions();
 });
 
-document.getElementById("extensions-button")?.addEventListener("click", () => {
+function setExtensionsView(open) {
   if (!panel) return;
+
   const container = document.getElementById("Website-Container");
-  const opening = !container?.classList.contains("extensions-active");
+  const editor = document.getElementById("main-content");
   const editorInput = document.getElementById("Editor-Input");
   const settingsPanel = document.getElementById("config");
+  const optionsPanel = document.getElementById("options");
 
   container?.classList.remove("settings-active");
-  container?.classList.toggle("extensions-active", opening);
-  panel.hidden = !opening;
+  container?.classList.toggle("extensions-active", open);
+  panel.hidden = !open;
   if (settingsPanel) settingsPanel.hidden = true;
-  if (editorInput) editorInput.hidden = opening;
+  if (editorInput) editorInput.hidden = open;
+  if (optionsPanel) optionsPanel.hidden = open;
+  if (editor) editor.style.display = "flex";
+
   requestAnimationFrame(() => window.editor?.layout());
+}
+
+// A barra lateral pode abrir a mesma tela de Extensões sem depender do botão em #options.
+window.darkStudioShowExtensions = () => setExtensionsView(true);
+
+document.getElementById("extensions-button")?.addEventListener("click", () => {
+  const container = document.getElementById("Website-Container");
+  setExtensionsView(!container?.classList.contains("extensions-active"));
 });
 
 window.addEventListener("darkstudio:languagechange", renderExtensions);
