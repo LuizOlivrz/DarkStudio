@@ -316,7 +316,7 @@ app.on("window-all-closed", () => {
 });
 
  
-// A sessão CMD existe apenas no processo principal e é isolada por janela.
+// Sessões de terminal isoladas por janela e por aba (CMD ou PowerShell).
 const terminalSessions = new Map();
 
 function isTrustedTerminalEvent(event) {
@@ -324,55 +324,65 @@ function isTrustedTerminalEvent(event) {
     String(event.senderFrame?.url || "").startsWith("app://darkstudio/");
 }
 
+function terminalSessionKey(senderId, terminalId) {
+  return String(senderId) + ":" + String(terminalId || "terminal-1");
+}
+
 function sendTerminalEvent(sender, channel, payload) {
   if (!sender.isDestroyed()) sender.send(channel, payload);
 }
 
-ipcMain.handle("darkstudio:terminal:start", async (event) => {
+ipcMain.handle("darkstudio:terminal:start", async (event, options = {}) => {
   if (!isTrustedTerminalEvent(event)) throw new Error("Origem não autorizada para o terminal.");
-  if (process.platform !== "win32") {
-    return { ok: false, error: "O terminal CMD está disponível apenas no Windows." };
-  }
-
-  const key = event.sender.id;
+  if (process.platform !== "win32") return { ok: false, error: "O terminal integrado está disponível apenas no Windows." };
+  const terminalId = String(options.terminalId || "terminal-1").slice(0, 80);
+  const shellType = options.shell === "PowerShell" ? "PowerShell" : "CMD";
+  const key = terminalSessionKey(event.sender.id, terminalId);
   const existing = terminalSessions.get(key);
   if (existing && !existing.child.killed && existing.child.exitCode === null) {
-    return { ok: true, cwd: existing.cwd, reused: true };
+    return { ok: true, cwd: existing.cwd, reused: true, terminalId, shell: shellType };
   }
 
   const cwd = os.homedir();
-  const child = spawn(process.env.ComSpec || "cmd.exe", ["/D"], {
+  let command;
+  let args;
+  if (shellType === "PowerShell") {
+    command = process.env.SystemRoot ? path.join(process.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe") : "powershell.exe";
+    args = ["-NoLogo", "-NoProfile"];
+  } else {
+    command = process.env.ComSpec || "cmd.exe";
+    args = ["/D"];
+  }
+
+  const child = spawn(command, args, {
     cwd,
     env: process.env,
     windowsHide: true,
     stdio: ["pipe", "pipe", "pipe"]
   });
-  const session = { child, cwd };
+  const session = { child, cwd, terminalId, shell: shellType, sender: event.sender };
   terminalSessions.set(key, session);
 
-  const forward = (chunk) => sendTerminalEvent(event.sender, "darkstudio:terminal:data", chunk.toString("utf8"));
+  const forward = (chunk) => sendTerminalEvent(event.sender, "darkstudio:terminal:data", { terminalId, data: chunk.toString("utf8") });
   child.stdout.on("data", forward);
   child.stderr.on("data", forward);
   child.on("error", (error) => {
-    sendTerminalEvent(event.sender, "darkstudio:terminal:data", "\r\n" + String(error.message || error) + "\r\n");
+    sendTerminalEvent(event.sender, "darkstudio:terminal:data", { terminalId, data: "\r\n" + String(error.message || error) + "\r\n" });
   });
   child.on("exit", (code, signal) => {
-    sendTerminalEvent(event.sender, "darkstudio:terminal:exit", { code, signal });
+    sendTerminalEvent(event.sender, "darkstudio:terminal:exit", { terminalId, code, signal });
     if (terminalSessions.get(key) === session) terminalSessions.delete(key);
   });
-
-  return { ok: true, cwd, reused: false };
+  return { ok: true, cwd, reused: false, terminalId, shell: shellType };
 });
 
-ipcMain.handle("darkstudio:terminal:write", async (event, data) => {
+ipcMain.handle("darkstudio:terminal:write", async (event, options = {}) => {
   if (!isTrustedTerminalEvent(event)) throw new Error("Origem não autorizada para o terminal.");
-  if (typeof data !== "string" || data.length > 16384) {
-    return { ok: false, error: "Entrada do terminal inválida ou muito longa." };
-  }
-  const session = terminalSessions.get(event.sender.id);
-  if (!session || session.child.killed || session.child.exitCode !== null) {
-    return { ok: false, error: "A sessão CMD não está ativa." };
-  }
+  const terminalId = String(options.terminalId || "terminal-1").slice(0, 80);
+  const data = options.data;
+  if (typeof data !== "string" || data.length > 16384) return { ok: false, error: "Entrada do terminal inválida ou muito longa." };
+  const session = terminalSessions.get(terminalSessionKey(event.sender.id, terminalId));
+  if (!session || session.child.killed || session.child.exitCode !== null) return { ok: false, error: "A sessão do terminal não está ativa." };
   try {
     session.child.stdin.write(data);
     return { ok: true };
@@ -381,9 +391,10 @@ ipcMain.handle("darkstudio:terminal:write", async (event, data) => {
   }
 });
 
-ipcMain.handle("darkstudio:terminal:stop", async (event) => {
+ipcMain.handle("darkstudio:terminal:stop", async (event, options = {}) => {
   if (!isTrustedTerminalEvent(event)) throw new Error("Origem não autorizada para o terminal.");
-  const key = event.sender.id;
+  const terminalId = String(options.terminalId || "terminal-1").slice(0, 80);
+  const key = terminalSessionKey(event.sender.id, terminalId);
   const session = terminalSessions.get(key);
   if (!session) return { ok: true };
   terminalSessions.delete(key);
