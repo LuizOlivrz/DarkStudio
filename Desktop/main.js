@@ -348,10 +348,10 @@ ipcMain.handle("darkstudio:terminal:start", async (event, options = {}) => {
   let args;
   if (shellType === "PowerShell") {
     command = process.env.SystemRoot ? path.join(process.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe") : "powershell.exe";
-    args = ["-NoLogo", "-NoProfile", "-Command", "Write-Host ('PS ' + (Get-Location).Path + '>') -NoNewline; while ($null -ne ($line = [Console]::ReadLine())) { try { Invoke-Expression $line } catch { Write-Error $_ }; Write-Host ('PS ' + (Get-Location).Path + '>') -NoNewline }"];
+    args = ["-NoLogo", "-NoProfile", "-Command", "$utf8 = New-Object System.Text.UTF8Encoding $false; [Console]::InputEncoding = $utf8; [Console]::OutputEncoding = $utf8; $OutputEncoding = $utf8; Write-Host ('PS ' + (Get-Location).Path + '>') -NoNewline; while ($null -ne ($line = [Console]::ReadLine())) { try { Invoke-Expression $line } catch { Write-Error $_ }; Write-Host ('PS ' + (Get-Location).Path + '>') -NoNewline }"];
   } else {
     command = process.env.ComSpec || "cmd.exe";
-    args = ["/D"];
+    args = ["/D", "/K", "chcp 65001>nul"];
   }
 
   const child = spawn(command, args, {
