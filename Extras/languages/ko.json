@@ -205,5 +205,12 @@
   "linkReaderCouldNotRead": "이 링크를 읽을 수 없습니다.",
   "enableMiniPlayers": "미디어 미니 플레이어 활성화",
   "explorerEmpty": "프로젝트 파일이 없습니다",
-  "editorDropTextOnly": "텍스트 또는 코드 파일을 편집기로 끌어다 놓으세요."
+  "editorDropTextOnly": "텍스트 또는 코드 파일을 편집기로 끌어다 놓으세요.",
+  "workspaceEmptyState": "워크스페이스가 비어 있습니다",
+  "fileStation": "파일 스테이션",
+  "debuggerHeading": "디버거",
+  "currentFile": "현재 파일",
+  "runDebugCurrentFile": "실행/디버그 (현재 파일)",
+  "debuggerUnsupportedLanguage": "이 언어용 디버거는 아직 없습니다",
+  "debuggerToggleTitle": "디버거 펼치기 또는 접기"
 }
