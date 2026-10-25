@@ -531,7 +531,10 @@ async function installManifest(manifest, { requireFolderPackage = false } = {}) 
     error: isCompleteFolderPackage ? String(manifest.error || "") : "Pacote incompleto: use uma pasta com manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.icon.",
   };
   if (new Blob([JSON.stringify(normalized)]).size > MAX_EXTENSION_BYTES) throw new Error("A extensão excede o limite de 20 MB.");
-  resolveExtensionCSS(normalized.styles, normalized.assets);
+  if (isCompleteFolderPackage) {
+    try { resolveExtensionCSS(normalized.styles, normalized.assets); }
+    catch (error) { throw packageValidationError(`CSS inválido no pacote: ${String(error?.message || error)}`); }
+  }
   if (records.has(normalized.id)) throw new Error("Já existe uma extensão instalada com este identificador.");
   const extension = { manifest: normalized, enabled: manifest.enabled !== false && !normalized.broken, frame: null };
   records.set(extension.manifest.id, extension);
