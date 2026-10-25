@@ -1,0 +1,8 @@
+{
+  "id": "comunidade.exemplo",
+  "name": "Nome da extensão",
+  "version": "0.1.0",
+  "description": "Explique de forma objetiva o que a extensão faz.",
+  "entry": "main.js",
+  "styles": "styles.css"
+}
