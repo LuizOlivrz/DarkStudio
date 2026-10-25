@@ -448,9 +448,14 @@
     showTerminalContext(event.clientX, event.clientY, false);
   });
   terminalPanel.addEventListener("click", (event) => {
-    if (event.target.closest(".ds-terminal-action, .ds-terminal-tab, .ds-terminal-context, input")) return;
+    // Só transfere o foco depois de um clique simples em área não interativa.
+    // Se o usuário selecionou texto para copiar, não rouba o foco da seleção.
+    if (event.button !== 0) return;
+    if (event.target.closest(".ds-terminal-action, .ds-terminal-tab, .ds-terminal-context, input, button, label")) return;
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed && String(selection).length > 0) return;
     const item = activeTerminal();
-    if (item?.prompt && !item.busy) terminalInput.focus();
+    if (item?.prompt && !item.busy) terminalInput.focus({ preventScroll: true });
   });
   fullscreenButton.addEventListener("click", toggleFullscreen);
   closeTerminalButton.addEventListener("click", toggleTerminal);
