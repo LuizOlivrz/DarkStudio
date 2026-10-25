@@ -136,6 +136,13 @@ debuggerToggle?.addEventListener("click", () => {
 });
 
 debuggerRunButton?.addEventListener("click", () => {
+  // Se a mensagem já estiver aberta, o botão funciona como um fechamento.
+  if (unsupportedOverlay && !unsupportedOverlay.hidden) {
+    clearUnsupportedState();
+    debuggerRunButton.blur();
+    return;
+  }
+
   const editor = window.editor;
   const code = editor?.getValue?.() ?? "";
   const language = detectLanguage(code);
@@ -157,6 +164,12 @@ debuggerRunButton?.addEventListener("click", () => {
   } else {
     console.warn("DarkStudio: o executor ainda não está disponível.");
   }
+});
+
+// Clicar no próprio blur/mensagem fecha o aviso e devolve o foco ao editor.
+unsupportedOverlay?.addEventListener("click", () => {
+  clearUnsupportedState();
+  window.editor?.focus?.();
 });
 
 function watchEditor() {
