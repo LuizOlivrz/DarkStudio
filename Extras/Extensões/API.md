@@ -1,6 +1,6 @@
 # API de extensões do DarkStudio
 
-O runtime atual executa o código importado de um arquivo `.dsx.json` em um iframe isolado. O objeto global `DS` expõe somente os métodos abaixo; a extensão não recebe acesso direto ao DOM principal nem ao conteúdo do editor.
+O runtime executa extensões em um iframe isolado. O gerenciador aceita o formato legado `.dsx.json` e pacotes organizados em pastas. O objeto global `DS` expõe somente os métodos abaixo; a extensão não recebe acesso direto ao DOM principal nem ao conteúdo do editor.
 
 ## Métodos disponíveis
 
@@ -20,6 +20,7 @@ Os métodos assíncronos retornam Promises. Use os handles retornados por `DS.qu
 ## Limitações importantes
 
 - A API atual não fornece acesso geral a arquivos locais, sistema de arquivos ou rede.
-- O runtime atual de instalação usa o campo `code` no manifesto `.dsx.json`; ele não carrega automaticamente `main.js`, `styles.css` nem recursos de uma pasta.
-- A estrutura de pastas documentada em `LEIA-ME.md` organiza propostas da comunidade no repositório. A conversão desse formato em um pacote instalável requer uma implementação explícita no gerenciador de extensões.
+- Pacotes de pasta precisam conter `manifest.json`, `main.ds` (JavaScript), `Assets/demo/demo.txt` e `Assets/demo/demo.icon`.
+- O campo `styles` do manifesto pode apontar para um arquivo CSS relativo, como `styles.css`. Recursos de `Assets/` são disponibilizados em `DS.assets` como URLs de dados.
+- Se um pacote estiver incompleto ou inválido, ele é mantido na lista como quebrado, mas permanece desativado e não pode ser ativado até que os arquivos obrigatórios sejam corrigidos.
 - Toda proposta deve passar por revisão de segurança antes de ser aprovada.
