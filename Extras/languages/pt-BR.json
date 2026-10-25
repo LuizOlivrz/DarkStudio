@@ -205,7 +205,7 @@
   "editorDropTextOnly": "Arraste um arquivo de texto ou código para o editor.",
   "workspaceEmptyState": "Workspace vazio",
   "fileStation": "Estação de arquivos",
-  "debuggerHeading": "Depurador",
+  "debuggerHeading": "Depuração",
   "currentFile": "Arquivo atual",
   "runDebugCurrentFile": "Executar/Depurar (Arquivo atual)",
   "debuggerUnsupportedLanguage": "Ainda não temos um depurador para essa linguagem",
