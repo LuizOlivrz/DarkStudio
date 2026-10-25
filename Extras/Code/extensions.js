@@ -425,7 +425,7 @@ function sandboxDocument() {
 }
 
 function createRuntime(extension) {
-  if (extension.frame) return;
+  if (extension.frame || extension.manifest.broken || !extension.manifest.code) return;
   extension.token = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   extension.handles = new WeakMap();
   extension.elements = new Map();
@@ -482,14 +482,29 @@ function renderExtensions() {
       title.appendChild(titleText);
       detail.appendChild(detailText);
       toggle.appendChild(buttonText);
-      info.append(title, detail);
+      const icon = document.createElement("img");
+      icon.className = "ds-extension-icon";
+      icon.alt = "";
+      icon.hidden = true;
+      info.append(icon, title, detail);
       card.append(info, toggle);
       list.appendChild(card);
-      extension.card = { card, titleText, detailText, buttonText };
+      extension.card = { card, icon, titleText, detailText, buttonText };
     }
     extension.card.titleText.data = extension.manifest.name;
-    extension.card.detailText.data = `${t("extensionVersion")} ${extension.manifest.version} · ${extension.enabled ? t("extensionEnabled") : t("extensionDisabled")}`;
-    extension.card.buttonText.data = extension.enabled ? t("extensionDisable") : t("extensionEnable");
+    extension.card.icon.src = extension.manifest.assets?.["Assets/demo/demo.icon"] || "";
+    extension.card.icon.hidden = !extension.card.icon.src || Boolean(extension.manifest.broken);
+    extension.card.detailText.data = extension.manifest.broken
+      ? `Extensão quebrada: ${extension.manifest.error || "faltam arquivos obrigatórios"}`
+      : `${t("extensionVersion")} ${extension.manifest.version} · ${extension.enabled ? t("extensionEnabled") : t("extensionDisabled")}`;
+    extension.card.buttonText.data = extension.manifest.broken
+      ? "Quebrada"
+      : extension.enabled ? t("extensionDisable") : t("extensionEnable");
+    const toggle = extension.card.card.querySelector("button[data-extension-action='toggle']");
+    if (toggle) {
+      toggle.disabled = Boolean(extension.manifest.broken);
+      toggle.title = extension.manifest.broken ? extension.manifest.error || "Extensão quebrada" : "";
+    }
   }
 }
 
@@ -500,7 +515,7 @@ async function installManifest(manifest) {
   if (new Blob([JSON.stringify(normalized)]).size > MAX_EXTENSION_BYTES) throw new Error("A extensão excede o limite de 20 MB.");
   resolveExtensionCSS(normalized.styles, normalized.assets);
   if (records.has(normalized.id)) throw new Error("Já existe uma extensão instalada com este identificador.");
-  const extension = { manifest: normalized, enabled: manifest.enabled !== false, frame: null };
+  const extension = { manifest: normalized, enabled: manifest.enabled !== false && !normalized.broken, frame: null };
   records.set(extension.manifest.id, extension);
   try { await persistExtensions(); }
   catch (error) { records.delete(extension.manifest.id); throw error; }
@@ -516,7 +531,7 @@ async function initializeExtensions() {
   const known = new Set(stored.map((manifest) => manifest.id));
   const legacy = readStoredExtensions().filter((manifest) => !known.has(manifest.id));
   for (const manifest of [...stored, ...legacy]) {
-    const extension = { manifest: { ...manifest, assets: manifest.assets || {}, styles: manifest.styles || "" }, enabled: manifest.enabled !== false, frame: null };
+    const extension = { manifest: { ...manifest, assets: manifest.assets || {}, styles: manifest.styles || "" }, enabled: manifest.broken ? false : manifest.enabled !== false, frame: null };
     records.set(extension.manifest.id, extension);
   }
   if (legacy.length) {
@@ -600,12 +615,61 @@ document.getElementById("extensions-import-folder-button")?.addEventListener("cl
 
 async function fileToDataURL(file) {
   const ext = file.name.split(".").pop().toLowerCase();
-  const types = { png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", webp:"image/webp", svg:"image/svg+xml", mp4:"video/mp4", webm:"video/webm", ogv:"video/ogg", mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", woff:"font/woff", woff2:"font/woff2", ttf:"font/ttf", otf:"font/otf", json:"application/json", txt:"text/plain" };
+  const types = { png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", webp:"image/webp", svg:"image/svg+xml", mp4:"video/mp4", webm:"video/webm", ogv:"video/ogg", mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", woff:"font/woff", woff2:"font/woff2", ttf:"font/ttf", otf:"font/otf", json:"application/json", txt:"text/plain", icon:"image/svg+xml" };
   const mime = file.type || types[ext] || "application/octet-stream";
   const bytes = new Uint8Array(await file.arrayBuffer());
   let binary = "";
   for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + 0x8000, bytes.length)));
   return `data:${mime};base64,${btoa(binary)}`;
+}
+
+function packageValidationError(message) {
+  const error = new Error(message);
+  error.packageInvalid = true;
+  return error;
+}
+
+function getFolderRootName(fileList) {
+  const first = [...(fileList || [])][0];
+  const relative = String(first?.webkitRelativePath || first?.name || "");
+  return relative.includes("/") ? relative.split("/")[0] : "Extensão quebrada";
+}
+
+async function registerBrokenFolder(fileList, error) {
+  const files = [...(fileList || [])];
+  const rootName = getFolderRootName(files);
+  const roots = files.map((file) => {
+    const parts = String(file.webkitRelativePath || file.name).split("/");
+    return { file, path: parts.length > 1 ? parts.slice(1).join("/") : parts[0] };
+  });
+  let source = null;
+  const manifestFile = roots.find(({ path }) => path.toLowerCase() === "manifest.json")?.file;
+  if (manifestFile) {
+    try { source = JSON.parse(await manifestFile.text()); } catch {}
+  }
+  const slug = rootName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 28) || "sem-nome";
+  let id = typeof source?.id === "string" && /^[a-z0-9][a-z0-9._-]{1,63}$/i.test(source.id) && !records.has(source.id)
+    ? source.id
+    : `quebrada.${slug}.${Date.now().toString(36)}`.slice(0, 64);
+  while (records.has(id)) id = `quebrada.${slug}.${Math.random().toString(36).slice(2, 8)}`.slice(0, 64);
+  const manifest = {
+    id,
+    name: typeof source?.name === "string" && source.name.trim() ? source.name.trim() : rootName,
+    version: typeof source?.version === "string" ? source.version : "0.0.0",
+    description: String(source?.description || "Pacote incompleto; não pode ser ativado."),
+    code: "",
+    styles: "",
+    assets: {},
+    broken: true,
+    error: String(error?.message || error || "Arquivos obrigatórios ausentes").slice(0, 500),
+  };
+  const extension = { manifest, enabled: false, frame: null };
+  records.set(id, extension);
+  try { await persistExtensions(); }
+  catch (persistError) { records.delete(id); throw persistError; }
+  renderExtensions();
+  window.dispatchEvent(new CustomEvent("darkstudio:extensions-changed"));
 }
 
 async function importExtensionFolder(fileList) {
@@ -617,30 +681,39 @@ async function importExtensionFolder(fileList) {
     const parts = (file.webkitRelativePath || file.name).split("/");
     return { file, path: parts.length > 1 ? parts.slice(1).join("/") : parts[0] };
   });
-  const manifestFile = roots.find(({ path }) => path.toLowerCase() === "manifest.json")?.file;
-  if (!manifestFile) throw new Error("Não encontrei manifest.json na raiz da pasta selecionada.");
-  const source = JSON.parse(await manifestFile.text());
-  if (!source || typeof source.id !== "string" || typeof source.name !== "string" || typeof source.version !== "string") throw new Error("manifest.json precisa definir id, name e version.");
-  const entryPath = normalizeAssetPath(source.entry || "main.js");
+  const manifestFile = roots.find(({ path }) => path === "manifest.json")?.file;
+  if (!manifestFile) throw packageValidationError("Arquivo obrigatório ausente: manifest.json.");
+  let source;
+  try { source = JSON.parse(await manifestFile.text()); }
+  catch { throw packageValidationError("manifest.json não contém JSON válido."); }
+  if (!source || typeof source.id !== "string" || typeof source.name !== "string" || !source.name.trim() || typeof source.version !== "string") {
+    throw packageValidationError("manifest.json precisa definir id, name e version válidos.");
+  }
+
+  const requiredPaths = ["main.ds", "Assets/demo/demo.txt", "Assets/demo/demo.icon"];
+  const missing = requiredPaths.filter((requiredPath) => !roots.some(({ path }) => path === requiredPath));
+  if (missing.length) throw packageValidationError(`Arquivos obrigatórios ausentes: ${missing.join(", ")}.`);
+
+  const entryPath = normalizeAssetPath(source.entry || "main.ds");
   const stylePath = source.styles ? normalizeAssetPath(source.styles) : "";
-  if (!entryPath || !/^[\w .()/-]+\.(?:js|mjs)$/i.test(entryPath)) throw new Error("O campo entry precisa apontar para um arquivo JavaScript relativo.");
-  if (stylePath && !/^[\w .()/-]+\.css$/i.test(stylePath)) throw new Error("O campo styles precisa apontar para um CSS relativo.");
-  const entryFile = roots.find(({ path }) => path === entryPath)?.file;
+  if (entryPath !== "main.ds") throw packageValidationError("O ponto de entrada deve ser main.ds (código JavaScript).");
+  if (stylePath && !/^[\w .()/-]+\.css$/i.test(stylePath)) throw packageValidationError("O campo styles precisa apontar para um CSS relativo.");
+  const entryFile = roots.find(({ path }) => path === "main.ds")?.file;
   const styleFile = stylePath ? roots.find(({ path }) => path === stylePath)?.file : null;
-  if (!entryFile) throw new Error(`Arquivo de entrada não encontrado: ${entryPath}`);
-  if (stylePath && !styleFile) throw new Error(`Arquivo CSS não encontrado: ${stylePath}`);
+  if (!entryFile) throw packageValidationError("Arquivo obrigatório ausente: main.ds.");
+  if (stylePath && !styleFile) throw packageValidationError(`Arquivo CSS não encontrado: ${stylePath}`);
+  if (!/^[a-z0-9][a-z0-9._-]{1,63}$/i.test(source.id)) throw packageValidationError("O identificador da extensão é inválido.");
   const code = await entryFile.text();
   const styles = styleFile ? await styleFile.text() : "";
   const assets = {};
   for (const { file, path } of roots) {
-    if (path === "manifest.json" || path === entryPath || path === stylePath || !path.startsWith("assets/") || file.name.toLowerCase() === "readme.md") continue;
+    if (path === "manifest.json" || path === entryPath || path === stylePath || !/^Assets\//i.test(path) || file.name.toLowerCase() === "readme.md") continue;
     const key = normalizeAssetPath(path);
-    if (!key || key.length > 240) throw new Error(`Caminho de recurso inválido: ${path}`);
+    if (!key || key.length > 240) throw packageValidationError(`Caminho de recurso inválido: ${path}`);
     assets[key] = await fileToDataURL(file);
   }
   await installManifest({ id: source.id, name: source.name, version: source.version, description: String(source.description || ""), code, styles, assets });
 }
-
 fileInput?.addEventListener("change", async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
@@ -657,7 +730,16 @@ folderInput?.addEventListener("change", async () => {
   try { await importExtensionFolder(folderInput.files); }
   catch (error) {
     console.error("DarkStudio extension folder import failed:", error);
-    alert(`Não foi possível importar a pasta da extensão: ${String(error?.message || error)}`);
+    if (error?.packageInvalid) {
+      try {
+        await registerBrokenFolder(folderInput.files, error);
+        alert(`A extensão foi adicionada à lista como QUEBRADA e permanece desativada. ${String(error.message || error)}`);
+      } catch (persistError) {
+        alert(`Não foi possível salvar a extensão quebrada: ${String(persistError?.message || persistError)}`);
+      }
+    } else {
+      alert(`Não foi possível importar a pasta da extensão: ${String(error?.message || error)}`);
+    }
   } finally { folderInput.value = ""; }
 });
 
@@ -665,7 +747,7 @@ list?.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-extension-action='toggle']");
   if (!button) return;
   const extension = records.get(button.dataset.extensionId);
-  if (!extension) return;
+  if (!extension || extension.manifest.broken) return;
   extension.enabled = !extension.enabled;
   if (extension.enabled && !extension.frame) createRuntime(extension);
   if (extension.style) extension.style.disabled = !extension.enabled;
