@@ -205,7 +205,7 @@
   "editorDropTextOnly": "Drop a text or code file into the editor.",
   "workspaceEmptyState": "Workspace is empty",
   "fileStation": "File Station",
-  "debuggerHeading": "Debugger",
+  "debuggerHeading": "Debugging",
   "currentFile": "Current file",
   "runDebugCurrentFile": "Run/Debug (Current File)",
   "debuggerUnsupportedLanguage": "We don’t have a debugger for this language yet",
