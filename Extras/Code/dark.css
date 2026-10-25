@@ -3766,6 +3766,13 @@ body {
   width: 30px;
   height: 30px;
 }
+.workspace-launcher {
+  cursor: grab;
+}
+.workspace-launcher.is-dragging {
+  opacity: .4;
+  cursor: grabbing;
+}
 .workspace-launcher:hover,
 .workspace-launcher:focus-visible {
   color: #fff;
