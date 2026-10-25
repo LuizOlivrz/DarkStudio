@@ -3997,3 +3997,44 @@ body {
 #Website-Container.with-chat.extensions-active #main-content {
   grid-column: 2 / 4 !important;
 }
+
+
+/* Keep the launcher SVG rail in its own grid track at every viewport size.
+   These rules intentionally come after legacy responsive grid declarations. */
+#Website-Container,
+#Website-Container.no-chat {
+  grid-template-columns: 44px minmax(90px, var(--options-width, 120px)) minmax(0, 1fr) !important;
+}
+#Website-Container.with-chat:not(.chat-resize-hidden) {
+  grid-template-columns: 44px minmax(90px, var(--options-width, 120px)) minmax(0, 1fr) var(--chat-width, 350px) !important;
+}
+#Website-Container.with-chat.chat-resize-hidden {
+  grid-template-columns: 44px minmax(90px, var(--options-width, 120px)) minmax(0, 1fr) 10px !important;
+}
+#workspace-launcher-rail {
+  display: flex !important;
+  grid-column: 1 !important;
+  min-width: 0;
+  visibility: visible !important;
+}
+#options { grid-column: 2 !important; min-width: 0; }
+#main-content,
+#config,
+#mindmap-container,
+#extensions-panel { grid-column: 3 !important; min-width: 0; }
+#chat { grid-column: 4 !important; min-width: 0; }
+#Website-Container.with-chat #workspace-launcher-rail #file-gutter-icon {
+  display: grid !important;
+}
+@media (max-width: 700px) {
+  #Website-Container,
+  #Website-Container.no-chat {
+    grid-template-columns: 40px minmax(76px, var(--options-width, 90px)) minmax(0, 1fr) !important;
+  }
+  #Website-Container.with-chat:not(.chat-resize-hidden) {
+    grid-template-columns: 40px minmax(76px, var(--options-width, 90px)) minmax(0, 1fr) var(--chat-width, 320px) !important;
+  }
+  #Website-Container.with-chat.chat-resize-hidden {
+    grid-template-columns: 40px minmax(76px, var(--options-width, 90px)) minmax(0, 1fr) 10px !important;
+  }
+}
