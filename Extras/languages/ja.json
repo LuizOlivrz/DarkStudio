@@ -208,7 +208,7 @@
   "editorDropTextOnly": "テキストまたはコードファイルをエディターにドロップしてください。",
   "workspaceEmptyState": "ワークスペースは空です",
   "fileStation": "ファイルステーション",
-  "debuggerHeading": "デバッガー",
+  "debuggerHeading": "デバッグ",
   "currentFile": "現在のファイル",
   "runDebugCurrentFile": "実行/デバッグ（現在のファイル）",
   "debuggerUnsupportedLanguage": "この言語のデバッガーはまだありません",
