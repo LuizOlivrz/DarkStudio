@@ -1,0 +1,6 @@
+// Ponto de entrada de exemplo para uma extensão do DarkStudio.
+// A extensão usa a extensão de arquivo .ds, mas o conteúdo continua sendo JavaScript.
+// Consulte ../API.md para conhecer a API disponível.
+// O gerenciador executa este arquivo somente depois de validar o pacote completo.
+
+console.info("Exemplo de extensão DarkStudio carregado.");
