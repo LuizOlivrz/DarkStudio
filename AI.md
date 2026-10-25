@@ -1,4 +1,5 @@
 # AI.md — Guia de colaboração para IAs no DarkStudio
+| 2026-10-24 23:35 (UTC-03:00) | ChatGPT — GPT-6 | Permite reordenar por arrastar e soltar os ícones SVG da barra lateral, salvando a ordem escolhida no navegador. | PR #33 |
 | 2026-10-24 23:20 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a sobreposição do estado Workspace vazio sobre Configurações/Extensões e restaura #options ao abrir Configurações diretamente a partir de Extensões. | PR #33 |
 | 2026-10-24 23:05 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona seta expansível ao Depurador e traduz os textos da Estação de arquivos, do estado de workspace vazio e de toda a aba do Depurador nos oito idiomas disponíveis. | PR #33 |
 | 2026-10-24 22:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove o botão Extensions da Estação de Arquivos, mantendo a tela de extensões acessível pelo fluxo existente do SVG do mapa. | PR #33 |
