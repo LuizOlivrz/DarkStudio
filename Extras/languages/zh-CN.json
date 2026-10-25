@@ -208,7 +208,7 @@
   "editorDropTextOnly": "将文本或代码文件拖放到编辑器中。",
   "workspaceEmptyState": "工作区为空",
   "fileStation": "文件工作区",
-  "debuggerHeading": "调试器",
+  "debuggerHeading": "调试",
   "currentFile": "当前文件",
   "runDebugCurrentFile": "运行/调试（当前文件）",
   "debuggerUnsupportedLanguage": "此语言暂不支持调试器",
