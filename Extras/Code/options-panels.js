@@ -26,14 +26,15 @@ function restoreLauncherOrder() {
   try {
     const savedOrder = JSON.parse(localStorage.getItem(launcherOrderKey) || "[]");
     if (!Array.isArray(savedOrder)) return;
-    const launchers = new Map(getLaunchers().map((button) => [button.id, button]));
-    for (const id of savedOrder) {
-      const button = launchers.get(id);
-      if (button) {
-        launcherRail.appendChild(button);
-        launchers.delete(id);
-      }
-    }
+    const launchers = getLaunchers();
+    const order = new Map(savedOrder.map((id, index) => [id, index]));
+    launchers
+      .sort((a, b) => {
+        const aIndex = order.has(a.id) ? order.get(a.id) : Number.MAX_SAFE_INTEGER;
+        const bIndex = order.has(b.id) ? order.get(b.id) : Number.MAX_SAFE_INTEGER;
+        return aIndex - bIndex;
+      })
+      .forEach((button) => launcherRail.appendChild(button));
   } catch (error) {
     console.warn("DarkStudio: não foi possível restaurar a ordem dos ícones.", error);
   }
