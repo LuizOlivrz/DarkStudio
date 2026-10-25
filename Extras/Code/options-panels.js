@@ -117,11 +117,6 @@ function setActiveView(view) {
     window.darkStudioShowWorkspaceEditor?.();
   }
 
-  if (showDebugger) {
-    debuggerSection?.classList.add("debugger-open");
-    debuggerToggle?.setAttribute("aria-expanded", "true");
-  }
-
   activeView = view;
   clearUnsupportedState();
 }
