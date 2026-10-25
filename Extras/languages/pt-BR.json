@@ -206,8 +206,10 @@
   "workspaceEmptyState": "Workspace vazio",
   "fileStation": "Estação de arquivos",
   "debuggerHeading": "Depuração",
+  "installExtensionFolder": "Instalar pasta da extensão",
+  "extensionBroken": "Extensão quebrada",
   "currentFile": "Arquivo atual",
   "runDebugCurrentFile": "Executar/Depurar (Arquivo atual)",
   "debuggerUnsupportedLanguage": "Ainda não temos um depurador para essa linguagem",
-  "debuggerToggleTitle": "Abrir ou recolher o depurador"
+  "debuggerToggleTitle": "Abrir ou recolher o arquivo atual"
 }
