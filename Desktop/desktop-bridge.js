@@ -61,6 +61,8 @@
     "#desktop-terminal[hidden] { display:none !important; }",
     "#desktop-terminal .ds-terminal-header { display:flex; align-items:center; gap:8px; flex:0 0 36px; min-width:0; padding:0 8px; background:#181818; border-bottom:1px solid #333; color:#ddd; font:12px/1.2 'Segoe UI',sans-serif; user-select:none; }",
     "#desktop-terminal .ds-terminal-title { display:flex; align-items:center; gap:7px; min-width:0; flex:1; height:100%; }",
+    "#desktop-terminal .ds-terminal-title-icon { display:grid; place-items:center; flex:0 0 20px; width:20px; height:20px; color:#ccc; }",
+    "#desktop-terminal .ds-terminal-title-icon svg { display:block; width:20px; height:20px; }",
     "#desktop-terminal .ds-terminal-title-text { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }",
     "#desktop-terminal .ds-terminal-tabs { display:flex; align-items:center; gap:3px; min-width:0; height:100%; }",
     "#desktop-terminal .ds-terminal-tab { display:grid; place-items:center; flex:0 0 30px; width:30px; height:29px; padding:4px; border:1px solid transparent; border-radius:5px; background:transparent; color:var(--ds-terminal-icon-color,#ccc); cursor:grab; }",
@@ -98,7 +100,7 @@
   terminalPanel.setAttribute("aria-label", "Terminal integrado");
   terminalPanel.innerHTML = [
     '<header class="ds-terminal-header">',
-    '<div class="ds-terminal-title"><span class="ds-terminal-title-text">Terminal Integrado - CMD</span></div>',
+    '<div class="ds-terminal-title"><span class="ds-terminal-title-icon">' + terminalIconSvg + '</span><span class="ds-terminal-title-text">Terminal Integrado - CMD</span></div>',
     '<nav class="ds-terminal-tabs" aria-label="Terminais abertos"></nav>',
     '<button type="button" class="ds-terminal-action ds-terminal-fullscreen-button" aria-label="Alternar tela cheia" title="Alternar tela cheia">' + fullscreenIconSvg + '</button>',
     '<button type="button" class="ds-terminal-action ds-terminal-close" aria-label="Fechar terminal integrado" title="Fechar terminal integrado">×</button>',
