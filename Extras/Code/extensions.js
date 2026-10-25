@@ -150,29 +150,29 @@ function safeURL(value, allowImageData = false) {
 }
 
 function hasExternalCSSResource(value) {
-  const decoded = value.replace(/\\\\([0-9a-f]{1,6})\\s?|\\\\(.)/gi, (_, hex, escaped) => {
+  const decoded = value.replace(/\\([0-9a-f]{1,6})\s?|\\(.)/gi, (_, hex, escaped) => {
     if (!hex) return escaped || "";
     const codePoint = Number.parseInt(hex, 16);
     return codePoint === 0 || codePoint > 0x10ffff ? "\\uFFFD" : String.fromCodePoint(codePoint);
   });
-  return /@import\\b|url\\s*\\(|(?:-webkit-)?image-set\\s*\\(/i.test(decoded);
+  return /@import\b|url\s*\(|(?:-webkit-)?image-set\s*\(/i.test(decoded);
 }
 
 function normalizeAssetPath(value) {
-  const path = String(value || "").replace(/\\\\/g, "/").replace(/^\\.\\//, "");
+  const path = String(value || "").replace(/\\/g, "/").replace(/^\.\//, "");
   if (!path || path.startsWith("/") || /^[a-z]+:/i.test(path) || path.split("/").some((part) => !part || part === "." || part === "..")) return "";
   return path;
 }
 
 function resolveExtensionCSS(css, assets = {}) {
   if (typeof css !== "string" || css.length > MAX_EXTENSION_BYTES) throw new Error("O CSS da extensão excede o limite permitido.");
-  if (/@import\\b|expression\\s*\\(|javascript:/i.test(css) || /(?:-webkit-)?image-set\\s*\\(/i.test(css)) throw new Error("O CSS contém uma construção não permitida.");
-  return css.replace(/url\\(\\s*(?:(["'])(.*?)\\1|([^)]*))\\s*\\)/gi, (_match, quote, quotedPath, rawPath) => {
+  if (/@import\b|expression\s*\(|javascript:/i.test(css) || /(?:-webkit-)?image-set\s*\(/i.test(css)) throw new Error("O CSS contém uma construção não permitida.");
+  return css.replace(/url\(\s*(?:(["'])(.*?)\1|([^)]*))\s*\)/gi, (_match, quote, quotedPath, rawPath) => {
     const resource = String(quotedPath ?? rawPath ?? "").trim();
-    if (/^data:image\\/(?:png|gif|jpeg|webp|svg\\+xml);base64,/i.test(resource)) return `url("${resource}")`;
+    if (/^data:image\/(?:png|gif|jpeg|webp|svg\+xml);base64,/i.test(resource)) return \`url("\${resource}")\`;
     const key = normalizeAssetPath(resource);
     const asset = key && assets[key];
-    if (!asset || typeof asset !== "string" || !/^data:image\\/(?:png|gif|jpeg|webp|svg\\+xml);base64,/i.test(asset)) throw new Error(`Recurso CSS não permitido ou não encontrado: ${resource}`);
+    if (!asset || typeof asset !== "string" || !/^data:image\/(?:png|gif|jpeg|webp|svg\+xml);base64,/i.test(asset)) throw new Error(\`Recurso CSS não permitido ou não encontrado: \${resource}\`);
     return `url("${asset}")`;
   });
 }
@@ -199,7 +199,7 @@ function safeHTMLNodes(extension, markup) {
         const url = safeURL(value, true);
         if (url) clone.setAttribute("src", url);
       } else if (name === "src" && ["VIDEO", "AUDIO", "SOURCE"].includes(clone.tagName)) {
-        const url = /^data:(?:video|audio)\\/[a-z0-9.+-]+;base64,/i.test(value) ? value : null;
+        const url = /^data:(?:video|audio)\/[a-z0-9.+-]+;base64,/i.test(value) ? value : null;
         if (url) clone.setAttribute("src", url);
       } else if (name === "poster" && clone.tagName === "VIDEO") {
         const url = safeURL(value, true);
