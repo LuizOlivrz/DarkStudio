@@ -12,9 +12,12 @@ Extras/
     ├── API.md
     ├── Modelo/
     │   ├── manifest.json
-    │   ├── main.js
+    │   ├── main.ds
     │   ├── styles.css
-    │   └── assets/
+    │   └── Assets/
+    │       ├── demo/
+    │       │   ├── demo.txt
+    │       │   └── demo.icon
     │       ├── images/
     │       ├── videos/
     │       ├── icons/
@@ -22,9 +25,12 @@ Extras/
     │       └── fonts/
     └── Minha-Extensao/
         ├── manifest.json
-        ├── main.js
+        ├── main.ds
         ├── styles.css
-        └── assets/
+        └── Assets/
+            └── demo/
+                ├── demo.txt
+                └── demo.icon
 ```
 
 Inclua somente as subpastas de recursos que a extensão realmente utilizar. Mantenha imagens, vídeos, ícones, áudio, fontes e outros arquivos dentro da pasta da própria extensão; não espalhe esses arquivos por `Extras/Code` nem pela raiz do website.
@@ -32,16 +38,17 @@ Inclua somente as subpastas de recursos que a extensão realmente utilizar. Mant
 ### Arquivos principais
 
 - `manifest.json`: identificador, nome, versão, descrição e nomes dos arquivos de entrada.
-- `main.js`: lógica da extensão.
+- `main.ds`: ponto de entrada com conteúdo JavaScript (a extensão do arquivo é `.ds`).
+- `Assets/demo/demo.txt` e `Assets/demo/demo.icon`: arquivos obrigatórios; sem qualquer um deles, a extensão fica listada como quebrada e não pode ser ativada.
 - `styles.css`: estilos exclusivos da extensão.
-- `assets/`: recursos locais da extensão, organizados por tipo.
+- `Assets/`: recursos locais da extensão, organizados por tipo.
 
 Use caminhos relativos à pasta da extensão para referenciar os recursos. Evite nomes genéricos que possam colidir com os de outras extensões.
 
 ## Como enviar uma extensão
 
 1. Copie a pasta `Modelo` e renomeie-a com um nome descritivo.
-2. Edite `manifest.json`, `main.js` e `styles.css`; adicione os recursos necessários em `assets/`.
+2. Edite `manifest.json`, `main.ds` e `styles.css`; mantenha `Assets/demo/demo.txt` e `Assets/demo/demo.icon` e adicione os demais recursos em `Assets/`.
 3. Use um identificador único e estável, como `comunidade.nome-da-extensao`.
 4. Confira o contrato da API em `API.md` e teste a extensão no ambiente de desenvolvimento.
 5. Adicione uma entrada a `Catalogo.json` para que a proposta apareça na aba Extensões. O índice contém apenas metadados, nunca o código executável. Exemplo:
@@ -62,6 +69,6 @@ Use caminhos relativos à pasta da extensão para referenciar os recursos. Evite
 - O mantenedor revisa o código, os recursos, a segurança, o impacto na interface e a compatibilidade.
 - Propostas não aprovadas não devem ser publicadas como extensões oficiais.
 - A aba Extensões lê `Catalogo.json` apenas para mostrar nome, descrição e pasta. Ela não carrega, instala nem executa os arquivos listados nessa área.
-- O formato de pasta organiza as contribuições do repositório. A instalação local existente por arquivo `.dsx.json` continua separada e não é substituída por este catálogo de propostas.
+- O formato de pasta é importável pelo gerenciador local. A instalação verifica `manifest.json`, `main.ds`, `Assets/demo/demo.txt` e `Assets/demo/demo.icon`; pacotes incompletos aparecem como quebrados e ficam desativados. O formato legado `.dsx.json` continua disponível para compatibilidade.
 - Somente após aprovação explícita do mantenedor uma extensão deve ser integrada ao catálogo oficial/fluxo de instalação.
 - Não trate uma extensão de terceiros como confiável apenas porque está no repositório. Revise o conteúdo antes de aprovar.
