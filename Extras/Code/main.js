@@ -1517,11 +1517,16 @@ ${code}
 
   function config() {
     const opening = !WebsiteContainer.classList.contains("settings-active");
+    const wasExtensionsActive = WebsiteContainer.classList.contains("extensions-active");
     const extensionsPanel = document.getElementById("extensions-panel");
     const editorInput = document.getElementById("Editor-Input");
+    const optionsPanel = document.getElementById("options");
 
     WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
+
+    // Reexibe #options somente quando as Configurações são abertas diretamente a partir de Extensões.
+    if (opening && wasExtensionsActive && optionsPanel) optionsPanel.hidden = false;
 
     configValue = opening;
     WebsiteContainer.classList.toggle("settings-active", opening);
