@@ -1,4 +1,5 @@
 # AI.md — Guia de colaboração para IAs no DarkStudio
+| 2026-10-24 23:58 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona terminal CMD real exclusivo do desktop, com atalho Ctrl+Shift+` e painel abaixo do editor. | PR em preparação |
 | 2026-10-24 23:50 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o fechamento das Configurações para manter o editor oculto quando o Explorer não contém arquivos. | PR #33 |
 | 2026-10-24 23:45 (UTC-03:00) | ChatGPT — GPT-6 | Ao abrir Configurações, aciona o ícone da Estação de Arquivos para deixar o painel options nessa visualização. | PR #33 |
 | 2026-10-24 23:35 (UTC-03:00) | ChatGPT — GPT-6 | Permite reordenar por arrastar e soltar os ícones SVG da barra lateral, salvando a ordem escolhida no navegador. | PR #33 |
