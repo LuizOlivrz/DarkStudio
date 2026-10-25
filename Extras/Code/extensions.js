@@ -69,6 +69,15 @@ function isValidManifest(item) {
     typeof item.version === "string" && typeof item.code === "string");
 }
 
+function hasRequiredDemoAssets(assets) {
+  return Boolean(
+    assets && typeof assets["Assets/demo/demo.txt"] === "string" &&
+    assets["Assets/demo/demo.txt"].startsWith("data:") &&
+    typeof assets["Assets/demo/demo.icon"] === "string" &&
+    /^data:image\/svg\+xml;base64,/i.test(assets["Assets/demo/demo.icon"])
+  );
+}
+
 async function persistExtensions() {
   const entries = [...records.values()].map(({ manifest, enabled }) => ({ ...manifest, enabled }));
   const serialized = JSON.stringify(entries);
@@ -425,7 +434,7 @@ function sandboxDocument() {
 }
 
 function createRuntime(extension) {
-  if (extension.frame || extension.manifest.broken || !extension.manifest.code) return;
+  if (extension.frame || extension.manifest.broken || !extension.manifest.code || extension.manifest.packageFormat !== "folder" || !hasRequiredDemoAssets(extension.manifest.assets)) return;
   extension.token = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   extension.handles = new WeakMap();
   extension.elements = new Map();
@@ -508,10 +517,19 @@ function renderExtensions() {
   }
 }
 
-async function installManifest(manifest) {
+async function installManifest(manifest, { requireFolderPackage = false } = {}) {
   if (!isValidManifest(manifest)) throw new Error("O manifesto da extensão é inválido.");
   const assets = manifest.assets && typeof manifest.assets === "object" && !Array.isArray(manifest.assets) ? manifest.assets : {};
-  const normalized = { ...manifest, assets, styles: typeof manifest.styles === "string" ? manifest.styles : "", name: manifest.name.trim() };
+  const isCompleteFolderPackage = requireFolderPackage && hasRequiredDemoAssets(assets);
+  const normalized = {
+    ...manifest,
+    assets,
+    styles: typeof manifest.styles === "string" ? manifest.styles : "",
+    name: manifest.name.trim(),
+    packageFormat: isCompleteFolderPackage ? "folder" : "legacy",
+    broken: !isCompleteFolderPackage || Boolean(manifest.broken),
+    error: isCompleteFolderPackage ? String(manifest.error || "") : "Pacote incompleto: use uma pasta com manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.icon.",
+  };
   if (new Blob([JSON.stringify(normalized)]).size > MAX_EXTENSION_BYTES) throw new Error("A extensão excede o limite de 20 MB.");
   resolveExtensionCSS(normalized.styles, normalized.assets);
   if (records.has(normalized.id)) throw new Error("Já existe uma extensão instalada com este identificador.");
@@ -530,13 +548,27 @@ async function initializeExtensions() {
   catch (error) { console.warn("DarkStudio: usando compatibilidade de armazenamento local.", error); }
   const known = new Set(stored.map((manifest) => manifest.id));
   const legacy = readStoredExtensions().filter((manifest) => !known.has(manifest.id));
+  let mustPersist = legacy.length > 0;
   for (const manifest of [...stored, ...legacy]) {
-    const extension = { manifest: { ...manifest, assets: manifest.assets || {}, styles: manifest.styles || "" }, enabled: manifest.broken ? false : manifest.enabled !== false, frame: null };
+    const assets = manifest.assets && typeof manifest.assets === "object" ? manifest.assets : {};
+    const completePackage = manifest.packageFormat === "folder" && hasRequiredDemoAssets(assets);
+    const isBroken = Boolean(manifest.broken) || !completePackage;
+    const normalized = {
+      ...manifest,
+      assets,
+      styles: manifest.styles || "",
+      broken: isBroken,
+      error: isBroken
+        ? String(manifest.error || "Pacote incompleto: são obrigatórios manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.icon.")
+        : "",
+    };
+    if (isBroken && !manifest.broken) mustPersist = true;
+    const extension = { manifest: normalized, enabled: !isBroken && manifest.enabled !== false, frame: null };
     records.set(extension.manifest.id, extension);
   }
-  if (legacy.length) {
+  if (mustPersist) {
     try { await persistExtensions(); }
-    catch (error) { console.warn("DarkStudio: não foi possível migrar extensões antigas.", error); }
+    catch (error) { console.warn("DarkStudio: não foi possível salvar o estado de extensões antigas/quebradas.", error); }
   }
   for (const extension of records.values()) if (extension.enabled) createRuntime(extension);
   renderExtensions();
@@ -712,7 +744,7 @@ async function importExtensionFolder(fileList) {
     if (!key || key.length > 240) throw packageValidationError(`Caminho de recurso inválido: ${path}`);
     assets[key] = await fileToDataURL(file);
   }
-  await installManifest({ id: source.id, name: source.name, version: source.version, description: String(source.description || ""), code, styles, assets });
+  await installManifest({ id: source.id, name: source.name, version: source.version, description: String(source.description || ""), code, styles, assets }, { requireFolderPackage: true });
 }
 fileInput?.addEventListener("change", async () => {
   const file = fileInput.files?.[0];
