@@ -209,8 +209,10 @@
   "workspaceEmptyState": "워크스페이스가 비어 있습니다",
   "fileStation": "파일 스테이션",
   "debuggerHeading": "디버깅",
+  "installExtensionFolder": "확장 프로그램 폴더 설치",
+  "extensionBroken": "손상된 확장 프로그램",
   "currentFile": "현재 파일",
   "runDebugCurrentFile": "실행/디버그 (현재 파일)",
   "debuggerUnsupportedLanguage": "이 언어용 디버거는 아직 없습니다",
-  "debuggerToggleTitle": "디버거 펼치기 또는 접기"
+  "debuggerToggleTitle": "현재 파일 펼치기 또는 접기"
 }
