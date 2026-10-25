@@ -51,8 +51,7 @@
   terminalStyles.id = "desktop-terminal-styles";
   terminalStyles.textContent = [
     "#Website-Container.desktop-terminal-open { grid-template-rows: minmax(0, 1fr) minmax(160px, 32vh) !important; }",
-    "#Website-Container.desktop-terminal-open #main-content, #Website-Container.desktop-terminal-open #options, #Website-Container.desktop-terminal-open #chat { height: 100% !important; min-height: 0 !important; }",
-    "#Website-Container.desktop-terminal-open #main-content { grid-row: 1 !important; overflow: hidden; }",
+    "#Website-Container.desktop-terminal-open #main-content { height: 100% !important; min-height: 0 !important; grid-column: 2 !important; grid-row: 1 !important; overflow: hidden; }",
     "#Website-Container.desktop-terminal-open #options, #Website-Container.desktop-terminal-open #chat { grid-row: 1 !important; }",
     "#desktop-terminal { grid-column: 2 !important; grid-row: 2 !important; display: flex; flex-direction: column; min-width: 0; min-height: 0; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; color: #cccccc; background: #0c0c0c; border: 1px solid #454545; border-radius: 6px; font: 14px/1.35 Consolas, 'Courier New', monospace; }",
     "#desktop-terminal[hidden] { display: none !important; }",
