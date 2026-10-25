@@ -495,10 +495,10 @@ function renderExtensions() {
     extension.card.icon.src = extension.manifest.assets?.["Assets/demo/demo.icon"] || "";
     extension.card.icon.hidden = !extension.card.icon.src || Boolean(extension.manifest.broken);
     extension.card.detailText.data = extension.manifest.broken
-      ? `Extensão quebrada: ${extension.manifest.error || "faltam arquivos obrigatórios"}`
+      ? `${t("extensionBroken")}: ${extension.manifest.error || "faltam arquivos obrigatórios"}`
       : `${t("extensionVersion")} ${extension.manifest.version} · ${extension.enabled ? t("extensionEnabled") : t("extensionDisabled")}`;
     extension.card.buttonText.data = extension.manifest.broken
-      ? "Quebrada"
+      ? t("extensionBroken")
       : extension.enabled ? t("extensionDisable") : t("extensionEnable");
     const toggle = extension.card.card.querySelector("button[data-extension-action='toggle']");
     if (toggle) {
