@@ -209,8 +209,10 @@
   "workspaceEmptyState": "工作区为空",
   "fileStation": "文件工作区",
   "debuggerHeading": "调试",
+  "installExtensionFolder": "安装扩展文件夹",
+  "extensionBroken": "损坏的扩展",
   "currentFile": "当前文件",
   "runDebugCurrentFile": "运行/调试（当前文件）",
   "debuggerUnsupportedLanguage": "此语言暂不支持调试器",
-  "debuggerToggleTitle": "展开或折叠调试器"
+  "debuggerToggleTitle": "展开或折叠当前文件"
 }
