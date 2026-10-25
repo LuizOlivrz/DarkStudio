@@ -458,7 +458,14 @@ async function renderBundledCatalog() {
     if (!Array.isArray(entries)) throw new Error("Formato de índice inválido.");
 
     for (const entry of entries) {
-      if (!entry || typeof entry.file !== "string" || !/^[\wÀ-ÿ ._-]+\.dsx\.json$/i.test(entry.file) || typeof entry.name !== "string" || typeof entry.description !== "string") continue;
+      const folderPath = typeof entry?.path === "string" && /^[\wÀ-ÿ ._-]+$/i.test(entry.path) && !entry.path.includes("..")
+        ? entry.path
+        : "";
+      // Compatibilidade com entradas antigas baseadas em arquivos .dsx.json.
+      const legacyFile = typeof entry?.file === "string" && /^[\wÀ-ÿ ._-]+\.dsx\.json$/i.test(entry.file)
+        ? entry.file
+        : "";
+      if ((!folderPath && !legacyFile) || typeof entry.name !== "string" || typeof entry.description !== "string") continue;
       const card = document.createElement("article");
       card.className = "ds-extension-card ds-extension-catalog-card";
       const info = document.createElement("div");
@@ -467,7 +474,9 @@ async function renderBundledCatalog() {
       const detail = document.createElement("p");
       detail.textContent = entry.description;
       const filename = document.createElement("p");
-      filename.textContent = `Arquivo proposto: ${entry.file}`;
+      filename.textContent = folderPath
+        ? `Pasta da extensão: Extras/Extensões/${folderPath}/`
+        : `Arquivo legado: ${legacyFile}`;
       const status = document.createElement("p");
       status.textContent = "Status: aguardando revisão do mantenedor";
       status.setAttribute("role", "status");
