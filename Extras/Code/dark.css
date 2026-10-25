@@ -4038,3 +4038,17 @@ body {
     grid-template-columns: 40px minmax(76px, var(--options-width, 90px)) minmax(0, 1fr) 10px !important;
   }
 }
+
+
+/* Icon and disabled-state treatment for extension packages. */
+.ds-extension-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  object-fit: contain;
+  margin-right: 8px;
+}
+.ds-extension-card button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
