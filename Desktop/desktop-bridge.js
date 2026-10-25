@@ -103,9 +103,9 @@
     terminalOutput.textContent = currentPrompt
       ? terminalBuffer.slice(0, terminalBuffer.length - currentPrompt.length)
       : terminalBuffer;
-    promptRow.hidden = !currentPrompt;
+    promptRow.hidden = !currentPrompt && !commandBusy;
     promptLabel.textContent = currentPrompt;
-    terminalInput.disabled = !currentPrompt || commandBusy;
+    terminalInput.disabled = currentPrompt ? commandBusy : !commandBusy;
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
     if (currentPrompt && focusWhenReady && !terminalPanel.hidden) {
       focusWhenReady = false;
@@ -147,8 +147,24 @@
   });
 
   async function submitTerminalCommand() {
-    if (!currentPrompt || commandBusy || terminalInput.disabled) return;
     const command = terminalInput.value;
+
+    // Durante comandos interativos (por exemplo, pause ou um REPL), continue
+    // encaminhando linhas para o mesmo processo CMD mesmo sem um prompt de diretório.
+    if (!currentPrompt && commandBusy && !terminalInput.disabled) {
+      terminalBuffer += command + "\r\n";
+      terminalInput.value = "";
+      renderTerminal();
+      try {
+        const result = await window.darkStudioDesktop.terminalWrite(command + "\r\n");
+        if (!result?.ok) appendTerminalOutput("\r\n" + String(result?.error || "Falha ao enviar a entrada.") + "\r\n");
+      } catch (error) {
+        appendTerminalOutput("\r\n" + String(error?.message || error) + "\r\n");
+      }
+      return;
+    }
+
+    if (!currentPrompt || commandBusy || terminalInput.disabled) return;
     if (command.trim()) {
       commandHistory.push(command);
       if (commandHistory.length > 100) commandHistory.shift();
