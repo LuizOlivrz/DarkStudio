@@ -140,7 +140,10 @@
   function renderActiveTerminal() {
     const item = activeTerminal();
     terminalTitle.textContent = "Terminal Integrado - " + (item ? item.type : "CMD");
-    terminalOutput.textContent = item ? (item.prompt ? item.buffer.slice(0, item.buffer.length - item.prompt.length) : item.buffer) : "";
+    const visibleOutput = item ? (item.prompt ? item.buffer.slice(0, item.buffer.length - item.prompt.length) : item.buffer) : "";
+    // O prompt é renderizado em uma linha separada; remova a quebra final do buffer
+    // para evitar uma linha vazia entre a saída do comando e o próximo prompt.
+    terminalOutput.textContent = visibleOutput.replace(/(?:\\r\\n|\\n|\\r)$/, "");
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
     promptRow.hidden = !item || (!item.prompt && !item.busy);
     promptLabel.textContent = item ? item.prompt : "";
