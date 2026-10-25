@@ -205,7 +205,7 @@
   "editorDropTextOnly": "Перетащите текстовый файл или файл кода в редактор.",
   "workspaceEmptyState": "Рабочая область пуста",
   "fileStation": "Файловая станция",
-  "debuggerHeading": "Отладчик",
+  "debuggerHeading": "Отладка",
   "currentFile": "Текущий файл",
   "runDebugCurrentFile": "Запустить/отладить (текущий файл)",
   "debuggerUnsupportedLanguage": "Для этого языка пока нет отладчика",
