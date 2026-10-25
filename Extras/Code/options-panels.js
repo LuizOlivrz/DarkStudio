@@ -36,7 +36,8 @@ function setActiveView(view) {
   debuggerLauncher?.setAttribute("aria-pressed", String(showDebugger));
 
   if (showMap) {
-    window.darkStudioShowWorkspaceMap?.();
+    // O SVG de mapa abre a mesma tela do botão Extensões.
+    window.darkStudioShowExtensions?.();
   } else if (activeView === "map") {
     window.darkStudioShowWorkspaceEditor?.();
   }
