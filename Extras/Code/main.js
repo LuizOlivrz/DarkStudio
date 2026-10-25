@@ -1520,6 +1520,7 @@ ${code}
     const wasExtensionsActive = WebsiteContainer.classList.contains("extensions-active");
     const extensionsPanel = document.getElementById("extensions-panel");
     const editorInput = document.getElementById("Editor-Input");
+    const emptyState = document.getElementById("workspace-empty-state");
     const optionsPanel = document.getElementById("options");
 
     WebsiteContainer.classList.remove("extensions-active");
@@ -1535,7 +1536,8 @@ ${code}
     configValue = opening;
     WebsiteContainer.classList.toggle("settings-active", opening);
     configMenu.hidden = !opening;
-    if (editorInput) editorInput.hidden = opening;
+    // Ao fechar Configurações, respeita o estado vazio do Explorer em vez de exibir Monaco sem arquivos.
+    if (editorInput) editorInput.hidden = opening || Boolean(emptyState && !emptyState.hidden);
 
     configMenu.scrollTop = 0;
     requestAnimationFrame(() => window.editor?.layout());
