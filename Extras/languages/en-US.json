@@ -206,8 +206,10 @@
   "workspaceEmptyState": "Workspace is empty",
   "fileStation": "File Station",
   "debuggerHeading": "Debugging",
+  "installExtensionFolder": "Install extension folder",
+  "extensionBroken": "Broken extension",
   "currentFile": "Current file",
   "runDebugCurrentFile": "Run/Debug (Current File)",
   "debuggerUnsupportedLanguage": "We don’t have a debugger for this language yet",
-  "debuggerToggleTitle": "Expand or collapse the debugger"
+  "debuggerToggleTitle": "Expand or collapse the current file"
 }
