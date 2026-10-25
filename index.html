@@ -187,8 +187,10 @@
       <h1 id="extensions-heading" data-i18n="extensions">Extensions</h1>
       <p data-i18n="extensionsIntro">Install isolated extensions that can inspect and customize the DarkStudio
         interface, without access to editor contents.</p>
-      <button id="extensions-import-button" type="button" data-i18n="installExtension">Install extension</button>
+      <button id="extensions-import-button" type="button" data-i18n="installExtension">Install extension file</button>
+      <button id="extensions-import-folder-button" type="button">Install extension folder</button>
       <input id="extensions-file-input" type="file" accept=".dsx.json,application/json,.json" hidden />
+      <input id="extensions-folder-input" type="file" webkitdirectory directory multiple hidden aria-label="Select extension folder" />
       <p id="extensions-empty" data-i18n="noExtensions">No extensions installed.</p>
       <div id="extensions-list" aria-live="polite"></div>
       <a href="Extras/Extensions/API.md" target="_blank" rel="noopener" data-i18n="extensionsDocs">Extension API and
@@ -287,7 +289,7 @@
       <section id="debugger-view" class="options-view" aria-labelledby="debugger-view-heading" hidden>
         <h2 id="debugger-view-heading" class="options-view-heading" data-i18n="debuggerHeading">Debugger</h2>
         <section id="debugger-section" aria-label="Debugger" data-i18n-aria-label="debuggerHeading">
-          <button id="debugger-toggle" type="button" aria-expanded="true" title="Expand or collapse the debugger" data-i18n-title="debuggerToggleTitle">
+          <button id="debugger-toggle" type="button" aria-expanded="false" title="Expand or collapse the current file" data-i18n-title="debuggerToggleTitle">
             <span data-i18n="currentFile">Current file</span><span class="explorer-chevron" aria-hidden="true"></span>
           </button>
           <div id="debugger-content">
