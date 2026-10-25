@@ -138,7 +138,7 @@
   function renderActiveTerminal() {
     const item = activeTerminal();
     terminalTitle.textContent = "Terminal Integrado - " + (item ? item.type : "CMD");
-    terminalOutput.textContent = item ? item.buffer : "";
+    terminalOutput.textContent = item ? (item.prompt ? item.buffer.slice(0, item.buffer.length - item.prompt.length) : item.buffer) : "";
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
     promptRow.hidden = !item || (!item.prompt && !item.busy);
     promptLabel.textContent = item ? item.prompt : "";
@@ -206,7 +206,7 @@
   function appendToTerminal(item, data) {
     item.buffer += String(data || "");
     if (item.buffer.length > 500000) item.buffer = item.buffer.slice(-400000);
-    const match = item.buffer.match(/(?:^|\r?\n)((?:[A-Za-z]:\\|\\\\)[^<>\r\n]*>)$/);
+    const match = item.buffer.match(/(?:^|\r?\n)((?:PS\s+)?(?:[A-Za-z]:\\|\\\\)[^<>\r\n]*>)$/);
     item.prompt = match ? match[1] : "";
     if (item.prompt) item.busy = false;
     if (item.id === activeTerminalId) renderActiveTerminal();
