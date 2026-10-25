@@ -44,7 +44,6 @@ if (!blockWeb) {
   const resetBorderColorButton = document.getElementById("reset-border-color");
   const accentColorInput = document.getElementById("accent-color-input");
   const resetAccentColorButton = document.getElementById("reset-accent-color");
-  const clearButton = document.getElementById("clear");
   const editor = document.getElementById("main-content");
   const executorPanel = document.getElementById("executor-panel");
   const executorOutput = document.getElementById("executor-output");
@@ -214,7 +213,6 @@ if (!blockWeb) {
 
 
 
-    clearButton.style.display = "inline-block";
 
     updateMediaPlayer(code);
   }
@@ -1922,8 +1920,6 @@ ${code}
   }
 
   function fixLanguage() {
-    const clear = document.getElementById("clear");
-    const execute = document.getElementById("execute");
     const mindMapClear = document.getElementById("mindmap-clear");
     const mindMapConnect = document.getElementById("mindmap-connect");
     const mindMapAdd = document.getElementById("mindmap-add-files");
@@ -1932,8 +1928,6 @@ ${code}
       const content = element.querySelector("[data-i18n]") || element;
       content.textContent = t(key);
     };
-    setLabel(clear, "clear");
-    setLabel(execute, "execute");
     setLabel(mindMapClear, "mindMapClear");
     setLabel(mindMapConnect, "mindMapConnect");
     setLabel(mindMapAdd, "mindMapAdd");
