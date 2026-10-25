@@ -1,12 +1,15 @@
 // DarkStudio extension host. Extension code executes in an opaque-origin sandbox.
 const STORAGE_KEY = "darkstudio.extensions.v1";
 const CHANNEL = "darkstudio-extension";
-const MAX_EXTENSION_BYTES = 256 * 1024;
-const MAX_TOTAL_BYTES = 2 * 1024 * 1024;
+const MAX_EXTENSION_BYTES = 20 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
+const EXTENSIONS_DB_NAME = "darkstudio-extension-storage";
+const EXTENSIONS_DB_VERSION = 1;
+const EXTENSIONS_STORE_NAME = "extensions";
 const MAX_QUERY_RESULTS = 100;
 const MAX_REQUESTS_PER_SECOND = 120;
 const SAFE_TAGS = new Set([
-  "a", "article", "aside", "b", "blockquote", "br", "button", "code", "dd", "details", "div", "dl", "dt", "em", "figcaption", "figure", "footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "i", "img", "label", "li", "main", "nav", "ol", "p", "pre", "section", "small", "span", "strong", "summary", "table", "tbody", "td", "th", "thead", "tr", "ul",
+  "a", "article", "aside", "audio", "b", "blockquote", "br", "button", "code", "dd", "details", "div", "dl", "dt", "em", "figcaption", "figure", "footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "i", "img", "label", "li", "main", "nav", "ol", "p", "pre", "section", "small", "source", "span", "strong", "summary", "table", "tbody", "td", "th", "thead", "tr", "ul", "video",
 ]);
 const SAFE_EVENTS = new Set(["click", "input", "change", "submit", "keydown", "pointerdown", "pointerup"]);
 
@@ -18,8 +21,36 @@ const panel = document.getElementById("extensions-panel");
 const list = document.getElementById("extensions-list");
 const emptyState = document.getElementById("extensions-empty");
 const fileInput = document.getElementById("extensions-file-input");
+const folderInput = document.getElementById("extensions-folder-input");
 const records = new Map();
 let nextElementHandle = 0;
+let extensionsDBPromise = null;
+
+function openExtensionsDB() {
+  if (extensionsDBPromise) return extensionsDBPromise;
+  extensionsDBPromise = new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) return reject(new Error("Este navegador não oferece armazenamento persistente para pacotes de extensão."));
+    const request = indexedDB.open(EXTENSIONS_DB_NAME, EXTENSIONS_DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(EXTENSIONS_STORE_NAME)) db.createObjectStore(EXTENSIONS_STORE_NAME, { keyPath: "id" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Não foi possível abrir o armazenamento de extensões."));
+    request.onblocked = () => reject(new Error("O armazenamento de extensões está bloqueado por outra janela."));
+  });
+  return extensionsDBPromise;
+}
+
+async function readIndexedExtensions() {
+  const db = await openExtensionsDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(EXTENSIONS_STORE_NAME, "readonly");
+    const request = tx.objectStore(EXTENSIONS_STORE_NAME).getAll();
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result.filter(isValidManifest) : []);
+    request.onerror = () => reject(request.error || new Error("Não foi possível ler as extensões instaladas."));
+  });
+}
 
 function readStoredExtensions() {
   try {
@@ -38,10 +69,26 @@ function isValidManifest(item) {
     typeof item.version === "string" && typeof item.code === "string");
 }
 
-function persistExtensions() {
-  const serialized = JSON.stringify([...records.values()].map(({ manifest, enabled }) => ({ ...manifest, enabled })));
-  if (new Blob([serialized]).size > MAX_TOTAL_BYTES) throw new Error("Extension storage limit exceeded.");
-  localStorage.setItem(STORAGE_KEY, serialized);
+async function persistExtensions() {
+  const entries = [...records.values()].map(({ manifest, enabled }) => ({ ...manifest, enabled }));
+  const serialized = JSON.stringify(entries);
+  if (new Blob([serialized]).size > MAX_TOTAL_BYTES) throw new Error("O armazenamento total de extensões excede 100 MB.");
+  try {
+    const db = await openExtensionsDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(EXTENSIONS_STORE_NAME, "readwrite");
+      const store = tx.objectStore(EXTENSIONS_STORE_NAME);
+      store.clear();
+      for (const entry of entries) store.put(entry);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error || new Error("Falha ao salvar extensões."));
+      tx.onabort = () => reject(tx.error || new Error("O salvamento de extensões foi cancelado."));
+    });
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    if (new Blob([serialized]).size > 2 * 1024 * 1024) throw error;
+    localStorage.setItem(STORAGE_KEY, serialized);
+  }
 }
 
 function isEditorElement(element) {
@@ -103,12 +150,31 @@ function safeURL(value, allowImageData = false) {
 }
 
 function hasExternalCSSResource(value) {
-  const decoded = value.replace(/\\([0-9a-f]{1,6})\s?|\\(.)/gi, (_, hex, escaped) => {
+  const decoded = value.replace(/\\\\([0-9a-f]{1,6})\\s?|\\\\(.)/gi, (_, hex, escaped) => {
     if (!hex) return escaped || "";
     const codePoint = Number.parseInt(hex, 16);
-    return codePoint === 0 || codePoint > 0x10ffff ? "\uFFFD" : String.fromCodePoint(codePoint);
+    return codePoint === 0 || codePoint > 0x10ffff ? "\\uFFFD" : String.fromCodePoint(codePoint);
   });
-  return /@import\b|url\s*\(|(?:-webkit-)?image-set\s*\(/i.test(decoded);
+  return /@import\\b|url\\s*\\(|(?:-webkit-)?image-set\\s*\\(/i.test(decoded);
+}
+
+function normalizeAssetPath(value) {
+  const path = String(value || "").replace(/\\\\/g, "/").replace(/^\\.\\//, "");
+  if (!path || path.startsWith("/") || /^[a-z]+:/i.test(path) || path.split("/").some((part) => !part || part === "." || part === "..")) return "";
+  return path;
+}
+
+function resolveExtensionCSS(css, assets = {}) {
+  if (typeof css !== "string" || css.length > MAX_EXTENSION_BYTES) throw new Error("O CSS da extensão excede o limite permitido.");
+  if (/@import\\b|expression\\s*\\(|javascript:/i.test(css) || /(?:-webkit-)?image-set\\s*\\(/i.test(css)) throw new Error("O CSS contém uma construção não permitida.");
+  return css.replace(/url\\(\\s*(?:(["'])(.*?)\\1|([^)]*))\\s*\\)/gi, (_match, quote, quotedPath, rawPath) => {
+    const resource = String(quotedPath ?? rawPath ?? "").trim();
+    if (/^data:image\\/(?:png|gif|jpeg|webp|svg\\+xml);base64,/i.test(resource)) return `url("${resource}")`;
+    const key = normalizeAssetPath(resource);
+    const asset = key && assets[key];
+    if (!asset || typeof asset !== "string" || !/^data:image\\/(?:png|gif|jpeg|webp|svg\\+xml);base64,/i.test(asset)) throw new Error(`Recurso CSS não permitido ou não encontrado: ${resource}`);
+    return `url("${asset}")`;
+  });
 }
 
 function safeHTMLNodes(extension, markup) {
@@ -124,7 +190,7 @@ function safeHTMLNodes(extension, markup) {
       const name = attribute.name.toLowerCase();
       const value = attribute.value;
       if (name.startsWith("on") || ["id", "srcdoc", "srcset", "formaction", "contenteditable"].includes(name)) continue;
-      if (["class", "title", "role", "tabindex", "alt", "width", "height", "colspan", "rowspan", "open", "aria-label", "aria-hidden"].includes(name) || name.startsWith("aria-") || name.startsWith("data-")) {
+      if (["class", "title", "role", "tabindex", "alt", "width", "height", "colspan", "rowspan", "open", "controls", "muted", "loop", "preload", "aria-label", "aria-hidden"].includes(name) || name.startsWith("aria-") || name.startsWith("data-")) {
         clone.setAttribute(name, value.slice(0, 2000));
       } else if (name === "href") {
         const url = safeURL(value);
@@ -132,6 +198,12 @@ function safeHTMLNodes(extension, markup) {
       } else if (name === "src" && clone.tagName === "IMG") {
         const url = safeURL(value, true);
         if (url) clone.setAttribute("src", url);
+      } else if (name === "src" && ["VIDEO", "AUDIO", "SOURCE"].includes(clone.tagName)) {
+        const url = /^data:(?:video|audio)\\/[a-z0-9.+-]+;base64,/i.test(value) ? value : null;
+        if (url) clone.setAttribute("src", url);
+      } else if (name === "poster" && clone.tagName === "VIDEO") {
+        const url = safeURL(value, true);
+        if (url) clone.setAttribute("poster", url);
       } else if (name === "target" && value === "_blank") {
         clone.setAttribute("target", "_blank");
         clone.setAttribute("rel", "noopener noreferrer");
@@ -240,8 +312,9 @@ function runCommand(extension, command, args) {
     }
     case "addCSS": {
       const css = String(args.css || "");
-      if (!css || css.length > MAX_EXTENSION_BYTES || hasExternalCSSResource(css)) throw new Error("CSS is empty, too large, or references external resources.");
-      extension.style.textContent += `\n/* extension ${extension.manifest.id} */\n${css}`;
+      if (!css || css.length > MAX_EXTENSION_BYTES) throw new Error("O CSS está vazio ou é grande demais.");
+      const safeCSS = resolveExtensionCSS(css, extension.manifest.assets || {});
+      extension.style.textContent += `\n/* extension ${extension.manifest.id} */\n${safeCSS}`;
       return true;
     }
     case "listen": {
@@ -291,7 +364,7 @@ function handleExtensionMessage(event) {
 }
 
 function sandboxDocument() {
-  return `<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><script>
+  return `<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><script>
     (() => {
       const channel = ${JSON.stringify(CHANNEL)};
       let token = "";
@@ -305,7 +378,9 @@ function sandboxDocument() {
         pending.set(id, { resolve, reject });
         parent.postMessage({ channel, token, type: "command", id, command, args }, "*");
       });
+      let extensionAssets = Object.freeze({});
       window.DS = Object.freeze({
+        get assets() { return extensionAssets; },
         query: (selector = "body") => request("query", { selector }),
         getText: (handle) => request("getText", { handle }),
         setText: (handle, value) => request("setText", { handle, value }),
@@ -327,6 +402,7 @@ function sandboxDocument() {
         const message = event.data;
         if (message.type === "init") {
           token = message.token;
+          extensionAssets = Object.freeze(message.assets && typeof message.assets === "object" ? message.assets : {});
           const script = document.createElement("script");
           script.textContent = message.code;
           document.body.appendChild(script);
@@ -363,6 +439,11 @@ function createRuntime(extension) {
   extension.style = document.createElement("style");
   extension.style.dataset.dsExtensionStyle = extension.manifest.id;
   extension.style.disabled = !extension.enabled;
+  try {
+    extension.style.textContent = resolveExtensionCSS(extension.manifest.styles || "", extension.manifest.assets || {});
+  } catch (error) {
+    console.warn(`DarkStudio: estilos ignorados para ${extension.manifest.id}.`, error);
+  }
   document.head.appendChild(extension.style);
   extension.elementStyle = document.createElement("style");
   extension.elementStyle.disabled = !extension.enabled;
@@ -375,6 +456,7 @@ function createRuntime(extension) {
   extension.frame.addEventListener("load", () => {
     extension.frame.contentWindow?.postMessage({
       channel: CHANNEL, type: "init", token: extension.token, code: extension.manifest.code,
+      assets: extension.manifest.assets || {},
     }, "*");
   }, { once: true });
   document.body.appendChild(extension.frame);
@@ -411,29 +493,41 @@ function renderExtensions() {
   }
 }
 
-function installManifest(manifest) {
-  if (!isValidManifest(manifest) || new Blob([manifest.code]).size > MAX_EXTENSION_BYTES) {
-    throw new Error("Invalid or oversized extension manifest.");
-  }
-  if (records.has(manifest.id)) throw new Error("An extension with this ID is already installed.");
-  const extension = { manifest: { ...manifest, name: manifest.name.trim() }, enabled: manifest.enabled !== false, frame: null };
+async function installManifest(manifest) {
+  if (!isValidManifest(manifest)) throw new Error("O manifesto da extensão é inválido.");
+  const assets = manifest.assets && typeof manifest.assets === "object" && !Array.isArray(manifest.assets) ? manifest.assets : {};
+  const normalized = { ...manifest, assets, styles: typeof manifest.styles === "string" ? manifest.styles : "", name: manifest.name.trim() };
+  if (new Blob([JSON.stringify(normalized)]).size > MAX_EXTENSION_BYTES) throw new Error("A extensão excede o limite de 20 MB.");
+  resolveExtensionCSS(normalized.styles, normalized.assets);
+  if (records.has(normalized.id)) throw new Error("Já existe uma extensão instalada com este identificador.");
+  const extension = { manifest: normalized, enabled: manifest.enabled !== false, frame: null };
   records.set(extension.manifest.id, extension);
-  try {
-    persistExtensions();
-  } catch (error) {
-    records.delete(extension.manifest.id);
-    throw error;
-  }
-  createRuntime(extension);
+  try { await persistExtensions(); }
+  catch (error) { records.delete(extension.manifest.id); throw error; }
+  if (extension.enabled) createRuntime(extension);
   renderExtensions();
   window.dispatchEvent(new CustomEvent("darkstudio:extensions-changed"));
 }
 
-for (const manifest of readStoredExtensions()) {
-  const extension = { manifest, enabled: manifest.enabled !== false, frame: null };
-  records.set(manifest.id, extension);
-  if (extension.enabled) createRuntime(extension);
+async function initializeExtensions() {
+  let stored = [];
+  try { stored = await readIndexedExtensions(); }
+  catch (error) { console.warn("DarkStudio: usando compatibilidade de armazenamento local.", error); }
+  const known = new Set(stored.map((manifest) => manifest.id));
+  const legacy = readStoredExtensions().filter((manifest) => !known.has(manifest.id));
+  for (const manifest of [...stored, ...legacy]) {
+    const extension = { manifest: { ...manifest, assets: manifest.assets || {}, styles: manifest.styles || "" }, enabled: manifest.enabled !== false, frame: null };
+    records.set(extension.manifest.id, extension);
+  }
+  if (legacy.length) {
+    try { await persistExtensions(); }
+    catch (error) { console.warn("DarkStudio: não foi possível migrar extensões antigas.", error); }
+  }
+  for (const extension of records.values()) if (extension.enabled) createRuntime(extension);
+  renderExtensions();
 }
+
+void initializeExtensions();
 
 async function renderBundledCatalog() {
   if (!panel) return;
@@ -502,18 +596,69 @@ renderExtensions();
 renderBundledCatalog();
 
 document.getElementById("extensions-import-button")?.addEventListener("click", () => fileInput?.click());
+document.getElementById("extensions-import-folder-button")?.addEventListener("click", () => folderInput?.click());
+
+async function fileToDataURL(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  const types = { png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", webp:"image/webp", svg:"image/svg+xml", mp4:"video/mp4", webm:"video/webm", ogv:"video/ogg", mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", woff:"font/woff", woff2:"font/woff2", ttf:"font/ttf", otf:"font/otf", json:"application/json", txt:"text/plain" };
+  const mime = file.type || types[ext] || "application/octet-stream";
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + 0x8000, bytes.length)));
+  return `data:${mime};base64,${btoa(binary)}`;
+}
+
+async function importExtensionFolder(fileList) {
+  const files = [...(fileList || [])].filter((file) => file && file.name && !file.name.startsWith(".") && !(file.webkitRelativePath || "").split("/").some((part) => part === ".."));
+  if (!files.length) throw new Error("A pasta selecionada está vazia.");
+  if (files.reduce((sum, file) => sum + file.size, 0) > MAX_EXTENSION_BYTES) throw new Error("A pasta da extensão excede o limite de 20 MB.");
+  if (files.length > 250) throw new Error("A extensão contém arquivos demais (máximo: 250).");
+  const roots = files.map((file) => {
+    const parts = (file.webkitRelativePath || file.name).split("/");
+    return { file, path: parts.length > 1 ? parts.slice(1).join("/") : parts[0] };
+  });
+  const manifestFile = roots.find(({ path }) => path.toLowerCase() === "manifest.json")?.file;
+  if (!manifestFile) throw new Error("Não encontrei manifest.json na raiz da pasta selecionada.");
+  const source = JSON.parse(await manifestFile.text());
+  if (!source || typeof source.id !== "string" || typeof source.name !== "string" || typeof source.version !== "string") throw new Error("manifest.json precisa definir id, name e version.");
+  const entryPath = normalizeAssetPath(source.entry || "main.js");
+  const stylePath = source.styles ? normalizeAssetPath(source.styles) : "";
+  if (!entryPath || !/^[\w .()/-]+\.(?:js|mjs)$/i.test(entryPath)) throw new Error("O campo entry precisa apontar para um arquivo JavaScript relativo.");
+  if (stylePath && !/^[\w .()/-]+\.css$/i.test(stylePath)) throw new Error("O campo styles precisa apontar para um CSS relativo.");
+  const entryFile = roots.find(({ path }) => path === entryPath)?.file;
+  const styleFile = stylePath ? roots.find(({ path }) => path === stylePath)?.file : null;
+  if (!entryFile) throw new Error(`Arquivo de entrada não encontrado: ${entryPath}`);
+  if (stylePath && !styleFile) throw new Error(`Arquivo CSS não encontrado: ${stylePath}`);
+  const code = await entryFile.text();
+  const styles = styleFile ? await styleFile.text() : "";
+  const assets = {};
+  for (const { file, path } of roots) {
+    if (path === "manifest.json" || path === entryPath || path === stylePath || !path.startsWith("assets/") || file.name.toLowerCase() === "readme.md") continue;
+    const key = normalizeAssetPath(path);
+    if (!key || key.length > 240) throw new Error(`Caminho de recurso inválido: ${path}`);
+    assets[key] = await fileToDataURL(file);
+  }
+  await installManifest({ id: source.id, name: source.name, version: source.version, description: String(source.description || ""), code, styles, assets });
+}
+
 fileInput?.addEventListener("change", async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
   try {
-    if (file.size > MAX_EXTENSION_BYTES) throw new Error("Extension file is too large.");
-    installManifest(JSON.parse(await file.text()));
+    if (file.size > MAX_EXTENSION_BYTES) throw new Error("O arquivo da extensão excede o limite de 20 MB.");
+    await installManifest(JSON.parse(await file.text()));
   } catch (error) {
     console.error("DarkStudio extension install failed:", error);
-    alert(t("extensionError"));
-  } finally {
-    fileInput.value = "";
-  }
+    alert(`Não foi possível instalar a extensão: ${String(error?.message || error)}`);
+  } finally { fileInput.value = ""; }
+});
+
+folderInput?.addEventListener("change", async () => {
+  try { await importExtensionFolder(folderInput.files); }
+  catch (error) {
+    console.error("DarkStudio extension folder import failed:", error);
+    alert(`Não foi possível importar a pasta da extensão: ${String(error?.message || error)}`);
+  } finally { folderInput.value = ""; }
 });
 
 list?.addEventListener("click", (event) => {
@@ -527,7 +672,13 @@ list?.addEventListener("click", (event) => {
   if (extension.elementStyle) extension.elementStyle.disabled = !extension.enabled;
   document.querySelectorAll(`[data-ds-extension-host="${CSS.escape(extension.manifest.id)}"]`)
     .forEach((host) => { host.hidden = !extension.enabled; });
-  persistExtensions();
+  void persistExtensions().catch((error) => {
+    extension.enabled = !extension.enabled;
+    if (extension.style) extension.style.disabled = !extension.enabled;
+    if (extension.elementStyle) extension.elementStyle.disabled = !extension.enabled;
+    renderExtensions();
+    alert(`Não foi possível salvar a alteração: ${String(error?.message || error)}`);
+  });
   renderExtensions();
 });
 
