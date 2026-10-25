@@ -169,10 +169,10 @@ function resolveExtensionCSS(css, assets = {}) {
   if (/@import\b|expression\s*\(|javascript:/i.test(css) || /(?:-webkit-)?image-set\s*\(/i.test(css)) throw new Error("O CSS contém uma construção não permitida.");
   return css.replace(/url\(\s*(?:(["'])(.*?)\1|([^)]*))\s*\)/gi, (_match, quote, quotedPath, rawPath) => {
     const resource = String(quotedPath ?? rawPath ?? "").trim();
-    if (/^data:image\/(?:png|gif|jpeg|webp|svg\+xml);base64,/i.test(resource)) return \`url("\${resource}")\`;
+    if (/^data:image\/(?:png|gif|jpeg|webp|svg\+xml);base64,/i.test(resource)) return `url("${resource}")`;
     const key = normalizeAssetPath(resource);
     const asset = key && assets[key];
-    if (!asset || typeof asset !== "string" || !/^data:image\/(?:png|gif|jpeg|webp|svg\+xml);base64,/i.test(asset)) throw new Error(\`Recurso CSS não permitido ou não encontrado: \${resource}\`);
+    if (!asset || typeof asset !== "string" || !/^data:image\/(?:png|gif|jpeg|webp|svg\+xml);base64,/i.test(asset)) throw new Error(`Recurso CSS não permitido ou não encontrado: ${resource}`);
     return `url("${asset}")`;
   });
 }
