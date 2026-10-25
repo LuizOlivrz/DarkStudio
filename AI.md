@@ -1,4 +1,5 @@
 # AI.md — Guia de colaboração para IAs no DarkStudio
+| 2026-10-24 23:05 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona seta expansível ao Depurador e traduz os textos da Estação de arquivos, do estado de workspace vazio e de toda a aba do Depurador nos oito idiomas disponíveis. | PR #33 |
 | 2026-10-24 22:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove o botão Extensions da Estação de Arquivos, mantendo a tela de extensões acessível pelo fluxo existente do SVG do mapa. | PR #33 |
 | 2026-10-24 22:35 (UTC-03:00) | ChatGPT — GPT-6 | Renomeia os rótulos visíveis do Debugger para Depurador, altera a aba expansível para Arquivo atual e atualiza o botão para Executar/Depurar (Arquivo atual). | PR #33 |
 | 2026-10-24 22:20 (UTC-03:00) | ChatGPT — GPT-6 | Faz o SVG do Mapa do Workspace abrir a mesma tela de Extensões do botão existente; oculta o painel #options e expande #main-content sobre a área das opções e do editor. | PR #33 |
