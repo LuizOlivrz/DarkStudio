@@ -69,6 +69,6 @@ Use caminhos relativos à pasta da extensão para referenciar os recursos. Evite
 - O mantenedor revisa o código, os recursos, a segurança, o impacto na interface e a compatibilidade.
 - Propostas não aprovadas não devem ser publicadas como extensões oficiais.
 - A aba Extensões lê `Catalogo.json` apenas para mostrar nome, descrição e pasta. Ela não carrega, instala nem executa os arquivos listados nessa área.
-- O formato de pasta é importável pelo gerenciador local. A instalação verifica `manifest.json`, `main.ds`, `Assets/demo/demo.txt` e `Assets/demo/demo.icon`; pacotes incompletos aparecem como quebrados e ficam desativados. O formato legado `.dsx.json` continua disponível para compatibilidade.
+- O formato de pasta é importável pelo gerenciador local. A instalação verifica `manifest.json`, `main.ds`, `Assets/demo/demo.txt` e `Assets/demo/demo.icon`; pacotes incompletos aparecem como quebrados e ficam desativados. Arquivos legados `.dsx.json` podem ser importados para inspeção, mas permanecem listados como quebrados e desativados até serem reconstruídos como uma pasta com todos os arquivos obrigatórios.
 - Somente após aprovação explícita do mantenedor uma extensão deve ser integrada ao catálogo oficial/fluxo de instalação.
 - Não trate uma extensão de terceiros como confiável apenas porque está no repositório. Revise o conteúdo antes de aprovar.
