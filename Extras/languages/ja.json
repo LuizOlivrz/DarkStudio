@@ -209,8 +209,10 @@
   "workspaceEmptyState": "ワークスペースは空です",
   "fileStation": "ファイルステーション",
   "debuggerHeading": "デバッグ",
+  "installExtensionFolder": "拡張機能フォルダーをインストール",
+  "extensionBroken": "壊れた拡張機能",
   "currentFile": "現在のファイル",
   "runDebugCurrentFile": "実行/デバッグ（現在のファイル）",
   "debuggerUnsupportedLanguage": "この言語のデバッガーはまだありません",
-  "debuggerToggleTitle": "デバッガーを展開または折りたたむ"
+  "debuggerToggleTitle": "現在のファイルを展開または折りたたむ"
 }
