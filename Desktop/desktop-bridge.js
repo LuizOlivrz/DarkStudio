@@ -211,7 +211,13 @@
     const match = item.buffer.match(/(?:^|\r?\n)((?:PS\s+)?(?:[A-Za-z]:\\|\\\\)[^<>\r\n]*>)$/);
     item.prompt = match ? match[1] : "";
     if (item.prompt) item.busy = false;
-    if (item.id === activeTerminalId) renderActiveTerminal();
+    if (item.id === activeTerminalId) {
+      renderActiveTerminal();
+      if (item.prompt && item.restoreFocusAfterCommand && !terminalPanel.hidden) {
+        item.restoreFocusAfterCommand = false;
+        terminalInput.focus({ preventScroll: true });
+      }
+    }
   }
 
   function startTerminal(item) {
@@ -262,7 +268,8 @@
       started: false,
       inputValue: "",
       history: [],
-      historyIndex: 0
+      historyIndex: 0,
+      restoreFocusAfterCommand: false
     };
     terminals.push(item);
     activeTerminalId = item.id;
@@ -404,11 +411,14 @@
     item.inputValue = "";
     terminalInput.value = "";
     item.busy = true;
+    item.restoreFocusAfterCommand = true;
     renderActiveTerminal();
     const result = await window.darkStudioDesktop.terminalWrite({ terminalId: item.id, data: command + "\r\n" });
     if (!result?.ok) {
       item.busy = false;
+      item.restoreFocusAfterCommand = false;
       appendToTerminal(item, "\r\n" + String(result?.error || "Falha ao enviar o comando.") + "\r\n");
+      if (item.id === activeTerminalId && !terminalPanel.hidden) terminalInput.focus({ preventScroll: true });
     }
   }
 
