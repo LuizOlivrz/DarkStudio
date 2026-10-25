@@ -1,4 +1,12 @@
 # AI.md — Guia de colaboração para IAs no DarkStudio
+| 2026-10-24 23:50 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o fechamento das Configurações para manter o editor oculto quando o Explorer não contém arquivos. | PR #33 |
+| 2026-10-24 23:45 (UTC-03:00) | ChatGPT — GPT-6 | Ao abrir Configurações, aciona o ícone da Estação de Arquivos para deixar o painel options nessa visualização. | PR #33 |
+| 2026-10-24 23:35 (UTC-03:00) | ChatGPT — GPT-6 | Permite reordenar por arrastar e soltar os ícones SVG da barra lateral, salvando a ordem escolhida no navegador. | PR #33 |
+| 2026-10-24 23:20 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a sobreposição do estado Workspace vazio sobre Configurações/Extensões e restaura #options ao abrir Configurações diretamente a partir de Extensões. | PR #33 |
+| 2026-10-24 23:05 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona seta expansível ao Depurador e traduz os textos da Estação de arquivos, do estado de workspace vazio e de toda a aba do Depurador nos oito idiomas disponíveis. | PR #33 |
+| 2026-10-24 22:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove o botão Extensions da Estação de Arquivos, mantendo a tela de extensões acessível pelo fluxo existente do SVG do mapa. | PR #33 |
+| 2026-10-24 22:35 (UTC-03:00) | ChatGPT — GPT-6 | Renomeia os rótulos visíveis do Debugger para Depurador, altera a aba expansível para Arquivo atual e atualiza o botão para Executar/Depurar (Arquivo atual). | PR #33 |
+| 2026-10-24 22:20 (UTC-03:00) | ChatGPT — GPT-6 | Faz o SVG do Mapa do Workspace abrir a mesma tela de Extensões do botão existente; oculta o painel #options e expande #main-content sobre a área das opções e do editor. | PR #33 |
 
 > **Objetivo:** permitir que qualquer assistente de IA entenda como contribuir para o DarkStudio com autonomia, mantendo rastreabilidade, segurança e compatibilidade com o que já existe.
 >
@@ -197,6 +205,11 @@ Formato obrigatório:
 | 2026-10-24 19:25 (UTC-03:00) | ChatGPT — GPT-6 | Combina a interface atual do Workspace com o botão de doações e a extração dos eventos inline para arquivos JavaScript. | PR #29: https://github.com/LuizOlivrz/DarkStudio/pull/29 |
 | 2026-10-24 19:40 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona janela de doação Pix com código Copia e Cola e ação para copiar, em módulo JavaScript separado. | Branch `feature/pix` |
 | 2026-10-24 19:55 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a inicialização do Monaco removendo a importação duplicada dos módulos de contribuição HTML/TypeScript, que provocava erro AMD e impedia a criação do editor. | PR #32 |
+| 2026-10-24 20:46 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona a navegação lateral entre Estação de Arquivos e Debugger, com ação de execução e aviso visual para linguagens ainda não suportadas. | PR #33 |
+| 2026-10-24 21:10 (UTC-03:00) | ChatGPT — GPT-6 | Exibe a marca e “WorkSpace Vazio” quando não há arquivos no Explorer e ajusta o cabeçalho do Debugger para o estilo simples do Explorer. | PR #33 |
+| 2026-10-24 21:25 (UTC-03:00) | ChatGPT — GPT-6 | Remove os botões legados de execução e Iframe e seus manipuladores, preservando o executor usado pelo Debugger. | PR #33 |
+| 2026-10-24 21:35 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona o ícone SVG do Mapa do Workspace entre Estação de Arquivos e Debugger na barra lateral. | PR #33 |
+| 2026-10-24 21:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove o botão Limpar editor e seu evento; padroniza o botão de execução do Debugger e conecta o SVG do mapa à troca entre mapa e painel de opções, mantendo a seleção até outro SVG ser clicado. | PR #33 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 

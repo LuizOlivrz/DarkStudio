@@ -202,5 +202,12 @@
   "linkReaderCouldNotRead": "Не удалось прочитать эту ссылку.",
   "enableMiniPlayers": "Включить мини-плееры медиа",
   "explorerEmpty": "В проекте нет файлов",
-  "editorDropTextOnly": "Перетащите текстовый файл или файл кода в редактор."
+  "editorDropTextOnly": "Перетащите текстовый файл или файл кода в редактор.",
+  "workspaceEmptyState": "Рабочая область пуста",
+  "fileStation": "Файловая станция",
+  "debuggerHeading": "Отладчик",
+  "currentFile": "Текущий файл",
+  "runDebugCurrentFile": "Запустить/отладить (текущий файл)",
+  "debuggerUnsupportedLanguage": "Для этого языка пока нет отладчика",
+  "debuggerToggleTitle": "Развернуть или свернуть отладчик"
 }

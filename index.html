@@ -44,6 +44,13 @@
     <!-- ====== CODE EDITOR / EDITOR DE CÓDIGO ====== -->
     <div id="main-content">
       <div id="Editor-Input" translate="no" style="width: 100%; height: 100%"></div>
+      <div id="workspace-empty-state" aria-live="polite" hidden>
+        <img src="Extras/Assets/White Favicon.png" alt="DarkStudio" />
+        <p data-i18n="workspaceEmptyState">Workspace vazio</p>
+      </div>
+      <div id="debugger-unsupported-overlay" role="status" aria-live="polite" hidden>
+        <p data-i18n="debuggerUnsupportedLanguage">We don’t have a debugger for this language yet</p>
+      </div>
 <!-- ====== SETTINGS PANEL / PAINEL DE CONFIGURAÇÕES ====== -->
     <div id="config" hidden>
       <h1 data-i18n="settings">Settings</h1>
@@ -225,45 +232,68 @@
       <div id="mindmap-nodes" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0"></div>
     </div>
 
-    <!-- Decorative file icon in its own grid column. It does not open a picker. -->
-    <div id="file-gutter-icon" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" focusable="false">
-        <path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6M13 3v5a1 1 0 0 0 1 1h5M13 3l6 6M19 13v-4M8 13h4M8 17h2M16.5 13.5l4-4a2.121 2.121 0 0 1 3 3l-4 4-4 1z"
-          stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    </div>
+    <!-- Atalhos laterais para as ferramentas do espaço de trabalho. -->
+    <nav id="workspace-launcher-rail" aria-label="Ferramentas do espaço de trabalho">
+      <button id="file-gutter-icon" class="workspace-launcher is-active" type="button" draggable="true"
+        aria-label="File Station" data-i18n-aria-label="fileStation" aria-pressed="true" title="File Station" data-i18n-title="fileStation">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+          <path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6M13 3v5a1 1 0 0 0 1 1h5M13 3l6 6M19 13v-4M8 13h4M8 17h2M16.5 13.5l4-4a2.121 2.121 0 0 1 3 3l-4 4-4 1z"
+            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <button id="workspace-map-launcher" class="workspace-launcher" type="button" draggable="true"
+        aria-label="Mapa do Workspace" aria-pressed="false" title="Mapa do Workspace">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+          <path d="M9 20L3 17V4L9 7M9 20L15 17M9 20V7M15 17L21 20V7L15 4M15 17V4M9 7L15 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button id="debugger-launcher" class="workspace-launcher" type="button" draggable="true"
+        aria-label="Debugger" data-i18n-aria-label="debuggerHeading" aria-pressed="false" title="Debugger" data-i18n-title="debuggerHeading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" focusable="false" aria-hidden="true">
+          <circle cx="14" cy="14" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 23l4.5 4.5a2.12 2.12 0 0 0 3 0 2.12 2.12 0 0 0 0-3L23 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="14" cy="14" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M7 14h3m11 0h-3m-4-4v8m-5 1 1.8-1.8M19 19l-1.8-1.8M9 9l2 2m8-2-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="14" cy="9" r="1" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+    </nav>
 
     <!-- ====== OPTIONS PANEL / PAINEL DE OPÇÕES ====== -->
     <div id="options">
-      <button id="save-button" style="display: none" title="Save" data-i18n-title="save"></button>
-      <button id="clear" title="Clear all code" data-i18n-title="clearTitle" data-action="clear-editor">
-        <span data-i18n="clear">Clear</span>
-      </button>
-      <button id="execute" style="display: none" title="Run your code" data-i18n-title="runTitle" data-action="execute-code">
-        <span data-i18n="execute">Run</span>
-      </button>
-      <button id="new-iframe-button" style="display: none" title="Copy a new Iframe" data-i18n-title="iframeTitle"
-        data-action="new-iframe">
-        Iframe
-      </button>
-      <button id="mindmap-add-files" title="Add to workspace" data-i18n-title="mindMapAddTitle" data-i18n="mindMapAdd" style="display: none">
-        Add
-      </button>
-      <button id="mindmap-connect" title="Connect workspace items" data-i18n-title="mindMapConnectTitle" data-i18n="mindMapConnect"
-        style="display: none">
-        Connect
-      </button>
-      <button id="mindmap-clear" title="Clear workspace" data-i18n-title="mindMapClearTitle" data-i18n="mindMapClear" style="display: none">
-        Clear
-      </button>
-
-      <button id="extensions-button" type="button" data-i18n="extensions">Extensions</button>
-      <section id="explorer" aria-label="Workspace explorer" data-i18n-aria-label="explorerAriaLabel">
-        <button id="explorer-toggle" type="button" aria-expanded="false" title="Toggle explorer" data-i18n-title="explorerToggleTitle">
-          <span class="explorer-label" data-i18n="explorer">Explorer</span><span class="explorer-chevron" aria-hidden="true"></span>
+      <section id="file-manager-view" class="options-view" aria-labelledby="file-manager-heading">
+        <h2 id="file-manager-heading" class="options-view-heading" data-i18n="fileStation">File Station</h2>
+        <button id="save-button" style="display: none" title="Save" data-i18n-title="save"></button>
+        <button id="mindmap-add-files" title="Add to workspace" data-i18n-title="mindMapAddTitle" data-i18n="mindMapAdd" style="display: none">
+          Add
         </button>
-        <div id="explorer-files" role="list" aria-label="Workspace files" data-i18n-aria-label="explorerFilesAriaLabel"></div>
-        <button id="explorer-graph-button" type="button" title="Toggle graphical workspace" data-i18n="graphView" data-i18n-title="graphViewTitle">Graph view</button>
+        <button id="mindmap-connect" title="Connect workspace items" data-i18n-title="mindMapConnectTitle" data-i18n="mindMapConnect"
+          style="display: none">
+          Connect
+        </button>
+        <button id="mindmap-clear" title="Clear workspace" data-i18n-title="mindMapClearTitle" data-i18n="mindMapClear" style="display: none">
+          Clear
+        </button>
+
+        <section id="explorer" aria-label="Workspace explorer" data-i18n-aria-label="explorerAriaLabel">
+          <button id="explorer-toggle" type="button" aria-expanded="false" title="Toggle explorer" data-i18n-title="explorerToggleTitle">
+            <span class="explorer-label" data-i18n="explorer">Explorer</span><span class="explorer-chevron" aria-hidden="true"></span>
+          </button>
+          <div id="explorer-files" role="list" aria-label="Workspace files" data-i18n-aria-label="explorerFilesAriaLabel"></div>
+          <button id="explorer-graph-button" type="button" title="Toggle graphical workspace" data-i18n="graphView" data-i18n-title="graphViewTitle">Graph view</button>
+        </section>
+      </section>
+
+      <section id="debugger-view" class="options-view" aria-labelledby="debugger-view-heading" hidden>
+        <h2 id="debugger-view-heading" class="options-view-heading" data-i18n="debuggerHeading">Debugger</h2>
+        <section id="debugger-section" aria-label="Debugger" data-i18n-aria-label="debuggerHeading">
+          <button id="debugger-toggle" type="button" aria-expanded="true" title="Expand or collapse the debugger" data-i18n-title="debuggerToggleTitle">
+            <span data-i18n="currentFile">Current file</span><span class="explorer-chevron" aria-hidden="true"></span>
+          </button>
+          <div id="debugger-content">
+            <button id="debugger-run-button" type="button" data-i18n="runDebugCurrentFile">Run/Debug (Current File)</button>
+          </div>
+        </section>
       </section>
     </div>
 
@@ -345,6 +375,7 @@
     <script src="Extras/Code/mindmap.js" type="module"></script>
     <script src="Extras/Code/link-reader.js" type="module"></script>
     <script src="Extras/Code/html-events.js" type="module"></script>
+    <script src="Extras/Code/options-panels.js" type="module"></script>
     <script src="Extras/Code/donations.js" type="module"></script>
   </div>
 </body>

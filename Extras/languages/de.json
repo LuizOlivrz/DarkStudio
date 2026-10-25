@@ -205,5 +205,12 @@
   "linkReaderCouldNotRead": "Dieser Link konnte nicht gelesen werden.",
   "enableMiniPlayers": "Medien-Mini-Player aktivieren",
   "explorerEmpty": "Keine Projektdateien",
-  "editorDropTextOnly": "Ziehe eine Text- oder Codedatei in den Editor."
+  "editorDropTextOnly": "Ziehe eine Text- oder Codedatei in den Editor.",
+  "workspaceEmptyState": "Der Arbeitsbereich ist leer",
+  "fileStation": "Dateistation",
+  "debuggerHeading": "Debugger",
+  "currentFile": "Aktuelle Datei",
+  "runDebugCurrentFile": "Ausführen/Debuggen (Aktuelle Datei)",
+  "debuggerUnsupportedLanguage": "Für diese Sprache gibt es noch keinen Debugger",
+  "debuggerToggleTitle": "Debugger ein- oder ausklappen"
 }

@@ -3732,3 +3732,268 @@ body {
   min-height: 1em;
   font-size: .9em;
 }
+
+
+/* Workspace tool rail and switchable options views. */
+#workspace-launcher-rail {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 44px;
+  margin-top: 5px;
+  z-index: 5;
+}
+.workspace-launcher {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 42px;
+  padding: 4px;
+  color: var(--secondary-color, #5d00ff);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+.workspace-launcher svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+.workspace-launcher {
+  cursor: grab;
+}
+.workspace-launcher.is-dragging {
+  opacity: .4;
+  cursor: grabbing;
+}
+.workspace-launcher:hover,
+.workspace-launcher:focus-visible {
+  color: #fff;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .18);
+  border-color: rgba(var(--secondary-rgb, 93, 0, 255), .55);
+  outline: none;
+}
+.workspace-launcher.is-active {
+  color: #fff;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .3);
+  border-color: var(--secondary-color, #5d00ff);
+}
+#Website-Container.with-chat #workspace-launcher-rail {
+  display: none;
+}
+#options .options-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  width: 100%;
+}
+#options .options-view[hidden] {
+  display: none !important;
+}
+#options[hidden] {
+  display: none !important;
+}
+#options .options-view-heading {
+  margin: 0;
+  padding: 2px 0 8px;
+  color: var(--secondary-color, #7654ff);
+  font-size: 1rem;
+  line-height: 1.3;
+  border-bottom: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .35);
+}
+#debugger-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+#debugger-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .45);
+  border-radius: 7px;
+  color: var(--secondary-color, #7654ff);
+  background: rgba(10, 10, 10, .75);
+  cursor: pointer;
+  text-align: left;
+}
+#debugger-toggle:hover {
+  color: #fff;
+  background: var(--primary-color, #5d00ff);
+}
+#debugger-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#debugger-section:not(.debugger-open) #debugger-content {
+  display: none;
+}
+/* O botão de execução herda o estilo padrão dos botões de opções, como o antigo Limpar editor. */
+#debugger-run-button {
+  width: 100%;
+  min-height: 34px;
+  cursor: pointer;
+}
+#main-content {
+  position: relative;
+}
+#debugger-unsupported-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 8, 8, .38);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+  text-align: center;
+}
+#debugger-unsupported-overlay[hidden] {
+  display: none !important;
+}
+#debugger-unsupported-overlay p {
+  max-width: 360px;
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .55);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(12, 12, 12, .9);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, .35);
+}
+#Website-Container.debugger-unsupported #Editor-Input {
+  filter: blur(4px);
+}
+@media (max-width: 600px) {
+  #workspace-launcher-rail { width: 38px; }
+  .workspace-launcher { width: 36px; height: 38px; }
+  .workspace-launcher svg { width: 27px; height: 27px; }
+}
+
+
+/* Ensure the legacy decorative-icon rules do not disable the new rail buttons. */
+#workspace-launcher-rail #file-gutter-icon,
+#workspace-launcher-rail #debugger-launcher {
+  grid-column: auto;
+  grid-row: auto;
+  place-self: auto;
+  margin-top: 0;
+  pointer-events: auto;
+  border: 1px solid transparent;
+}
+#workspace-launcher-rail #file-gutter-icon.is-active,
+#workspace-launcher-rail #debugger-launcher.is-active {
+  border-color: var(--secondary-color, #5d00ff);
+}
+
+#workspace-launcher-rail #file-gutter-icon.is-active,
+#workspace-launcher-rail #debugger-launcher.is-active {
+  color: #fff;
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .3);
+}
+
+
+/* Empty workspace presentation. */
+#main-content #workspace-empty-state {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  pointer-events: none;
+}
+#main-content #workspace-empty-state[hidden] {
+  display: none !important;
+}
+/* O estado vazio pertence ao editor e não deve cobrir Configurações ou Extensões. */
+#Website-Container.settings-active #main-content #workspace-empty-state,
+#Website-Container.extensions-active #main-content #workspace-empty-state {
+  display: none !important;
+}
+#workspace-empty-state img {
+  display: block;
+  width: clamp(76px, 11vw, 132px);
+  height: auto;
+  max-height: 132px;
+  object-fit: contain;
+  opacity: .92;
+}
+#workspace-empty-state p {
+  margin: 0;
+  color: var(--secondary-color, #fff);
+  font-size: clamp(16px, 2vw, 22px);
+  letter-spacing: .04em;
+}
+
+/* The Debugger section header mirrors the Explorer's quiet, borderless style. */
+#explorer-toggle,
+#debugger-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 2px;
+  border: 0 !important;
+  border-radius: 0;
+  box-shadow: none !important;
+  color: var(--secondary-color, #5d00ff);
+  background: transparent !important;
+  text-align: left;
+  cursor: pointer;
+  transition: color .18s ease;
+}
+#explorer-toggle:hover,
+#debugger-toggle:hover {
+  color: #fff;
+  background: transparent !important;
+}
+#explorer-toggle:focus-visible,
+#debugger-toggle:focus-visible {
+  outline: 1px solid var(--secondary-color, #5d00ff);
+  outline-offset: 2px;
+}
+#debugger-toggle .explorer-chevron {
+  flex: 0 0 auto;
+  margin-left: 8px;
+}
+#debugger-toggle .explorer-chevron {
+  transform: rotate(135deg);
+  transition: transform .2s ease, color .2s ease;
+}
+#debugger-section.debugger-open #debugger-toggle .explorer-chevron {
+  transform: rotate(45deg);
+}
+
+
+/* Na tela de Extensões, o painel de opções sai do layout e o conteúdo ocupa as duas colunas. */
+#Website-Container.extensions-active #options {
+  display: none !important;
+}
+#Website-Container.extensions-active #main-content {
+  display: flex !important;
+  grid-column: 2 / -1 !important;
+}
+#Website-Container.with-chat.extensions-active #main-content {
+  grid-column: 2 / 4 !important;
+}

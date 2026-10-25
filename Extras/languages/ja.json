@@ -205,5 +205,12 @@
   "linkReaderCouldNotRead": "このリンクを読み取れませんでした。",
   "enableMiniPlayers": "メディアのミニプレーヤーを有効にする",
   "explorerEmpty": "プロジェクトにファイルがありません",
-  "editorDropTextOnly": "テキストまたはコードファイルをエディターにドロップしてください。"
+  "editorDropTextOnly": "テキストまたはコードファイルをエディターにドロップしてください。",
+  "workspaceEmptyState": "ワークスペースは空です",
+  "fileStation": "ファイルステーション",
+  "debuggerHeading": "デバッガー",
+  "currentFile": "現在のファイル",
+  "runDebugCurrentFile": "実行/デバッグ（現在のファイル）",
+  "debuggerUnsupportedLanguage": "この言語のデバッガーはまだありません",
+  "debuggerToggleTitle": "デバッガーを展開または折りたたむ"
 }
