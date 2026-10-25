@@ -51,9 +51,10 @@
   terminalStyles.id = "desktop-terminal-styles";
   terminalStyles.textContent = [
     "#Website-Container.desktop-terminal-open { grid-template-rows: minmax(0, 1fr) minmax(160px, 32vh) !important; }",
-    "#Website-Container.desktop-terminal-open #main-content { height: 100% !important; min-height: 0 !important; grid-column: 2 !important; grid-row: 1 !important; overflow: hidden; }",
-    "#Website-Container.desktop-terminal-open #options, #Website-Container.desktop-terminal-open #chat { grid-row: 1 !important; }",
-    "#desktop-terminal { grid-column: 2 !important; grid-row: 2 !important; display: flex; flex-direction: column; min-width: 0; min-height: 0; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; color: #cccccc; background: #0c0c0c; border: 1px solid #454545; border-radius: 6px; font: 14px/1.35 Consolas, 'Courier New', monospace; }",
+    "#Website-Container.desktop-terminal-open #main-content { height: 100% !important; min-height: 0 !important; grid-column: 3 !important; grid-row: 1 !important; overflow: hidden; }",
+    "#Website-Container.desktop-terminal-open #options { grid-column: 2 !important; grid-row: 1 !important; height: var(--workspace-height, 88dvh) !important; align-self: start; }",
+    "#Website-Container.desktop-terminal-open #chat { grid-column: 4 !important; grid-row: 1 !important; }",
+    "#desktop-terminal { grid-column: 3 !important; grid-row: 2 !important; display: flex; flex-direction: column; min-width: 0; min-height: 0; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; color: #cccccc; background: #0c0c0c; border: 1px solid #454545; border-radius: 6px; font: 14px/1.35 Consolas, 'Courier New', monospace; }",
     "#desktop-terminal[hidden] { display: none !important; }",
     "#desktop-terminal .ds-terminal-header { display: flex; align-items: center; justify-content: space-between; flex: 0 0 30px; padding: 0 9px 0 12px; background: #181818; border-bottom: 1px solid #333333; color: #dddddd; font: 12px/1.2 'Segoe UI', sans-serif; user-select: none; }",
     "#desktop-terminal .ds-terminal-close { border: 0; background: transparent; color: #bbbbbb; cursor: pointer; font: 20px/1 Consolas, monospace; padding: 3px 6px; }",
