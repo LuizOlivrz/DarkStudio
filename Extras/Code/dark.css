@@ -3965,6 +3965,13 @@ body {
   flex: 0 0 auto;
   margin-left: 8px;
 }
+#debugger-toggle .explorer-chevron {
+  transform: rotate(135deg);
+  transition: transform .2s ease, color .2s ease;
+}
+#debugger-section.debugger-open #debugger-toggle .explorer-chevron {
+  transform: rotate(45deg);
+}
 
 
 /* Na tela de Extensões, o painel de opções sai do layout e o conteúdo ocupa as duas colunas. */
