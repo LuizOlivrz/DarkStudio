@@ -16,9 +16,6 @@ document.addEventListener("click", (event) => {
     case "reset-ai-prompt":
       if (typeof window.deleteSystemPrompt === "function") window.deleteSystemPrompt();
       break;
-    case "clear-editor":
-      window.editor?.setValue("");
-      break;
     case "toggle-settings":
       if (typeof window.config === "function") window.config();
       break;
