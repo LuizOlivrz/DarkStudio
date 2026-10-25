@@ -206,8 +206,10 @@
   "workspaceEmptyState": "Рабочая область пуста",
   "fileStation": "Файловая станция",
   "debuggerHeading": "Отладка",
+  "installExtensionFolder": "Установить папку расширения",
+  "extensionBroken": "Расширение повреждено",
   "currentFile": "Текущий файл",
   "runDebugCurrentFile": "Запустить/отладить (текущий файл)",
   "debuggerUnsupportedLanguage": "Для этого языка пока нет отладчика",
-  "debuggerToggleTitle": "Развернуть или свернуть отладчик"
+  "debuggerToggleTitle": "Развернуть или свернуть текущий файл"
 }
