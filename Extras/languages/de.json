@@ -208,7 +208,7 @@
   "editorDropTextOnly": "Ziehe eine Text- oder Codedatei in den Editor.",
   "workspaceEmptyState": "Der Arbeitsbereich ist leer",
   "fileStation": "Dateistation",
-  "debuggerHeading": "Debugger",
+  "debuggerHeading": "Debugging",
   "currentFile": "Aktuelle Datei",
   "runDebugCurrentFile": "Ausführen/Debuggen (Aktuelle Datei)",
   "debuggerUnsupportedLanguage": "Für diese Sprache gibt es noch keinen Debugger",
