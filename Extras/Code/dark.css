@@ -3918,6 +3918,11 @@ body {
 #main-content #workspace-empty-state[hidden] {
   display: none !important;
 }
+/* O estado vazio pertence ao editor e não deve cobrir Configurações ou Extensões. */
+#Website-Container.settings-active #main-content #workspace-empty-state,
+#Website-Container.extensions-active #main-content #workspace-empty-state {
+  display: none !important;
+}
 #workspace-empty-state img {
   display: block;
   width: clamp(76px, 11vw, 132px);
