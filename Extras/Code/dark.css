@@ -3792,6 +3792,9 @@ body {
 #options .options-view[hidden] {
   display: none !important;
 }
+#options[hidden] {
+  display: none !important;
+}
 #options .options-view-heading {
   margin: 0;
   padding: 2px 0 8px;
@@ -3806,8 +3809,10 @@ body {
   min-height: 0;
   gap: 8px;
 }
-#debugger-toggle,
-#debugger-run-button {
+#debugger-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   min-height: 34px;
   padding: 7px 9px;
@@ -3816,15 +3821,9 @@ body {
   color: var(--secondary-color, #7654ff);
   background: rgba(10, 10, 10, .75);
   cursor: pointer;
-}
-#debugger-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   text-align: left;
 }
-#debugger-toggle:hover,
-#debugger-run-button:hover {
+#debugger-toggle:hover {
   color: #fff;
   background: var(--primary-color, #5d00ff);
 }
@@ -3836,9 +3835,11 @@ body {
 #debugger-section:not(.debugger-open) #debugger-content {
   display: none;
 }
+/* O botão de execução herda o estilo padrão dos botões de opções, como o antigo Limpar editor. */
 #debugger-run-button {
-  color: #fff;
-  background: var(--primary-color, #5d00ff);
+  width: 100%;
+  min-height: 34px;
+  cursor: pointer;
 }
 #main-content {
   position: relative;
