@@ -7,11 +7,11 @@ contextBridge.exposeInMainWorld("darkStudioDesktop", Object.freeze({
   version: "1.0.0",
   openFile: () => ipcRenderer.invoke("darkstudio:open-file"),
   saveFile: (options) => ipcRenderer.invoke("darkstudio:save-file", options),
-  terminalStart: () => ipcRenderer.invoke("darkstudio:terminal:start"),
-  terminalWrite: (data) => ipcRenderer.invoke("darkstudio:terminal:write", data),
-  terminalStop: () => ipcRenderer.invoke("darkstudio:terminal:stop"),
+  terminalStart: (options) => ipcRenderer.invoke("darkstudio:terminal:start", options),
+  terminalWrite: (options) => ipcRenderer.invoke("darkstudio:terminal:write", options),
+  terminalStop: (options) => ipcRenderer.invoke("darkstudio:terminal:stop", options),
   onTerminalData: (callback) => {
-    const listener = (_event, data) => callback(data);
+    const listener = (_event, details) => callback(details);
     ipcRenderer.on("darkstudio:terminal:data", listener);
     return () => ipcRenderer.removeListener("darkstudio:terminal:data", listener);
   },
