@@ -3965,3 +3965,16 @@ body {
   flex: 0 0 auto;
   margin-left: 8px;
 }
+
+
+/* Na tela de Extensões, o painel de opções sai do layout e o conteúdo ocupa as duas colunas. */
+#Website-Container.extensions-active #options {
+  display: none !important;
+}
+#Website-Container.extensions-active #main-content {
+  display: flex !important;
+  grid-column: 2 / -1 !important;
+}
+#Website-Container.with-chat.extensions-active #main-content {
+  grid-column: 2 / 4 !important;
+}
