@@ -1566,7 +1566,20 @@ ${code}
       return;
     }
 
-    if (e.ctrlKey && (e.key === "`" || e.code === "Backquote")) {
+    if (
+      e.ctrlKey &&
+      e.shiftKey &&
+      !e.altKey &&
+      e.code === "Backquote" &&
+      window.darkStudioDesktop?.isDesktop
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.dispatchEvent(new Event("darkstudio:toggle-terminal"));
+      return;
+    }
+
+    if (e.ctrlKey && !e.shiftKey && (e.key === "`" || e.code === "Backquote")) {
       e.preventDefault();
       execute();
     }
