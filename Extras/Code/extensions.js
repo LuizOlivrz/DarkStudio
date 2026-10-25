@@ -501,8 +501,10 @@ function renderExtensions() {
       extension.card = { card, icon, titleText, detailText, buttonText };
     }
     extension.card.titleText.data = extension.manifest.name;
-    extension.card.icon.src = extension.manifest.assets?.["Assets/demo/demo.icon"] || "";
-    extension.card.icon.hidden = !extension.card.icon.src || Boolean(extension.manifest.broken);
+    const iconSource = extension.manifest.assets?.["Assets/demo/demo.icon"] || "";
+    if (iconSource) extension.card.icon.src = iconSource;
+    else extension.card.icon.removeAttribute("src");
+    extension.card.icon.hidden = !iconSource || Boolean(extension.manifest.broken);
     extension.card.detailText.data = extension.manifest.broken
       ? `${t("extensionBroken")}: ${extension.manifest.error || "faltam arquivos obrigatórios"}`
       : `${t("extensionVersion")} ${extension.manifest.version} · ${extension.enabled ? t("extensionEnabled") : t("extensionDisabled")}`;
