@@ -13,6 +13,80 @@ const debuggerRunButton = document.getElementById("debugger-run-button");
 const unsupportedOverlay = document.getElementById("debugger-unsupported-overlay");
 let activeView = null;
 
+const launcherRail = document.getElementById("workspace-launcher-rail");
+const launcherOrderKey = "darkstudio.workspace-launcher-order.v1";
+let draggedLauncher = null;
+
+function getLaunchers() {
+  return launcherRail ? [...launcherRail.querySelectorAll(":scope > .workspace-launcher")] : [];
+}
+
+function restoreLauncherOrder() {
+  if (!launcherRail) return;
+  try {
+    const savedOrder = JSON.parse(localStorage.getItem(launcherOrderKey) || "[]");
+    if (!Array.isArray(savedOrder)) return;
+    const launchers = new Map(getLaunchers().map((button) => [button.id, button]));
+    for (const id of savedOrder) {
+      const button = launchers.get(id);
+      if (button) {
+        launcherRail.appendChild(button);
+        launchers.delete(id);
+      }
+    }
+  } catch (error) {
+    console.warn("DarkStudio: não foi possível restaurar a ordem dos ícones.", error);
+  }
+}
+
+function saveLauncherOrder() {
+  try {
+    localStorage.setItem(launcherOrderKey, JSON.stringify(getLaunchers().map((button) => button.id)));
+  } catch (error) {
+    console.warn("DarkStudio: não foi possível salvar a ordem dos ícones.", error);
+  }
+}
+
+launcherRail?.addEventListener("dragstart", (event) => {
+  const launcher = event.target.closest(".workspace-launcher");
+  if (!launcher || !launcherRail.contains(launcher)) return;
+  draggedLauncher = launcher;
+  launcher.classList.add("is-dragging");
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", launcher.id);
+  }
+});
+
+launcherRail?.addEventListener("dragover", (event) => {
+  if (!draggedLauncher) return;
+  event.preventDefault();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+
+  const target = event.target.closest(".workspace-launcher");
+  if (!target || target === draggedLauncher || !launcherRail.contains(target)) return;
+
+  const bounds = target.getBoundingClientRect();
+  const insertAfter = event.clientY > bounds.top + bounds.height / 2;
+  launcherRail.insertBefore(draggedLauncher, insertAfter ? target.nextElementSibling : target);
+});
+
+launcherRail?.addEventListener("drop", (event) => {
+  if (!draggedLauncher) return;
+  event.preventDefault();
+  saveLauncherOrder();
+});
+
+function finishLauncherDrag() {
+  if (!draggedLauncher) return;
+  draggedLauncher.classList.remove("is-dragging");
+  draggedLauncher = null;
+  saveLauncherOrder();
+}
+
+launcherRail?.addEventListener("dragend", finishLauncherDrag);
+restoreLauncherOrder();
+
 function clearUnsupportedState() {
   container?.classList.remove("debugger-unsupported");
   if (unsupportedOverlay) unsupportedOverlay.hidden = true;
