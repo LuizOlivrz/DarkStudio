@@ -2594,12 +2594,7 @@ function showEditor() {
   const extensionsButton = document.getElementById("extensions-button");
   if (extensionsButton) extensionsButton.style.display = previousDisplays["extensions-button"] ?? "";
 
-  for (const id of [
-    "download-file",
-    "clear",
-    "execute",
-    "new-iframe-button",
-  ]) {
+  for (const id of ["download-file"]) {
     const element = document.getElementById(id);
 
     if (!element) continue;
@@ -2665,12 +2660,7 @@ function showMap() {
   const details = document.getElementById("workspace-details-button");
   if (details) details.style.display = "block";
 
-  for (const id of [
-    "download-file",
-    "clear",
-    "execute",
-    "new-iframe-button",
-  ]) {
+  for (const id of ["download-file"]) {
     const element = document.getElementById(id);
 
     if (!element) continue;
@@ -3253,5 +3243,9 @@ document.addEventListener("drop", async (event) => {
     document.getElementById("explorer-files")?.classList.remove("explorer-root-drop-target");
   }
 });
+
+// API para a barra lateral alternar entre o editor e o mapa gráfico.
+window.darkStudioShowWorkspaceMap = showMap;
+window.darkStudioShowWorkspaceEditor = showEditor;
 
 export {};
