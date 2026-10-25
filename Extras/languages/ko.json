@@ -208,7 +208,7 @@
   "editorDropTextOnly": "텍스트 또는 코드 파일을 편집기로 끌어다 놓으세요.",
   "workspaceEmptyState": "워크스페이스가 비어 있습니다",
   "fileStation": "파일 스테이션",
-  "debuggerHeading": "디버거",
+  "debuggerHeading": "디버깅",
   "currentFile": "현재 파일",
   "runDebugCurrentFile": "실행/디버그 (현재 파일)",
   "debuggerUnsupportedLanguage": "이 언어용 디버거는 아직 없습니다",
