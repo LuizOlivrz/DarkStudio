@@ -205,5 +205,12 @@
   "linkReaderCouldNotRead": "No se pudo leer este enlace.",
   "enableMiniPlayers": "Activar minirreproductores multimedia",
   "explorerEmpty": "No hay archivos en el proyecto",
-  "editorDropTextOnly": "Arrastra un archivo de texto o código al editor."
+  "editorDropTextOnly": "Arrastra un archivo de texto o código al editor.",
+  "workspaceEmptyState": "El espacio de trabajo está vacío",
+  "fileStation": "Estación de archivos",
+  "debuggerHeading": "Depurador",
+  "currentFile": "Archivo actual",
+  "runDebugCurrentFile": "Ejecutar/Depurar (archivo actual)",
+  "debuggerUnsupportedLanguage": "Todavía no hay un depurador para este lenguaje",
+  "debuggerToggleTitle": "Expandir o contraer el depurador"
 }
