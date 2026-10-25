@@ -200,6 +200,7 @@ Formato obrigatório:
 | 2026-10-24 20:46 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona a navegação lateral entre Estação de Arquivos e Debugger, com ação de execução e aviso visual para linguagens ainda não suportadas. | PR #33 |
 | 2026-10-24 21:10 (UTC-03:00) | ChatGPT — GPT-6 | Exibe a marca e “WorkSpace Vazio” quando não há arquivos no Explorer e ajusta o cabeçalho do Debugger para o estilo simples do Explorer. | PR #33 |
 | 2026-10-24 21:25 (UTC-03:00) | ChatGPT — GPT-6 | Remove os botões legados de execução e Iframe e seus manipuladores, preservando o executor usado pelo Debugger. | PR #33 |
+| 2026-10-24 21:35 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona o ícone SVG do Mapa do Workspace entre Estação de Arquivos e Debugger na barra lateral. | PR #33 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
