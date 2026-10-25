@@ -1525,8 +1525,12 @@ ${code}
     WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
 
-    // Reexibe #options somente quando as Configurações são abertas diretamente a partir de Extensões.
-    if (opening && wasExtensionsActive && optionsPanel) optionsPanel.hidden = false;
+    // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
+    if (opening) {
+      const fileLauncher = document.getElementById("file-gutter-icon");
+      if (wasExtensionsActive && optionsPanel) optionsPanel.hidden = false;
+      fileLauncher?.click();
+    }
 
     configValue = opening;
     WebsiteContainer.classList.toggle("settings-active", opening);
