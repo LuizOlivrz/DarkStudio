@@ -205,5 +205,12 @@
   "linkReaderCouldNotRead": "无法读取此链接。",
   "enableMiniPlayers": "启用媒体迷你播放器",
   "explorerEmpty": "项目中没有文件",
-  "editorDropTextOnly": "将文本或代码文件拖放到编辑器中。"
+  "editorDropTextOnly": "将文本或代码文件拖放到编辑器中。",
+  "workspaceEmptyState": "工作区为空",
+  "fileStation": "文件工作区",
+  "debuggerHeading": "调试器",
+  "currentFile": "当前文件",
+  "runDebugCurrentFile": "运行/调试（当前文件）",
+  "debuggerUnsupportedLanguage": "此语言暂不支持调试器",
+  "debuggerToggleTitle": "展开或折叠调试器"
 }
