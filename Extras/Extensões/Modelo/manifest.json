@@ -3,6 +3,6 @@
   "name": "Nome da extensão",
   "version": "0.1.0",
   "description": "Explique de forma objetiva o que a extensão faz.",
-  "entry": "main.js",
+  "entry": "main.ds",
   "styles": "styles.css"
 }
