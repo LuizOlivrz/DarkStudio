@@ -73,8 +73,8 @@ function hasRequiredDemoAssets(assets) {
   return Boolean(
     assets && typeof assets["Assets/demo/demo.txt"] === "string" &&
     assets["Assets/demo/demo.txt"].startsWith("data:") &&
-    typeof assets["Assets/demo/demo.icon"] === "string" &&
-    /^data:image\/svg\+xml;base64,/i.test(assets["Assets/demo/demo.icon"])
+    typeof assets["Assets/demo/demo.ico"] === "string" &&
+    /^data:image\/(?:x-icon|vnd\.microsoft\.icon);base64,/i.test(assets["Assets/demo/demo.ico"])
   );
 }
 
@@ -471,6 +471,23 @@ function createRuntime(extension) {
   document.body.appendChild(extension.frame);
 }
 
+function getDemoMetadata(asset) {
+  if (typeof asset !== "string" || !asset.startsWith("data:")) return { title: "", description: "" };
+  try {
+    const comma = asset.indexOf(",");
+    if (comma < 0) return { title: "", description: "" };
+    const header = asset.slice(0, comma);
+    const payload = asset.slice(comma + 1);
+    const text = /;base64/i.test(header)
+      ? new TextDecoder("utf-8").decode(Uint8Array.from(atob(payload), (char) => char.charCodeAt(0)))
+      : decodeURIComponent(payload);
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !/^\{.*\}$/.test(line));
+    return { title: lines[0] || "", description: lines[1] || "" };
+  } catch {
+    return { title: "", description: "" };
+  }
+}
+
 function renderExtensions() {
   if (!list || !emptyState) return;
   emptyState.hidden = records.size > 0;
@@ -500,14 +517,15 @@ function renderExtensions() {
       list.appendChild(card);
       extension.card = { card, icon, titleText, detailText, buttonText };
     }
-    extension.card.titleText.data = extension.manifest.name;
-    const iconSource = extension.manifest.assets?.["Assets/demo/demo.icon"] || "";
+    const demoMetadata = getDemoMetadata(extension.manifest.assets?.["Assets/demo/demo.txt"]);
+    extension.card.titleText.data = demoMetadata.title || extension.manifest.name;
+    const iconSource = extension.manifest.assets?.["Assets/demo/demo.ico"] || "";
     if (iconSource) extension.card.icon.src = iconSource;
     else extension.card.icon.removeAttribute("src");
     extension.card.icon.hidden = !iconSource || Boolean(extension.manifest.broken);
     extension.card.detailText.data = extension.manifest.broken
       ? `${t("extensionBroken")}: ${extension.manifest.error || "faltam arquivos obrigatórios"}`
-      : `${t("extensionVersion")} ${extension.manifest.version} · ${extension.enabled ? t("extensionEnabled") : t("extensionDisabled")}`;
+      : demoMetadata.description || extension.manifest.description || "";
     extension.card.buttonText.data = extension.manifest.broken
       ? t("extensionBroken")
       : extension.enabled ? t("extensionDisable") : t("extensionEnable");
@@ -530,7 +548,7 @@ async function installManifest(manifest, { requireFolderPackage = false } = {}) 
     name: manifest.name.trim(),
     packageFormat: isCompleteFolderPackage ? "folder" : "legacy",
     broken: !isCompleteFolderPackage || Boolean(manifest.broken),
-    error: isCompleteFolderPackage ? String(manifest.error || "") : "Pacote incompleto: use uma pasta com manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.icon.",
+    error: isCompleteFolderPackage ? String(manifest.error || "") : "Pacote incompleto: use uma pasta com manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.ico.",
   };
   if (new Blob([JSON.stringify(normalized)]).size > MAX_EXTENSION_BYTES) throw new Error("A extensão excede o limite de 20 MB.");
   if (isCompleteFolderPackage) {
@@ -564,7 +582,7 @@ async function initializeExtensions() {
       styles: manifest.styles || "",
       broken: isBroken,
       error: isBroken
-        ? String(manifest.error || "Pacote incompleto: são obrigatórios manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.icon.")
+        ? String(manifest.error || "Pacote incompleto: são obrigatórios manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.ico.")
         : "",
     };
     if (isBroken && !manifest.broken) mustPersist = true;
@@ -652,8 +670,8 @@ document.getElementById("extensions-import-folder-button")?.addEventListener("cl
 
 async function fileToDataURL(file) {
   const ext = file.name.split(".").pop().toLowerCase();
-  const types = { png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", webp:"image/webp", svg:"image/svg+xml", mp4:"video/mp4", webm:"video/webm", ogv:"video/ogg", mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", woff:"font/woff", woff2:"font/woff2", ttf:"font/ttf", otf:"font/otf", json:"application/json", txt:"text/plain", icon:"image/svg+xml" };
-  const mime = file.type || types[ext] || "application/octet-stream";
+  const types = { png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", webp:"image/webp", svg:"image/svg+xml", ico:"image/x-icon", mp4:"video/mp4", webm:"video/webm", ogv:"video/ogg", mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", woff:"font/woff", woff2:"font/woff2", ttf:"font/ttf", otf:"font/otf", json:"application/json", txt:"text/plain" };
+  const mime = types[ext] || file.type || "application/octet-stream";
   const bytes = new Uint8Array(await file.arrayBuffer());
   let binary = "";
   for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + 0x8000, bytes.length)));
@@ -727,7 +745,7 @@ async function importExtensionFolder(fileList) {
     throw packageValidationError("manifest.json precisa definir id, name e version válidos.");
   }
 
-  const requiredPaths = ["main.ds", "Assets/demo/demo.txt", "Assets/demo/demo.icon"];
+  const requiredPaths = ["main.ds", "Assets/demo/demo.txt", "Assets/demo/demo.ico"];
   const missing = requiredPaths.filter((requiredPath) => !roots.some(({ path }) => path === requiredPath));
   if (missing.length) throw packageValidationError(`Arquivos obrigatórios ausentes: ${missing.join(", ")}.`);
 
