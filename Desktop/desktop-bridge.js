@@ -48,6 +48,7 @@
   if (document.getElementById("desktop-terminal")) return;
 
   const terminalIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 6C2 4.34315 3.34315 3 5 3H19C20.6569 3 22 4.34315 22 6V18C22 19.6569 20.6569 21 19 21H5C3.34315 21 2 19.6569 2 18V6ZM5 5C4.44772 5 4 5.44772 4 6V7H20V6C20 5.44772 19.5523 5 19 5H5ZM4 18V9H20V18C20 18.5523 19.5523 19 19 19H5C4.44772 19 4 18.5523 4 18ZM7.70711 11.2929C7.31658 10.9024 6.68342 10.9024 6.29289 11.2929C5.90237 11.6834 5.90237 12.3166 6.29289 12.7071L7.58579 14L6.29289 15.2929C5.90237 15.6834 5.90237 16.3166 6.29289 16.7071C6.68342 17.0976 7.31658 17.0976 7.70711 16.7071L9.70711 14.7071C10.0976 14.3166 10.0976 13.6834 9.70711 13.2929L7.70711 11.2929Z"/></svg>';
+  const powershellIconSvg = '<svg class="ds-powershell-icon" xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 16 16" fill="#000000"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 1.007l12.999.17.43.501-1.82 12.872-.57.489-13-.17-.43-.502L1.93 1.495l.57-.488zM1.18 13.885l11.998.157 1.68-11.882L2.86 2.003 1.18 13.885zm5.791-3.49l-.14.991 5 .066.14-.99-5-.066zm1.71-2.457l-3.663-2.93-.692.796 2.636 2.112L3.739 9.95l.465.812L8.68 7.938z"/></svg>';
   const fullscreenIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 2H4C2.89543 2 2 2.89543 2 4V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M22 8L22 4C22 2.89543 21.1046 2 20 2H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 22L20 22C21.1046 22 22 21.1046 22 20L22 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 22L4 22C2.89543 22 2 21.1046 2 20V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 
   const terminalStyles = document.createElement("style");
@@ -63,6 +64,7 @@
     "#desktop-terminal .ds-terminal-title { display:flex; align-items:center; gap:7px; min-width:0; flex:1; height:100%; }",
     "#desktop-terminal .ds-terminal-title-icon { display:grid; place-items:center; flex:0 0 20px; width:20px; height:20px; color:#ccc; }",
     "#desktop-terminal .ds-terminal-title-icon svg { display:block; width:20px; height:20px; }",
+    "#desktop-terminal .ds-powershell-icon { filter: invert(1); }",
     "#desktop-terminal .ds-terminal-title-text { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }",
     "#desktop-terminal .ds-terminal-tabs { display:flex; align-items:center; gap:3px; min-width:0; height:100%; }",
     "#desktop-terminal .ds-terminal-tab { display:grid; place-items:center; flex:0 0 30px; width:30px; height:29px; padding:4px; border:1px solid transparent; border-radius:5px; background:transparent; color:var(--ds-terminal-icon-color,#ccc); cursor:grab; }",
@@ -116,6 +118,7 @@
 
   const terminalHeader = terminalPanel.querySelector(".ds-terminal-header");
   const terminalTabs = terminalPanel.querySelector(".ds-terminal-tabs");
+  const terminalTitleIcon = terminalPanel.querySelector(".ds-terminal-title-icon");
   const terminalTitle = terminalPanel.querySelector(".ds-terminal-title-text");
   const terminalOutput = terminalPanel.querySelector(".ds-terminal-output");
   const promptRow = terminalPanel.querySelector(".ds-terminal-prompt");
@@ -140,6 +143,7 @@
   function renderActiveTerminal() {
     const item = activeTerminal();
     terminalTitle.textContent = "Terminal Integrado - " + (item ? item.type : "CMD");
+    terminalTitleIcon.innerHTML = item?.type === "PowerShell" ? powershellIconSvg : terminalIconSvg;
     const visibleOutput = item ? (item.prompt ? item.buffer.slice(0, item.buffer.length - item.prompt.length) : item.buffer) : "";
     // O prompt é renderizado em uma linha separada; remova a quebra final do buffer
     // para evitar uma linha vazia entre a saída do comando e o próximo prompt.
@@ -169,7 +173,7 @@
       button.title = item.type + " — clique para ativar; botão direito para opções";
       button.setAttribute("aria-label", "Ativar terminal " + item.type);
       button.style.setProperty("--ds-terminal-icon-color", item.color || defaultIconColor);
-      button.innerHTML = terminalIconSvg;
+      button.innerHTML = item.type === "PowerShell" ? powershellIconSvg : terminalIconSvg;
       button.addEventListener("click", () => activateTerminal(item.id));
       button.addEventListener("contextmenu", (event) => {
         event.preventDefault();
