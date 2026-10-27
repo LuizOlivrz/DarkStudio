@@ -1710,54 +1710,41 @@ ${code}
   // 🖥️ Screen Size Check / Verificação de Tela
   // ─────────────────────────────────────────────
 
+  // A interface agora se adapta a qualquer tamanho de janela; não bloquear
+  // o site com uma camada modal ao redimensionar a janela.
   function checkScreenWidth() {
-    const existing = document.getElementById("min-width-overlay");
-
-    if (window.innerWidth < 620 || window.innerHeight < 700) {
-      if (!existing) {
-        document.body.dataset.prevOverflow = document.body.style.overflow || "";
-        document.body.style.overflow = "hidden";
-
-        const overlay = document.createElement("div");
-        overlay.id = "min-width-overlay";
-        Object.assign(overlay.style, {
-          position: "fixed",
-          top: "0",
-          left: "0",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)", // Safari
-          color: "#fff",
-          fontFamily: "sans-serif",
-          textAlign: "center",
-          padding: "20px",
-          boxSizing: "border-box",
-          zIndex: "999999",
-        });
-        overlay.innerHTML = `
-        <h1>${t("screenTooSmallTitle")}</h1>
-        <p>${t("screenTooSmallText")}</p>
-      `;
-        document.body.appendChild(overlay);
-      }
-    } else if (existing) {
-      existing.remove();
-      document.body.style.overflow = document.body.dataset.prevOverflow || "";
+    document.getElementById("min-width-overlay")?.remove();
+    if (document.body.dataset.prevOverflow !== undefined) {
+      document.body.style.overflow = document.body.dataset.prevOverflow;
       delete document.body.dataset.prevOverflow;
     }
   }
 
-  window.addEventListener("load", checkScreenWidth);
-  window.onload = function () {
+  // Mantém o footer alinhado ao limite real do painel #options, mesmo quando
+  // o usuário redimensiona esse painel ou a janela do navegador.
+  function syncWorkspaceFooterOffset() {
+    const options = document.getElementById("options");
+    const footer = document.getElementById("workspace-footer");
+    if (!options || !footer) return;
+    const containingBlock = footer.offsetParent;
+    if (!containingBlock) return;
+    const optionsRect = options.getBoundingClientRect();
+    const parentRect = containingBlock.getBoundingClientRect();
+    footer.style.left = `${Math.max(0, optionsRect.right - parentRect.left + 8)}px`;
+  }
+
+  window.addEventListener("load", () => {
     checkScreenWidth();
-  };
-  window.addEventListener("resize", checkScreenWidth);
+    syncWorkspaceFooterOffset();
+  });
+  window.addEventListener("resize", () => {
+    checkScreenWidth();
+    syncWorkspaceFooterOffset();
+  });
+  const optionsResizeObserver = new ResizeObserver(syncWorkspaceFooterOffset);
+  const optionsPanel = document.getElementById("options");
+  if (optionsPanel) optionsResizeObserver.observe(optionsPanel);
+  syncWorkspaceFooterOffset();
 
   // ─────────────────────────────────────────────
   // 🖼 Background image + blur controls
