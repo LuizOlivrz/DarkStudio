@@ -1,3 +1,5 @@
-Arquivo obrigatório de demonstração da extensão DarkStudio.
-Mantenha este arquivo em Assets/demo/demo.txt.
-Se este arquivo estiver ausente, o pacote será listado como quebrado e não poderá ser ativado.
+Modelo
+esta extensão é um modelo de como criar extensões para o DarkStudio
+
+{titulo/nome da extensão}
+{Descrição que será exibida abaixo dela no menu de extensões em letras menores}
