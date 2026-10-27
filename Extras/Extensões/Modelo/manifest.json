@@ -1,8 +1,8 @@
 {
   "id": "comunidade.exemplo",
-  "name": "Nome da extensão",
+  "name": "Modelo",
   "version": "0.1.0",
-  "description": "Explique de forma objetiva o que a extensão faz.",
+  "description": "esta extensão é um modelo de como criar extensões para o DarkStudio",
   "entry": "main.ds",
   "styles": "styles.css"
 }

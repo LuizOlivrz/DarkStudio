@@ -20,7 +20,7 @@ Os métodos assíncronos retornam Promises. Use os handles retornados por `DS.qu
 ## Limitações importantes
 
 - A API atual não fornece acesso geral a arquivos locais, sistema de arquivos ou rede.
-- Todo pacote ativo precisa ter sido importado como pasta e conter `manifest.json`, `main.ds` (JavaScript), `Assets/demo/demo.txt` e `Assets/demo/demo.icon`. Arquivos `.dsx.json` antigos podem ser importados para inspeção, mas ficam listados como quebrados e desativados.
+- Todo pacote ativo precisa ter sido importado como pasta e conter `manifest.json`, `main.ds` (JavaScript), `Assets/demo/demo.txt` e `Assets/demo/demo.ico`. Arquivos `.dsx.json` antigos podem ser importados para inspeção, mas ficam listados como quebrados e desativados.
 - O campo `styles` do manifesto pode apontar para um arquivo CSS relativo, como `styles.css`. Recursos de `Assets/` são disponibilizados em `DS.assets` como URLs de dados.
 - Se um pacote estiver incompleto ou inválido, ele é mantido na lista como quebrado, mas permanece desativado e não pode ser ativado até que os arquivos obrigatórios sejam corrigidos.
 - Toda proposta deve passar por revisão de segurança antes de ser aprovada.

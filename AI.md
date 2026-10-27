@@ -1,4 +1,5 @@
 # AI.md — Guia de colaboração para IAs no DarkStudio
+| 2026-10-26 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Usa o SVG solicitado nas abas e no cabeçalho dos terminais PowerShell, usa demo.txt como título/descrição das extensões, padroniza o arquivo de ícone como demo.ico e habilita a rolagem vertical/horizontal do Monaco Editor. | branch `feature/powershell-icon-extension-demo-monaco-scroll` |
 | 2026-10-24 23:58 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona terminal CMD real exclusivo do desktop, com atalho Ctrl+Shift+` e painel abaixo do editor. | PR #34 |
 | 2026-10-24 23:50 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o fechamento das Configurações para manter o editor oculto quando o Explorer não contém arquivos. | PR #33 |
 | 2026-10-24 23:45 (UTC-03:00) | ChatGPT — GPT-6 | Ao abrir Configurações, aciona o ícone da Estação de Arquivos para deixar o painel options nessa visualização. | PR #33 |
@@ -192,6 +193,7 @@ Formato obrigatório:
 
 ### Registro
 
+| 2026-10-26 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta o footer para respeitar a coluna de opções/SVGs e fecha o painel quando o último terminal é removido, reutilizando o evento de alternância existente. | Branch `fix/terminal-last-close-and-footer-width` |
 | Data e hora (com fuso) | Assistente/modelo | Resumo | Referência |
 |---|---|---|---|
 | 2026-10-19 10:50 (UTC-03:00) | ChatGPT — GPT-6 | Criou este guia inicial de colaboração e rastreabilidade para IAs; alteração limitada a `AI.md`. | Branch `docs/ai-contributor-guide`; commit/PR a vincular após criação. |
@@ -212,7 +214,7 @@ Formato obrigatório:
 | 2026-10-24 21:35 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona o ícone SVG do Mapa do Workspace entre Estação de Arquivos e Debugger na barra lateral. | PR #33 |
 | 2026-10-24 21:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove o botão Limpar editor e seu evento; padroniza o botão de execução do Debugger e conecta o SVG do mapa à troca entre mapa e painel de opções, mantendo a seleção até outro SVG ser clicado. | PR #33 |
 | 2026-10-25 11:54 (UTC-03:00) | ChatGPT — GPT-6 | Organiza propostas de extensões em pastas com manifesto, código, estilos e diretórios de recursos; atualiza o catálogo para exibir pastas mantendo compatibilidade com entradas antigas. | PR #34 |
-| 2026-10-25 12:15 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o importador de pastas de extensões, exige manifest.json/main.ds/Assets/demo/demo.txt/demo.icon e mantém pacotes incompletos desativados; corrige regexes inválidas e ajusta o painel Depuração para iniciar recolhido. | PR #35: https://github.com/LuizOlivrz/DarkStudio/pull/35 |
+| 2026-10-25 12:15 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o importador de pastas de extensões, exige manifest.json/main.ds/Assets/demo/demo.txt/demo.ico e mantém pacotes incompletos desativados; corrige regexes inválidas e ajusta o painel Depuração para iniciar recolhido. | PR #35: https://github.com/LuizOlivrz/DarkStudio/pull/35 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 

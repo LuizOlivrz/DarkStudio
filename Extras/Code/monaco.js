@@ -350,9 +350,11 @@ if (!blockWeb) {
           // Permite rolagem horizontal quando linhas excedem a largura visível.
           wordWrap: "off",
           scrollbar: {
+            vertical: "auto",
+            verticalScrollbarSize: 10,
             horizontal: "auto",
             horizontalScrollbarSize: 10,
-            alwaysConsumeMouseWheel: false,
+            alwaysConsumeMouseWheel: true,
           },
           links: true,
         },
