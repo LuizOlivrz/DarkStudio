@@ -382,10 +382,14 @@ function createWindow() {
 
   const terminalOwnerId = win.webContents.id;
   win.on("closed", () => {
-    const session = terminalSessions.get(terminalOwnerId);
-    if (session) {
-      terminalSessions.delete(terminalOwnerId);
-      session.child.kill();
+    // Cada janela pode possuir várias abas/terminais, identificados por senderId:terminalId.
+    const ownerPrefix = `${terminalOwnerId}:`;
+    for (const [key, session] of terminalSessions) {
+      if (!key.startsWith(ownerPrefix)) continue;
+      terminalSessions.delete(key);
+      if (!session.child.killed && session.child.exitCode === null) {
+        session.child.kill();
+      }
     }
   });
 
