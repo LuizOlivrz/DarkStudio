@@ -1,9 +1,14 @@
-<<<<<<< HEAD
-| 2026-10-26 21:30 (UTC-03:00) | ChatGPT — GPT-6 | Remove o bloqueio por tamanho mínimo de janela, alinha dinamicamente o footer à borda real de #options e restaura as barras de rolagem nativas do Monaco. | branch `fix/responsive-layout-and-monaco-scroll` |
-=======
+# | 2026-10-26 21:30 (UTC-03:00) | ChatGPT — GPT-6 | Remove o bloqueio por tamanho mínimo de janela, alinha dinamicamente o footer à borda real de #options e restaura as barras de rolagem nativas do Monaco. | branch `fix/responsive-layout-and-monaco-scroll` |
+
 | 2026-10-27 00:45 (UTC-03:00) | ChatGPT — GPT-6 | Compara versões do atualizador desktop como datas DD.MM.YY e só oferece atualização quando a versão oficial é posterior à instalada; rejeita datas inválidas. | branch `fix/desktop-update-version-comparison` |
->>>>>>> origin/fix/desktop-update-version-comparison
+
+ # origin/fix/desktop-update-version-comparison
+
+ | 2026-10-27 01:10 (UTC-03:00) | ChatGPT — GPT-6 | Salva e restaura posição, dimensões e estado maximizado da janela desktop em userData; valida posição visível para lidar com monitores removidos. | branch `feature/remember-desktop-window-bounds` |
+ origin/feature/remember-desktop-window-bounds
+
 # AI.md — Guia de colaboração para IAs no DarkStudio
+
 | 2026-10-26 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Usa o SVG solicitado nas abas e no cabeçalho dos terminais PowerShell, usa demo.txt como título/descrição das extensões, padroniza o arquivo de ícone como demo.ico e habilita a rolagem vertical/horizontal do Monaco Editor. | branch `feature/powershell-icon-extension-demo-monaco-scroll` |
 | 2026-10-24 23:58 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona terminal CMD real exclusivo do desktop, com atalho Ctrl+Shift+` e painel abaixo do editor. | PR #34 |
 | 2026-10-24 23:50 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o fechamento das Configurações para manter o editor oculto quando o Explorer não contém arquivos. | PR #33 |
@@ -36,6 +41,7 @@ A missão técnica é tornar o DarkStudio **mais confiável, seguro, acessível,
 Você tem liberdade para investigar, propor e implementar correções, refatorações, otimizações e funcionalidades novas. Não precisa pedir autorização para cada alteração pequena e reversível dentro da tarefa.
 
 **Autonomia não significa alterar às cegas.** Para mudanças amplas, invasivas ou que possam remover comportamento existente:
+
 1. Inspecione primeiro o código e suas dependências.
 2. Entenda o comportamento atual e identifique quem depende dele.
 3. Escolha uma implementação coerente, mesmo que exija reorganizar código, quando houver benefício real.
@@ -95,21 +101,21 @@ Não use apenas a memória de uma conversa para afirmar o estado atual do códig
 
 A estrutura pode mudar; confirme os caminhos no repositório antes de confiar nesta lista.
 
-| Caminho | Responsabilidade conhecida |
-|---|---|
-| `index.html` | Estrutura principal da aplicação |
-| `Extras/Code/config.js` | Inicialização, configurações, idiomas e verificações de origem |
-| `Extras/Code/main.js` | Funcionalidades centrais do editor |
-| `Extras/Code/monaco.js` | Integração e configuração do Monaco Editor |
-| `Extras/Code/AI.js` | Interface/integração do NightCoder no cliente |
-| `netlify/functions/nightcoder.mjs` | Proxy de backend do NightCoder, se presente na branch |
-| `Extras/Code/mindmap.js` | Espaço de trabalho visual/Mind Map |
-| `Extras/Code/extensions.js` | Gerenciamento e execução de extensões |
-| `Extras/Code/dark.css` | Estilos principais |
-| `Extras/Code/mobile.css` | Estilos responsivos |
-| `Extras/Extensions/API.md` | Contrato/documentação para extensões |
-| `Extras/languages/` | Traduções |
-| `Extras/Themes/` | Temas |
+| Caminho                            | Responsabilidade conhecida                                     |
+| ---------------------------------- | -------------------------------------------------------------- |
+| `index.html`                       | Estrutura principal da aplicação                               |
+| `Extras/Code/config.js`            | Inicialização, configurações, idiomas e verificações de origem |
+| `Extras/Code/main.js`              | Funcionalidades centrais do editor                             |
+| `Extras/Code/monaco.js`            | Integração e configuração do Monaco Editor                     |
+| `Extras/Code/AI.js`                | Interface/integração do NightCoder no cliente                  |
+| `netlify/functions/nightcoder.mjs` | Proxy de backend do NightCoder, se presente na branch          |
+| `Extras/Code/mindmap.js`           | Espaço de trabalho visual/Mind Map                             |
+| `Extras/Code/extensions.js`        | Gerenciamento e execução de extensões                          |
+| `Extras/Code/dark.css`             | Estilos principais                                             |
+| `Extras/Code/mobile.css`           | Estilos responsivos                                            |
+| `Extras/Extensions/API.md`         | Contrato/documentação para extensões                           |
+| `Extras/languages/`                | Traduções                                                      |
+| `Extras/Themes/`                   | Temas                                                          |
 
 Não presuma que esta lista é completa nem que todos os caminhos existem em todas as branches.
 
@@ -129,6 +135,7 @@ Não presuma que esta lista é completa nem que todos os caminhos existem em tod
 ## 8. Performance, qualidade e compatibilidade
 
 Ao otimizar:
+
 - Identifique o custo real antes de adicionar cache, lazy loading, paralelismo ou complexidade.
 - Evite bloquear a inicialização com recursos opcionais que podem carregar em segundo plano.
 - Limpe event listeners, timers, observers e URLs de objetos quando deixarem de ser necessários.
@@ -141,6 +148,7 @@ Ao otimizar:
 ## 9. Fluxo de Git e colaboração
 
 Fluxo preferido:
+
 1. Atualize e examine a branch-base.
 2. Crie uma branch de trabalho com nome descritivo, por exemplo `fix/editor-download`, `perf/startup`, `security/nightcoder-proxy` ou `docs/ai-guide`.
 3. Faça alterações relacionadas à tarefa; evite misturar refatorações não relacionadas.
@@ -154,6 +162,7 @@ Não presuma que rulesets ou proteções de branch estão efetivamente aplicados
 ## 10. Testes e verificação
 
 Antes de concluir uma alteração, conforme o escopo:
+
 - Verifique sintaxe JavaScript e erros óbvios.
 - Execute os scripts de teste, lint ou build existentes; primeiro descubra quais estão configurados.
 - Teste carregamento inicial e console do navegador.

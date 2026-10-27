@@ -1,6 +1,7 @@
 const path = require("node:path");
 const fs = require("node:fs/promises");
-const { app, BrowserWindow, shell, dialog, ipcMain, protocol, net, Menu } = require("electron");
+const fsSync = require("node:fs");
+const { app, BrowserWindow, shell, dialog, ipcMain, protocol, net, Menu, screen } = require("electron");
 const { pathToFileURL } = require("node:url");
 const extract = require("extract-zip");
 const { spawn } = require("node:child_process");
@@ -272,10 +273,45 @@ async function checkForUpdates() {
   }
 }
 
+const WINDOW_STATE_FILE = () => path.join(app.getPath("userData"), "window-state.json");
+const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
+
+function readWindowState() {
+  try {
+    const state = JSON.parse(fsSync.readFileSync(WINDOW_STATE_FILE(), "utf8"));
+    if (!state || !Number.isFinite(state.width) || !Number.isFinite(state.height)) return {};
+    const width = Math.max(900, Math.min(Math.round(state.width), 10000));
+    const height = Math.max(620, Math.min(Math.round(state.height), 10000));
+    const saved = { width, height };
+    if (Number.isFinite(state.x) && Number.isFinite(state.y)) {
+      saved.x = Math.round(state.x);
+      saved.y = Math.round(state.y);
+      // If the saved window is off-screen (for example, a monitor was removed),
+      // fall back to a visible display instead of opening an unreachable window.
+      const visible = screen.getAllDisplays().some((display) => {
+        const area = display.workArea;
+        return saved.x < area.x + area.width &&
+          saved.x + width > area.x &&
+          saved.y < area.y + area.height &&
+          saved.y + height > area.y;
+      });
+      if (!visible) {
+        delete saved.x;
+        delete saved.y;
+      }
+    }
+    saved.isMaximized = state.isMaximized === true;
+    return saved;
+  } catch {
+    return {};
+  }
+}
+
 function createWindow() {
+  const savedState = readWindowState();
   const win = new BrowserWindow({
-    width: 1440,
-    height: 920,
+    ...DEFAULT_WINDOW_BOUNDS,
+    ...savedState,
     minWidth: 900,
     minHeight: 620,
     title: "DarkStudio",
@@ -288,6 +324,50 @@ function createWindow() {
       webSecurity: true
     }
   });
+
+  let saveWindowStateTimer;
+  const saveWindowState = () => {
+    if (win.isDestroyed()) return;
+    clearTimeout(saveWindowStateTimer);
+    saveWindowStateTimer = setTimeout(() => {
+      if (win.isDestroyed()) return;
+      try {
+        const bounds = win.isMaximized() || win.isMinimized()
+          ? win.getNormalBounds()
+          : win.getBounds();
+        fsSync.mkdirSync(path.dirname(WINDOW_STATE_FILE()), { recursive: true });
+        fsSync.writeFileSync(WINDOW_STATE_FILE(), JSON.stringify({
+          ...bounds,
+          isMaximized: win.isMaximized()
+        }, null, 2), "utf8");
+      } catch (error) {
+        console.warn("DarkStudio: não foi possível salvar o tamanho/posição da janela.", error);
+      }
+    }, 250);
+  };
+
+  win.on("resize", saveWindowState);
+  win.on("move", saveWindowState);
+  win.on("maximize", saveWindowState);
+  win.on("unmaximize", saveWindowState);
+  win.on("close", () => {
+    clearTimeout(saveWindowStateTimer);
+    // Persist synchronously so closing the app immediately does not lose the last bounds.
+    try {
+      const bounds = win.isMaximized() || win.isMinimized()
+        ? win.getNormalBounds()
+        : win.getBounds();
+      fsSync.mkdirSync(path.dirname(WINDOW_STATE_FILE()), { recursive: true });
+      fsSync.writeFileSync(WINDOW_STATE_FILE(), JSON.stringify({
+        ...bounds,
+        isMaximized: win.isMaximized()
+      }, null, 2), "utf8");
+    } catch (error) {
+      console.warn("DarkStudio: não foi possível salvar o estado da janela ao fechar.", error);
+    }
+  });
+
+  if (savedState.isMaximized) win.maximize();
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https://") || url.startsWith("http://")) shell.openExternal(url);
