@@ -3331,22 +3331,15 @@ body {
   box-sizing: border-box;
 }
 
-/* Hide editor/workbench scrollbars during resizing; keep settings scrollbars visible. */
-#main-content,
-#main-content #Editor-Input,
-#main-content .monaco-editor,
-#main-content .monaco-editor .monaco-scrollable-element {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+/* Keep Monaco's native scrollbars visible when the model overflows. */
+#main-content .monaco-editor .monaco-scrollable-element > .scrollbar {
+  opacity: 1 !important;
 }
-
-#main-content #Editor-Input::-webkit-scrollbar,
-#main-content .monaco-editor::-webkit-scrollbar,
-#main-content .monaco-editor .monaco-scrollable-element::-webkit-scrollbar,
-#main-content .monaco-editor .scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+#main-content .monaco-editor .monaco-scrollable-element > .scrollbar .slider {
+  background: rgba(180, 180, 180, 0.45);
+}
+#main-content .monaco-editor .monaco-scrollable-element > .scrollbar .slider:hover {
+  background: rgba(220, 220, 220, 0.7);
 }
 
 #main-content #config,
