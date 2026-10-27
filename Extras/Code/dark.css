@@ -1406,7 +1406,8 @@ body {
 
 #workspace-footer {
   position: absolute;
-  left: 8px;
+  /* Preserve o espaço da coluna #options e dos SVGs da navegação. */
+  left: calc(var(--options-width, 120px) + 8px);
   right: 8px;
   bottom: calc(var(--workspace-height) - 100dvh + 8px);
   z-index: 60;
