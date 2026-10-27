@@ -298,7 +298,8 @@
     void window.darkStudioDesktop.terminalStop({ terminalId: item.id });
     if (activeTerminalId === id) activeTerminalId = terminals[Math.max(0, index - 1)]?.id || terminals[0]?.id || null;
     if (!terminals.length) {
-      createTerminal("CMD");
+      // Reproduz o comportamento do atalho Ctrl+Shift+Backquote.
+      window.dispatchEvent(new Event("darkstudio:toggle-terminal"));
     } else {
       renderTerminalTabs();
     }

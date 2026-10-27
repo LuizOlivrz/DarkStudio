@@ -193,6 +193,7 @@ Formato obrigatório:
 
 ### Registro
 
+| 2026-10-26 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta o footer para respeitar a coluna de opções/SVGs e fecha o painel quando o último terminal é removido, reutilizando o evento de alternância existente. | Branch `fix/terminal-last-close-and-footer-width` |
 | Data e hora (com fuso) | Assistente/modelo | Resumo | Referência |
 |---|---|---|---|
 | 2026-10-19 10:50 (UTC-03:00) | ChatGPT — GPT-6 | Criou este guia inicial de colaboração e rastreabilidade para IAs; alteração limitada a `AI.md`. | Branch `docs/ai-contributor-guide`; commit/PR a vincular após criação. |
