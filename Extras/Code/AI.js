@@ -145,28 +145,27 @@ if (!blockWeb) {
 
     messages.scrollTop = messages.scrollHeight;
 
-    // Chama API
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: chatHistory,
-      }),
-    });
+    try {
+      const reply = await requestNightCoder(chatHistory);
 
-    const data = await res.json();
-    const reply = data.choices[0].message.content;
-
-    // Mostra resposta
-    messages.innerHTML += `<div class='ai'>${renderMessage(reply)}</div>`;
-    messages.scrollTop = messages.scrollHeight;
-
-    chatHistory.push({ role: "assistant", content: reply });
-    saveChatToStorage();
+      messages.insertAdjacentHTML(
+        "beforeend",
+        `<div class="ai">${renderMessage(reply)}</div>`,
+      );
+      chatHistory.push({ role: "assistant", content: reply });
+      saveChatToStorage();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "NightCoder is temporarily unavailable.";
+      messages.insertAdjacentHTML(
+        "beforeend",
+        `<div class="ai error">${escapeHTML(errorMessage)}</div>`,
+      );
+    } finally {
+      messages.scrollTop = messages.scrollHeight;
+    }
   }
 
   function escapeHTML(str) {
@@ -251,23 +250,41 @@ if (!blockWeb) {
     return text;
   }
 
-  window.sendInlineRequest = async function (content) {
-    chatHistory.push({ role: "user", content });
-
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  async function requestNightCoder(messages) {
+    const response = await fetch(API_ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: chatHistory,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
     });
 
-    const data = await res.json();
-    return data.choices[0].message.content;
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        typeof data.error === "string"
+          ? data.error
+          : "NightCoder could not complete the request.",
+      );
+    }
+    if (typeof data.reply !== "string") {
+      throw new Error("NightCoder returned an invalid response.");
+    }
+
+    return data.reply;
+  }
+
+  window.sendInlineRequest = async function (content) {
+    const message = String(content || "").trim();
+    if (!message) throw new Error("A mensagem não pode estar vazia.");
+
+    const requestHistory = [...chatHistory, { role: "user", content: message }];
+    const reply = await requestNightCoder(requestHistory);
+
+    chatHistory.push(
+      { role: "user", content: message },
+      { role: "assistant", content: reply },
+    );
+    saveChatToStorage();
+    return reply;
   };
 
   function clearChatStorage() {
@@ -299,9 +316,9 @@ if (!blockWeb) {
     localStorage.setItem(SYSTEM_PROMPT_KEY, value);
 
     // Atualiza o system prompt em memória
-    chatHistory[0].content = value;
+    chatHistory[0].content = `${primaryPrompt} ${value}`;
 
-    if (getDevMode() === "true") alert(t("promptSaved"));
+    if (getDevMode()) alert(t("promptSaved"));
   }
 
   window.saveSystemPrompt = saveSystemPrompt;
@@ -309,7 +326,7 @@ if (!blockWeb) {
 
   function deleteSystemPrompt() {
     localStorage.removeItem(SYSTEM_PROMPT_KEY);
-    textarea.value = getDefaultSystemPrompt();
+    if (textarea) textarea.value = getDefaultSystemPrompt();
     chatHistory[0].content = `${primaryPrompt} ${getDefaultSystemPrompt()}`;
   }
 
