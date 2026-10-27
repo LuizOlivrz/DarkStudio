@@ -1532,7 +1532,7 @@ body {
   }
 
   #workspace-footer {
-    left: 6px;
+    left: calc(var(--options-width, 120px) + 6px);
     right: 6px;
     gap: 6px;
   }
