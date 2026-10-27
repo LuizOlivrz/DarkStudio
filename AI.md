@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 | 2026-10-26 21:30 (UTC-03:00) | ChatGPT — GPT-6 | Remove o bloqueio por tamanho mínimo de janela, alinha dinamicamente o footer à borda real de #options e restaura as barras de rolagem nativas do Monaco. | branch `fix/responsive-layout-and-monaco-scroll` |
+=======
+| 2026-10-27 00:45 (UTC-03:00) | ChatGPT — GPT-6 | Compara versões do atualizador desktop como datas DD.MM.YY e só oferece atualização quando a versão oficial é posterior à instalada; rejeita datas inválidas. | branch `fix/desktop-update-version-comparison` |
+>>>>>>> origin/fix/desktop-update-version-comparison
 # AI.md — Guia de colaboração para IAs no DarkStudio
 | 2026-10-26 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Usa o SVG solicitado nas abas e no cabeçalho dos terminais PowerShell, usa demo.txt como título/descrição das extensões, padroniza o arquivo de ícone como demo.ico e habilita a rolagem vertical/horizontal do Monaco Editor. | branch `feature/powershell-icon-extension-demo-monaco-scroll` |
 | 2026-10-24 23:58 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona terminal CMD real exclusivo do desktop, com atalho Ctrl+Shift+` e painel abaixo do editor. | PR #34 |

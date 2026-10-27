@@ -101,6 +101,26 @@ async function fetchUpdateManifest() {
   throw lastError || new Error("Não foi possível consultar as atualizações.");
 }
 
+// Official website versions use DD.MM.YY (day.month.two-digit-year), not semver.
+function parseOfficialVersion(value) {
+  if (typeof value !== "string" || !/^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [day, month, shortYear] = value.split(".").map(Number);
+  const year = 2000 + shortYear;
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  // Reject impossible calendar dates such as 31.02.26.
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) return null;
+
+  return year * 10000 + month * 100 + day;
+}
+
 async function checkForUpdates() {
   let manifest;
   try {
@@ -112,7 +132,25 @@ async function checkForUpdates() {
 
   const localVersion = await getLocalVersion();
   const officialVersion = manifest.version;
-  if (officialVersion === localVersion) return;
+  const installedVersionNumber = parseOfficialVersion(localVersion);
+  const officialVersionNumber = parseOfficialVersion(officialVersion);
+
+  if (installedVersionNumber === null || officialVersionNumber === null) {
+    console.warn(
+      "DarkStudio: formato de versão inválido; a comparação esperada é DD.MM.YY.",
+      { installedVersion: localVersion, officialVersion }
+    );
+    return;
+  }
+
+  // Only offer an update when the official calendar version is strictly newer.
+  // For example, 27.10.26 > 26.10.26, while 25.10.26 and 26.10.26 are not updates.
+  if (officialVersionNumber <= installedVersionNumber) {
+    console.info(
+      `DarkStudio: sem atualização. Versão instalada: ${localVersion}; versão oficial: ${officialVersion}.`
+    );
+    return;
+  }
 
   // Never prompt for an update until a public package has actually been published.
   if (typeof manifest.updatePackageUrl !== "string" || !manifest.updatePackageUrl.trim()) {
