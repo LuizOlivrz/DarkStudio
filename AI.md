@@ -213,7 +213,7 @@ Formato obrigatório:
 | 2026-10-24 21:35 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona o ícone SVG do Mapa do Workspace entre Estação de Arquivos e Debugger na barra lateral. | PR #33 |
 | 2026-10-24 21:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove o botão Limpar editor e seu evento; padroniza o botão de execução do Debugger e conecta o SVG do mapa à troca entre mapa e painel de opções, mantendo a seleção até outro SVG ser clicado. | PR #33 |
 | 2026-10-25 11:54 (UTC-03:00) | ChatGPT — GPT-6 | Organiza propostas de extensões em pastas com manifesto, código, estilos e diretórios de recursos; atualiza o catálogo para exibir pastas mantendo compatibilidade com entradas antigas. | PR #34 |
-| 2026-10-25 12:15 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o importador de pastas de extensões, exige manifest.json/main.ds/Assets/demo/demo.txt/demo.icon e mantém pacotes incompletos desativados; corrige regexes inválidas e ajusta o painel Depuração para iniciar recolhido. | PR #35: https://github.com/LuizOlivrz/DarkStudio/pull/35 |
+| 2026-10-25 12:15 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o importador de pastas de extensões, exige manifest.json/main.ds/Assets/demo/demo.txt/demo.ico e mantém pacotes incompletos desativados; corrige regexes inválidas e ajusta o painel Depuração para iniciar recolhido. | PR #35: https://github.com/LuizOlivrz/DarkStudio/pull/35 |
 
 ## 13. Checklist rápido antes de enviar uma PR
 
