@@ -1,3 +1,4 @@
+| 2026-10-27 01:10 (UTC-03:00) | ChatGPT — GPT-6 | Salva e restaura posição, dimensões e estado maximizado da janela desktop em userData; valida posição visível para lidar com monitores removidos. | branch `feature/remember-desktop-window-bounds` |
 # AI.md — Guia de colaboração para IAs no DarkStudio
 | 2026-10-26 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Usa o SVG solicitado nas abas e no cabeçalho dos terminais PowerShell, usa demo.txt como título/descrição das extensões, padroniza o arquivo de ícone como demo.ico e habilita a rolagem vertical/horizontal do Monaco Editor. | branch `feature/powershell-icon-extension-demo-monaco-scroll` |
 | 2026-10-24 23:58 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona terminal CMD real exclusivo do desktop, com atalho Ctrl+Shift+` e painel abaixo do editor. | PR #34 |
