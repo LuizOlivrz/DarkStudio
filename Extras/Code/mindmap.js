@@ -575,6 +575,7 @@ async function activateWorkspace(id) {
     applyWorkspacePan();
     saveState();
   }
+  try { localStorage.setItem("darkstudio-editor-session-mode", "workspace"); } catch {}
   setWorkspaceManagerView(false);
   renderNodes();
   updateWorkspaceNameUI();
