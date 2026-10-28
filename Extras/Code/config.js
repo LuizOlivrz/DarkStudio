@@ -20,7 +20,7 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
-export const version = "26.10.26"; // Current version / versão atual
+export const version = "28.10.26"; // Current version / versão atual
 
 const versionLabel = document.getElementById("app-version");
 if (versionLabel) versionLabel.textContent = `v${version}`;
