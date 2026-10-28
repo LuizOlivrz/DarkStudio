@@ -1206,7 +1206,8 @@ function createNodeElement(node) {
     element.setAttribute("aria-expanded", String(node.isOpen !== false));
   }
 
-  if (node.type === "image") {
+  const customFileIcon = getNodeIconSvg(node);
+  if (node.type === "image" && !customFileIcon) {
     const image = document.createElement("img");
     image.className = "thumb";
     image.src = node.content;
@@ -1215,12 +1216,19 @@ function createNodeElement(node) {
   } else {
     const icon = document.createElement("span");
     icon.className = "mm-icon";
-    icon.textContent =
-      node.type === "folder"
-        ? node.isOpen === false
-          ? "📁"
-          : "📂"
-        : getNodeIcon(node);
+    if (node.type === "folder") {
+      icon.textContent = node.isOpen === false ? "📁" : "📂";
+    } else if (customFileIcon) {
+      icon.innerHTML = customFileIcon;
+      Object.assign(icon.style, {
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: "24px", height: "24px", flex: "0 0 24px",
+      });
+      const svgIcon = icon.querySelector("svg");
+      if (svgIcon) Object.assign(svgIcon.style, { width: "100%", height: "100%", display: "block" });
+    } else {
+      icon.textContent = getNodeIcon(node);
+    }
     element.appendChild(icon);
   }
 
@@ -1302,28 +1310,27 @@ function createNodeElement(node) {
   return element;
 }
 
+function getNodeIconSvg(node) {
+  const extension = getFileExtension(node?.name);
+  const icons = {
+    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><path d="M6 28L4 3H28L26 28L16 31L6 28Z" fill="#E44D26"/><path d="M26 5H16V29.5L24 27L26 5Z" fill="#F16529"/><path d="M9.5 17.5L8.5 8H24L23.5 11H11.5L12 14.5H23L22 24L16 26L10 24L9.5 19H12.5L13 21.5L16 22.5L19 21.5L19.5 17.5H9.5Z" fill="white"/></svg>`,
+    htm: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><path d="M6 28L4 3H28L26 28L16 31L6 28Z" fill="#E44D26"/><path d="M26 5H16V29.5L24 27L26 5Z" fill="#F16529"/><path d="M9.5 17.5L8.5 8H24L23.5 11H11.5L12 14.5H23L22 24L16 26L10 24L9.5 19H12.5L13 21.5L16 22.5L19 21.5L19.5 17.5H9.5Z" fill="white"/></svg>`,
+    css: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>file_type_css</title><polygon points="5.902 27.201 3.656 2 28.344 2 26.095 27.197 15.985 30 5.902 27.201" style="fill:#1572b6"/><polygon points="16 27.858 24.17 25.593 26.092 4.061 16 4.061 16 27.858" style="fill:#33a9dc"/><polygon points="16 13.191 20.09 13.191 20.372 10.026 16 10.026 16 6.935 16.011 6.935 23.75 6.935 23.676 7.764 22.917 16.282 16 16.282 16 13.191" style="fill:#fff"/><polygon points="16.019 21.218 16.005 21.222 12.563 20.292 12.343 17.827 10.67 17.827 9.24 17.827 9.673 22.68 16.004 24.438 16.019 24.434 16.019 21.218" style="fill:#ebebeb"/><polygon points="19.827 16.151 19.455 20.29 16.008 21.22 16.008 24.436 22.344 22.68 22.391 22.158 22.928 16.151 19.827 16.151" style="fill:#fff"/><polygon points="16.011 6.935 16.011 8.855 16.011 10.018 16.011 10.026 8.555 10.026 8.555 10.026 8.545 10.026 8.483 9.331 8.342 7.764 8.268 6.935 16.011 6.935" style="fill:#ebebeb"/><polygon points="16 13.191 16 15.111 16 16.274 16 16.282 12.611 16.282 12.611 16.282 12.601 16.282 12.539 15.587 12.399 14.02 12.325 13.191 16 13.191" style="fill:#ebebeb"/></svg>`,
+    js: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="28" height="28" fill="#FFCA28"/><path d="M19 25.2879L21.0615 23.9237C21.2231 24.4313 22.2462 25.6368 23.5385 25.6368C24.8308 25.6368 25.4308 24.931 25.4308 24.463C25.4308 23.1878 24.1112 22.7382 23.4774 22.5223C23.374 22.4871 23.289 22.4581 23.2308 22.4328C23.2009 22.4198 23.1558 22.4025 23.0979 22.3804C22.393 22.1111 19.7923 21.1175 19.7923 18.2373C19.7923 15.065 22.8538 14.7002 23.5462 14.7002C23.9991 14.7002 26.1769 14.7557 27.2615 16.7939L25.2615 18.1898C24.8231 17.3015 24.0946 17.0081 23.6462 17.0081C22.5385 17.0081 22.3077 17.8201 22.3077 18.1898C22.3077 19.227 23.5112 19.6919 24.5273 20.0844C24.7932 20.1871 25.0462 20.2848 25.2615 20.3866C26.3692 20.91 28 21.7666 28 24.463C28 25.8136 26.8672 28.0002 24.0154 28.0002C20.1846 28.0002 19.1692 25.7003 19 25.2879Z" fill="#3E3E3E"/><path d="M9 25.5587L11.1487 24.1953C11.317 24.7026 11.9713 25.638 12.9205 25.638C13.8698 25.638 14.3557 24.663 14.3557 24.1953V15.0002H16.9982V24.1953C17.041 25.4636 16.3376 28.0002 13.2332 28.0002C10.379 28.0002 9.19242 26.3039 9 25.5587Z" fill="#3E3E3E"/></svg>`,
+    png: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26"><g><path fill="var(--secondary-color, #5d00ff)" d="M22.266,4.207c-0.244-0.24-0.494-0.484-0.74-0.732c-0.248-0.246-0.492-0.496-0.732-0.74C19.082,0.988,18.063,0,17,0H9.046c-2.205,0-4,1.795-4,4v7.2h1.923V3.988c0-1.104,0.896-2,2-2l7.327-0.004c0.721,0.184,0.711,1.07,0.711,1.957v3.047c0,0.551,0.449,1,1,1h3c0.998,0,2,0.005,2,1V22c0,1.104-0.896,2-2,2H8.969c-1.104,0-2-0.896-2-2v-3.2H5.021V22c0,2.205,1.795,4,4,4H21c2.205,0,4-1.795,4-4V8C25,6.938,24.012,5.918,22.266,4.207z"/><g><path fill="var(--secondary-color, #5d00ff)" d="M4.768,13.236c-0.144,0-0.242,0.006-0.31,0.016v1.42c0.061,0.007,0.133,0.01,0.228,0.01c0.529,0,0.832-0.279,0.832-0.765C5.518,13.355,5.109,13.236,4.768,13.236z"/><path fill="var(--secondary-color, #5d00ff)" d="M20,11H2c-0.551,0-1,0.449-1,1v6c0,0.551,0.449,1,1,1h18c0.551,0,1-0.449,1-1v-6C21,11.449,20.551,11,20,11z M6.465,15.343c-0.412,0.426-1.025,0.649-1.772,0.649c-0.088,0-0.165-0.004-0.234-0.009v1.867c0,0.089-0.07,0.16-0.159,0.16H3.156c-0.09,0-0.16-0.071-0.16-0.16v-5.639c0-0.075,0.055-0.141,0.129-0.155c0.424-0.08,0.958-0.121,1.591-0.121c0.746,0,1.291,0.163,1.665,0.498c0.379,0.327,0.599,0.854,0.599,1.44C6.979,14.484,6.796,15.007,6.465,15.343z M12.541,17.851c0,0.089-0.071,0.16-0.158,0.16H11.17c-0.061,0-0.116-0.036-0.144-0.09l-1.091-2.205c-0.168-0.34-0.381-0.786-0.58-1.253c0.012,0.498,0.02,1.045,0.02,1.667v1.721c0,0.089-0.072,0.16-0.159,0.16h-1.06c-0.088,0-0.159-0.071-0.159-0.16v-5.714c0-0.089,0.071-0.159,0.159-0.159h1.348c0.06,0,0.114,0.033,0.142,0.088l1.061,2.094c0.159,0.315,0.323,0.676,0.481,1.058c-0.017-0.425-0.025-0.89-0.025-1.419v-1.661c0-0.089,0.07-0.159,0.16-0.159h1.061c0.087,0,0.158,0.07,0.158,0.159v5.713H12.541z M19.024,17.588c0,0.066-0.041,0.126-0.103,0.149c-0.423,0.161-1.107,0.332-1.763,0.332c-0.96,0-1.675-0.267-2.188-0.814c-0.492-0.532-0.764-1.312-0.764-2.194c0.007-1.91,1.215-3.143,3.074-3.143c0.68,0,1.215,0.148,1.489,0.288c0.065,0.033,0.099,0.106,0.084,0.179l-0.243,1.043c-0.012,0.047-0.043,0.087-0.089,0.107c-0.045,0.021-0.096,0.02-0.139-0.002c-0.22-0.113-0.523-0.229-1.109-0.229c-0.962,0-1.537,0.63-1.537,1.689c0,1.058,0.558,1.714,1.454,1.714c0.177,0,0.314-0.016,0.4-0.035v-0.927h-0.629c-0.088,0-0.159-0.071-0.159-0.158v-1.01c0-0.087,0.071-0.159,0.159-0.159h1.902c0.088,0,0.159,0.072,0.159,0.159v3.011H19.024z"/></g></g></svg>`,
+    zip: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56"><g><path fill="#E9E9E0" d="M36.985,0H7.963C7.155,0,6.5,0.655,6.5,1.926V55c0,0.345,0.655,1,1.463,1h40.074c0.808,0,1.463-0.655,1.463-1V12.978c0-0.696-0.093-0.92-0.257-1.085L37.607,0.257C37.442,0.093,37.218,0,36.985,0z"/><polygon fill="#D9D7CA" points="37.5,0.151 37.5,12 49.349,12"/><rect x="26.5" y="42" fill="#C8BDB8" width="2" height="14"/><polygon fill="#C8BDB8" points="30.5,23 30.5,21 28.5,21 28.5,19 26.5,19 26.5,21 24.5,21 24.5,23 26.5,23 26.5,25 24.5,25 24.5,27 26.5,27 26.5,29 24.5,29 24.5,31 26.5,31 26.5,34 28.5,34 28.5,31 30.5,31 30.5,29 28.5,29 28.5,27 30.5,27 30.5,25 28.5,25 28.5,23"/><rect x="23.5" y="34" fill="#CBB292" width="8" height="8"/><path fill="#5E5F62" d="M32.5,43h-10V33h10V43z M24.5,41h6v-6h-6V41z"/><rect x="23.5" y="36" fill="#5E5F62" width="8" height="2"/></g></svg>`,
+    exe: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56"><g><path fill="#E9E9E0" d="M36.985,0H7.963C7.155,0,6.5,0.655,6.5,1.926V55c0,0.345,0.655,1,1.463,1h40.074c0.808,0,1.463-0.655,1.463-1V12.978c0-0.696-0.093-0.92-0.257-1.085L37.607,0.257C37.442,0.093,37.218,0,36.985,0z"/><polygon fill="#D9D7CA" points="37.5,0.151 37.5,12 49.349,12"/><path fill="#9777A8" d="M48.037,56H7.963C7.155,56,6.5,55.345,6.5,54.537V39h43v15.537C49.5,55.345,48.845,56,48.037,56z"/><g fill="#FFFFFF"><path d="M17.082,44.168v3.172h4.211v1.121h-4.211v3.295h4.635V53h-6.303V42.924h6.303v1.244H17.082z"/><path d="M28.58,48.105L31.137,53h-1.9l-1.6-3.801H27.5L25.777,53h-1.9l2.557-4.895l-2.721-5.182h1.873l1.777,4.102H27.5l1.928-4.102h1.873L28.58,48.105z"/><path d="M35.266,44.168v3.172h4.211v1.121h-4.211v3.295H39.9V53h-6.303V42.924H39.9v1.244H35.266z"/></g><path fill="#9777A8" d="M33.5,32c-0.099,0-0.2-0.015-0.299-0.046c-0.527-0.165-0.821-0.726-0.656-1.253l5-16c0.165-0.527,0.726-0.821,1.253-0.656c0.527,0.165,0.821,0.726,0.656,1.253l-5,16C34.321,31.726,33.926,32,33.5,32z"/><circle fill="#9777A8" cx="29" cy="19.5" r="1.5"/><circle fill="#9777A8" cx="29" cy="26.5" r="1.5"/><path fill="#9777A8" d="M23.5,30h-2c-3.86,0-7-3.14-7-7s3.14-7,7-7h2c0.552,0,1,0.448,1,1s-0.448,1-1,1h-2c-2.757,0-5,2.243-5,5s2.243,5,5,5h2c0.552,0,1,0.448,1,1S24.052,30,23.5,30z"/></g></svg>`,
+  };
+  return icons[extension] || null;
+}
+
 function getNodeIcon(node) {
   const extension = getFileExtension(node.name);
-
   const icons = {
-    js: "🟨",
-    mjs: "🟨",
-    ts: "🔷",
-    html: "🌐",
-    htm: "🌐",
-    css: "🎨",
-    json: "🧩",
-    md: "📝",
-    py: "🐍",
-    java: "☕",
-    png: "🖼️",
-    jpg: "🖼️",
-    jpeg: "🖼️",
-    gif: "🖼️",
-    svg: "🖼️",
-    txt: "📄",
+    js: "🟨", mjs: "🟨", ts: "🔷", html: "🌐", htm: "🌐", css: "🎨",
+    json: "🧩", md: "📝", py: "🐍", java: "☕", jpg: "🖼️", jpeg: "🖼️",
+    gif: "🖼️", svg: "🖼️", txt: "📄",
   };
-
   return icons[extension] || "▤";
 }
 
@@ -1394,11 +1401,20 @@ function refreshExplorerList() {
       const icon = document.createElement("span");
       icon.className = "explorer-file-icon";
       icon.setAttribute("aria-hidden", "true");
-      icon.textContent = node.type === "folder"
-        ? (node.isOpen === false ? "📁" : "📂")
-        : node.type === "image" ? "▧"
-        : node.type === "binary" ? "▤"
-        : getNodeIcon(node);
+      const customFileIcon = node.type === "folder" ? null : getNodeIconSvg(node);
+      if (node.type === "folder") {
+        icon.textContent = node.isOpen === false ? "📁" : "📂";
+      } else if (customFileIcon) {
+        icon.innerHTML = customFileIcon;
+        Object.assign(icon.style, {
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: "22px", height: "22px", flex: "0 0 22px",
+        });
+        const svgIcon = icon.querySelector("svg");
+        if (svgIcon) Object.assign(svgIcon.style, { width: "100%", height: "100%", display: "block" });
+      } else {
+        icon.textContent = node.type === "image" ? "▧" : node.type === "binary" ? "▤" : getNodeIcon(node);
+      }
 
       const label = document.createElement("span");
       label.className = "explorer-file-name";
