@@ -2772,6 +2772,14 @@ function installWorkspaceAutosave() {
   });
 }
 
+window.addEventListener("darkstudio:external-file-opened", () => {
+  // O conteúdo do Workspace já foi salvo pelo autosave; não associe o arquivo
+  // físico aberto à entrada virtual anterior.
+  syncCurrentEditorToMap();
+  currentEditingNode = null;
+  window.darkStudioWorkspaceCurrentFile = null;
+});
+
 function waitForEditor() {
   if (window.editor) {
     installWorkspaceAutosave();
