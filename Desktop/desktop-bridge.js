@@ -2,6 +2,68 @@
 (() => {
   if (!window.darkStudioDesktop?.isDesktop) return;
 
+  const EDITOR_SESSION_MODE_KEY = "darkstudio-editor-session-mode";
+  const EXTERNAL_FILE_DRAFT_KEY = "darkstudio-last-open-file-draft";
+  let currentExternalFile = null;
+  let draftPersistTimer = null;
+
+  const setExternalFile = (file, dispatchExternalEvent = true) => {
+    currentExternalFile = file ? { filePath: file.filePath, fileName: file.fileName } : null;
+    try {
+      localStorage.setItem(EDITOR_SESSION_MODE_KEY, file ? "external-file" : "workspace");
+      if (file) localStorage.setItem("darkstudio-last-open-file-info", JSON.stringify(currentExternalFile));
+    } catch {}
+    if (dispatchExternalEvent) window.dispatchEvent(new CustomEvent("darkstudio:external-file-opened", { detail: currentExternalFile || {} }));
+    window.dispatchEvent(new CustomEvent("darkstudio:file-opened", { detail: currentExternalFile || {} }));
+  };
+
+  const persistExternalDraft = () => {
+    if (!currentExternalFile || !window.editor?.getValue) return;
+    clearTimeout(draftPersistTimer);
+    draftPersistTimer = setTimeout(() => {
+      try {
+        localStorage.setItem(EXTERNAL_FILE_DRAFT_KEY, JSON.stringify({
+          filePath: currentExternalFile.filePath,
+          content: window.editor.getValue(),
+          savedAt: Date.now()
+        }));
+      } catch (error) {
+        console.warn("DarkStudio: não foi possível guardar o rascunho local do arquivo.", error);
+      }
+    }, 180);
+  };
+
+  const restoreExternalFileIfNeeded = async () => {
+    try {
+      if (localStorage.getItem(EDITOR_SESSION_MODE_KEY) !== "external-file") return;
+      const file = await window.darkStudioDesktop.restoreLastFile();
+      if (!file || !window.editor?.setValue) return;
+      let content = file.content;
+      try {
+        const draft = JSON.parse(localStorage.getItem(EXTERNAL_FILE_DRAFT_KEY) || "null");
+        if (draft?.filePath === file.filePath && typeof draft.content === "string") content = draft.content;
+      } catch {}
+      setExternalFile(file);
+      window.editor.setValue(content);
+      window.editor.focus?.();
+    } catch (error) {
+      console.warn("DarkStudio: não foi possível restaurar o último arquivo aberto.", error);
+    }
+  };
+
+  const waitForEditorAndRestore = () => {
+    let attempts = 0;
+    const timer = setInterval(async () => {
+      attempts += 1;
+      if (window.editor?.setValue) {
+        clearInterval(timer);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await restoreExternalFileIfNeeded();
+        window.editor.onDidChangeModelContent?.(persistExternalDraft);
+      } else if (attempts >= 120) clearInterval(timer);
+    }, 100);
+  };
+
   const extensionForCurrentEditor = () => {
     const language = document.querySelector("#code-language h4")?.textContent?.trim()?.toLowerCase();
     const extensions = { javascript: "js", html: "html", css: "css", json: "json", python: "py", java: "java", "c++": "cpp", c: "c", "c#": "cs", sql: "sql", markdown: "md", rust: "rs" };
@@ -22,27 +84,46 @@
         const file = await window.darkStudioDesktop.openFile();
         if (!file) return;
         if (window.editor?.setValue) {
+          setExternalFile(file);
           window.editor.setValue(file.content);
           window.editor.focus?.();
+          try { localStorage.setItem(EXTERNAL_FILE_DRAFT_KEY, JSON.stringify({ filePath: file.filePath, content: file.content, savedAt: Date.now() })); } catch {}
         }
-        window.dispatchEvent(new CustomEvent("darkstudio:file-opened", { detail: { fileName: file.fileName } }));
         return;
       }
 
       if (saveButton) {
         const content = window.editor?.getValue?.();
         if (typeof content !== "string") return;
-        await window.darkStudioDesktop.saveFile({
+        if (currentExternalFile) {
+          const result = await window.darkStudioDesktop.saveCurrentFile({ content });
+          if (result?.saved) {
+            try { localStorage.setItem(EXTERNAL_FILE_DRAFT_KEY, JSON.stringify({ filePath: result.filePath, content, savedAt: Date.now() })); } catch {}
+            return;
+          }
+        }
+        const result = await window.darkStudioDesktop.saveFile({
           content,
           extension: extensionForCurrentEditor(),
-          defaultName: `untitled.${extensionForCurrentEditor()}`
+          defaultName: currentExternalFile?.fileName || `untitled.${extensionForCurrentEditor()}`
         });
+        if (!result?.canceled && result?.filePath) {
+          currentExternalFile = { filePath: result.filePath, fileName: result.fileName || result.filePath.split(/[\\\\/]/).pop() };
+          setExternalFile(currentExternalFile, false);
+          try { localStorage.setItem(EXTERNAL_FILE_DRAFT_KEY, JSON.stringify({ filePath: result.filePath, content, savedAt: Date.now() })); } catch {}
+        }
       }
     } catch (error) {
       console.error("DarkStudio desktop file operation failed.", error);
     }
   }, true);
 
+
+  window.addEventListener("darkstudio:workspace-file-opened", () => {
+    currentExternalFile = null;
+    try { localStorage.setItem(EDITOR_SESSION_MODE_KEY, "workspace"); } catch {}
+  });
+  waitForEditorAndRestore();
 
   // Terminal integrado com sessões CMD/PowerShell, abas personalizáveis e tela cheia.
   if (document.getElementById("desktop-terminal")) return;
