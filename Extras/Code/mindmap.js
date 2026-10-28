@@ -687,7 +687,7 @@ function injectStyles() {
     .mm-node .name {
       flex: 1 1 auto;
       min-width: 0;
-      font-size: 24px;
+      font-size: 12px;
       max-width: 100%;
       max-height: 100%;
       overflow: hidden;
@@ -1223,7 +1223,7 @@ function createNodeElement(node) {
       icon.innerHTML = customFileIcon;
       Object.assign(icon.style, {
         display: "inline-flex", alignItems: "center", justifyContent: "center",
-        width: "24px", height: "24px", flex: "0 0 24px",
+        width: "18px", height: "18px", flex: "0 0 18px",
       });
       const svgIcon = icon.querySelector("svg");
       if (svgIcon) Object.assign(svgIcon.style, { width: "100%", height: "100%", display: "block" });
@@ -1409,7 +1409,7 @@ function refreshExplorerList() {
         icon.innerHTML = customFileIcon;
         Object.assign(icon.style, {
           display: "inline-flex", alignItems: "center", justifyContent: "center",
-          width: "22px", height: "22px", flex: "0 0 22px",
+          width: "16px", height: "16px", flex: "0 0 16px",
         });
         const svgIcon = icon.querySelector("svg");
         if (svgIcon) Object.assign(svgIcon.style, { width: "100%", height: "100%", display: "block" });
@@ -1419,7 +1419,7 @@ function refreshExplorerList() {
 
       const label = document.createElement("span");
       label.className = "explorer-file-name";
-      label.style.fontSize = "22px";
+      label.style.fontSize = "14px";
       label.textContent = node.name;
       item.append(icon, label);
       if (node.detectedLanguageLabel && node.type !== "folder") {
