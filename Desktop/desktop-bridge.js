@@ -1,6 +1,166 @@
 // Desktop-only bridge injected into the renderer. It never exposes filesystem paths or arbitrary file access.
 (() => {
-  if (!window.darkStudioDesktop?.isDesktop) return;
+  if (!window.darkStudioDesktop?.isDesktop) {
+    // Navegadores compatíveis: persistir o FileSystemFileHandle no IndexedDB
+    // permite restaurar o mesmo arquivo e gravar nele após recarregar a página.
+    if (typeof window.showOpenFilePicker === "function" && typeof window.showSaveFilePicker === "function") {
+      const WEB_FILE_DB = "DarkStudioFileSessionDB";
+      const WEB_FILE_STORE = "session";
+      const WEB_FILE_KEY = "last-open-file";
+      const WEB_MODE_KEY = "darkstudio-editor-session-mode";
+      let webFileHandle = null;
+      let webFileName = "";
+      let webDraftTimer = null;
+      let webEditorListenerInstalled = false;
+
+      const openWebFileDB = () => new Promise((resolve, reject) => {
+        const request = indexedDB.open(WEB_FILE_DB, 1);
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains(WEB_FILE_STORE)) request.result.createObjectStore(WEB_FILE_STORE);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("Não foi possível abrir o armazenamento de arquivos."));
+      });
+
+      const readWebFileSession = async () => {
+        const db = await openWebFileDB();
+        return new Promise((resolve, reject) => {
+          const request = db.transaction(WEB_FILE_STORE, "readonly").objectStore(WEB_FILE_STORE).get(WEB_FILE_KEY);
+          request.onsuccess = () => resolve(request.result || null);
+          request.onerror = () => reject(request.error);
+        });
+      };
+
+      const writeWebFileSession = async (session) => {
+        const db = await openWebFileDB();
+        return new Promise((resolve, reject) => {
+          const transaction = db.transaction(WEB_FILE_STORE, "readwrite");
+          transaction.objectStore(WEB_FILE_STORE).put(session, WEB_FILE_KEY);
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+          transaction.onabort = () => reject(transaction.error || new Error("Falha ao guardar o estado do arquivo."));
+        });
+      };
+
+      const markWebFileActive = (handle, name) => {
+        webFileHandle = handle;
+        webFileName = name || handle?.name || "";
+        try { localStorage.setItem(WEB_MODE_KEY, "external-file"); } catch {}
+        window.dispatchEvent(new CustomEvent("darkstudio:external-file-opened", { detail: { fileName: webFileName } }));
+        window.dispatchEvent(new CustomEvent("darkstudio:file-opened", { detail: { fileName: webFileName } }));
+      };
+
+      const saveWebDraft = () => {
+        if (!webFileHandle || !window.editor?.getValue) return;
+        clearTimeout(webDraftTimer);
+        webDraftTimer = setTimeout(() => {
+          void writeWebFileSession({
+            handle: webFileHandle,
+            fileName: webFileName,
+            content: window.editor.getValue(),
+            savedAt: Date.now()
+          }).catch((error) => console.warn("DarkStudio: não foi possível guardar o rascunho do arquivo.", error));
+        }, 180);
+      };
+
+      const installWebEditorAutosave = () => {
+        if (webEditorListenerInstalled || !window.editor?.onDidChangeModelContent) return;
+        webEditorListenerInstalled = true;
+        window.editor.onDidChangeModelContent(saveWebDraft);
+      };
+
+      const restoreWebFile = async () => {
+        try {
+          if (localStorage.getItem(WEB_MODE_KEY) !== "external-file") return;
+          const session = await readWebFileSession();
+          if (!session?.handle || typeof session.content !== "string" || !window.editor?.setValue) return;
+          markWebFileActive(session.handle, session.fileName);
+          window.editor.setValue(session.content);
+          window.editor.focus?.();
+        } catch (error) {
+          console.warn("DarkStudio: não foi possível restaurar o último arquivo no navegador.", error);
+        }
+      };
+
+      const waitForWebEditor = () => {
+        let attempts = 0;
+        const timer = setInterval(async () => {
+          attempts += 1;
+          if (window.editor?.setValue) {
+            clearInterval(timer);
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            await restoreWebFile();
+            installWebEditorAutosave();
+          } else if (attempts >= 120) clearInterval(timer);
+        }, 100);
+      };
+
+      document.addEventListener("click", async (event) => {
+        const loadButton = event.target.closest?.("#load-button");
+        const saveButton = event.target.closest?.("#save-button");
+        if (!loadButton && !saveButton) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        try {
+          if (loadButton) {
+            const [handle] = await window.showOpenFilePicker({ multiple: false });
+            if (!handle) return;
+            const file = await handle.getFile();
+            const content = await file.text();
+            markWebFileActive(handle, file.name);
+            await writeWebFileSession({ handle, fileName: file.name, content, savedAt: Date.now() });
+            if (window.editor?.setValue) {
+              window.editor.setValue(content);
+              window.editor.focus?.();
+            }
+            installWebEditorAutosave();
+            return;
+          }
+
+          let handle = webFileHandle;
+          if (!handle) {
+            const extension = document.querySelector("#code-language h4")?.textContent?.trim()?.toLowerCase();
+            const extensions = { javascript: ".js", html: ".html", css: ".css", json: ".json", python: ".py", java: ".java", "c++": ".cpp", c: ".c", markdown: ".md" };
+            handle = await window.showSaveFilePicker({
+              suggestedName: webFileName || `untitled${extensions[extension] || ".txt"}`,
+              excludeAcceptAllOption: false
+            });
+            webFileName = handle.name;
+          }
+
+          const permission = await handle.queryPermission({ mode: "readwrite" });
+          const granted = permission === "granted" || await handle.requestPermission({ mode: "readwrite" }) === "granted";
+          if (!granted) {
+            window.alert("Permita que o DarkStudio grave neste arquivo para salvar as alterações.");
+            return;
+          }
+
+          const content = window.editor?.getValue?.();
+          if (typeof content !== "string") return;
+          const writable = await handle.createWritable();
+          await writable.write(content);
+          await writable.close();
+          markWebFileActive(handle, handle.name);
+          await writeWebFileSession({ handle, fileName: handle.name, content, savedAt: Date.now() });
+        } catch (error) {
+          if (error?.name !== "AbortError") {
+            console.error("DarkStudio: operação de arquivo no navegador falhou.", error);
+            window.alert("Não foi possível abrir ou salvar o arquivo. Verifique as permissões do navegador.");
+          }
+        }
+      }, true);
+
+      window.addEventListener("darkstudio:workspace-file-opened", () => {
+        webFileHandle = null;
+        webFileName = "";
+        try { localStorage.setItem(WEB_MODE_KEY, "workspace"); } catch {}
+      });
+      waitForWebEditor();
+    }
+    return;
+  }
 
   const EDITOR_SESSION_MODE_KEY = "darkstudio-editor-session-mode";
   const EXTERNAL_FILE_DRAFT_KEY = "darkstudio-last-open-file-draft";
