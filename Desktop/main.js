@@ -24,6 +24,37 @@ const ACTIVE_VERSION_FILE = () => path.join(UPDATE_ROOT(), "active.json");
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const VERSION_PATTERN = /export\s+const\s+version\s*=\s*["']([^"']+)["']/;
 
+const LAST_OPEN_FILE_FILE = () => path.join(app.getPath("userData"), "last-open-file.json");
+
+async function rememberLastOpenedFile(filePath) {
+  await fs.mkdir(path.dirname(LAST_OPEN_FILE_FILE()), { recursive: true });
+  await fs.writeFile(LAST_OPEN_FILE_FILE(), JSON.stringify({ filePath }, null, 2), "utf8");
+}
+
+ipcMain.handle("darkstudio:restore-last-file", async () => {
+  try {
+    const saved = JSON.parse(await fs.readFile(LAST_OPEN_FILE_FILE(), "utf8"));
+    if (typeof saved.filePath !== "string" || !path.isAbsolute(saved.filePath)) return null;
+    const content = await fs.readFile(saved.filePath, "utf8");
+    return { filePath: saved.filePath, fileName: path.basename(saved.filePath), content };
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle("darkstudio:save-current-file", async (_event, options = {}) => {
+  try {
+    const saved = JSON.parse(await fs.readFile(LAST_OPEN_FILE_FILE(), "utf8"));
+    if (typeof saved.filePath !== "string" || !path.isAbsolute(saved.filePath)) {
+      return { saved: false, reason: "no-current-file" };
+    }
+    await fs.writeFile(saved.filePath, String(options.content ?? ""), "utf8");
+    return { saved: true, filePath: saved.filePath, fileName: path.basename(saved.filePath) };
+  } catch (error) {
+    return { saved: false, reason: "write-failed", message: String(error?.message || error) };
+  }
+});
+
 ipcMain.handle("darkstudio:open-file", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openFile"],
@@ -31,7 +62,9 @@ ipcMain.handle("darkstudio:open-file", async () => {
   });
   if (result.canceled || !result.filePaths[0]) return null;
   const filePath = result.filePaths[0];
-  return { filePath, fileName: path.basename(filePath), content: await fs.readFile(filePath, "utf8") };
+  const content = await fs.readFile(filePath, "utf8");
+  await rememberLastOpenedFile(filePath);
+  return { filePath, fileName: path.basename(filePath), content };
 });
 
 ipcMain.handle("darkstudio:save-file", async (_event, options = {}) => {
@@ -43,7 +76,8 @@ ipcMain.handle("darkstudio:save-file", async (_event, options = {}) => {
   });
   if (result.canceled || !result.filePath) return { canceled: true };
   await fs.writeFile(result.filePath, String(options.content ?? ""), "utf8");
-  return { canceled: false, filePath: result.filePath };
+  await rememberLastOpenedFile(result.filePath);
+  return { canceled: false, filePath: result.filePath, fileName: path.basename(result.filePath) };
 });
 
 async function readActiveUpdate() {
