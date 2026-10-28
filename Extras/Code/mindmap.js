@@ -209,6 +209,7 @@ let workspaceId = "";
 let workspaceManagerView = false;
 const WORKSPACES_KEY = "darkstudio_workspaces_v1";
 const ACTIVE_WORKSPACE_KEY = "darkstudio_active_workspace_id";
+const ACTIVE_WORKSPACE_FILE_PREFIX = "darkstudio_active_file_id:";
 let workspaceAutosaveInstalled = false;
 let highestNodeZIndex = 10;
 let indexedDbPromise = null;
@@ -230,6 +231,31 @@ function makeId() {
 
 function getNode(id) {
   return nodes.find((node) => node.id === id);
+}
+
+function activeWorkspaceFileKey(id = workspaceId) {
+  return `${ACTIVE_WORKSPACE_FILE_PREFIX}${id || "current"}`;
+}
+
+function rememberActiveWorkspaceFile(node) {
+  try {
+    if (node?.id) localStorage.setItem(activeWorkspaceFileKey(), node.id);
+    else localStorage.removeItem(activeWorkspaceFileKey());
+  } catch (error) {
+    console.warn("DarkStudio: não foi possível lembrar o arquivo ativo.", error);
+  }
+}
+
+function restoreActiveWorkspaceFile() {
+  try {
+    if (localStorage.getItem("darkstudio-editor-session-mode") === "external-file") return false;
+  } catch {}
+  let savedId = "";
+  try { savedId = localStorage.getItem(activeWorkspaceFileKey()) || ""; } catch {}
+  const node = savedId ? getNode(savedId) : null;
+  if (!node || node.type === "folder" || node.type === "image" || node.type === "binary") return false;
+  openNodeInEditor(node);
+  return true;
 }
 
 function getNodeElement(id) {
@@ -549,6 +575,7 @@ async function activateWorkspace(id) {
   setWorkspaceManagerView(false);
   renderNodes();
   updateWorkspaceNameUI();
+  if (!currentEditingNode) restoreActiveWorkspaceFile();
 }
 
 // ============================================================
@@ -2578,6 +2605,8 @@ function openNodeInEditor(node) {
 
   currentEditingNode = node;
   window.darkStudioWorkspaceCurrentFile = node;
+  rememberActiveWorkspaceFile(node);
+  window.dispatchEvent(new CustomEvent("darkstudio:workspace-file-opened", { detail: { nodeId: node.id, fileName: node.name } }));
 
   if (window.editor && typeof window.editor.setValue === "function") {
     window.editor.setValue(node.content || "");
@@ -2783,6 +2812,9 @@ window.addEventListener("darkstudio:external-file-opened", () => {
 function waitForEditor() {
   if (window.editor) {
     installWorkspaceAutosave();
+    setTimeout(() => {
+      if (!currentEditingNode) restoreActiveWorkspaceFile();
+    }, 400);
     return;
   }
 
@@ -2828,6 +2860,7 @@ function deleteNode(nodeId) {
   if (currentEditingNode && idsToDelete.has(currentEditingNode.id)) {
     currentEditingNode = null;
     window.darkStudioWorkspaceCurrentFile = null;
+    rememberActiveWorkspaceFile(null);
     window.editor?.setValue?.("");
   }
 
@@ -2843,6 +2876,8 @@ function clearMap() {
   nodes = [];
   connections = [];
   currentEditingNode = null;
+  window.darkStudioWorkspaceCurrentFile = null;
+  rememberActiveWorkspaceFile(null);
   connectSource = null;
   connectMode = false;
   workspacePan = { x: 0, y: 0 };
