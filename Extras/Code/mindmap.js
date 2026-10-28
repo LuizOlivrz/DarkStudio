@@ -687,6 +687,7 @@ function injectStyles() {
     .mm-node .name {
       flex: 1 1 auto;
       min-width: 0;
+      font-size: 24px;
       max-width: 100%;
       max-height: 100%;
       overflow: hidden;
@@ -1418,6 +1419,7 @@ function refreshExplorerList() {
 
       const label = document.createElement("span");
       label.className = "explorer-file-name";
+      label.style.fontSize = "22px";
       label.textContent = node.name;
       item.append(icon, label);
       if (node.detectedLanguageLabel && node.type !== "folder") {
