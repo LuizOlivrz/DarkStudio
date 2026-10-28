@@ -39,7 +39,8 @@
           ]
         }
       ],
-      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
+      "icon": "Extras/Assets/White Favicon.ico"
     },
     "linux": {
       "target": [
@@ -76,7 +77,8 @@
       "!**/*.map",
       "!**/.git/**"
     ],
-    "asar": true
+    "asar": true,
+    "executableName": "DarkStudio"
   },
   "dependencies": {
     "monaco-editor": "0.52.2",
