@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld("darkStudioDesktop", Object.freeze({
   version: "1.0.0",
   openFile: () => ipcRenderer.invoke("darkstudio:open-file"),
   saveFile: (options) => ipcRenderer.invoke("darkstudio:save-file", options),
+  restoreLastFile: () => ipcRenderer.invoke("darkstudio:restore-last-file"),
+  saveCurrentFile: (options) => ipcRenderer.invoke("darkstudio:save-current-file", options),
   terminalStart: (options) => ipcRenderer.invoke("darkstudio:terminal:start", options),
   terminalWrite: (options) => ipcRenderer.invoke("darkstudio:terminal:write", options),
   terminalStop: (options) => ipcRenderer.invoke("darkstudio:terminal:stop", options),
