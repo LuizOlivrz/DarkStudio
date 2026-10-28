@@ -871,10 +871,15 @@ function showNameDialog(initialName = "", title = "Nome") {
     });
 
     const input = document.createElement("input");
+    input.type = "text";
     input.value = initialName;
     input.maxLength = 100;
     input.placeholder = tr("namePlaceholder");
     input.autocomplete = "off";
+    input.autocapitalize = "off";
+    input.spellcheck = false;
+    input.enterKeyHint = "done";
+    input.setAttribute("aria-label", title);
 
     Object.assign(input.style, {
       boxSizing: "border-box",
@@ -887,6 +892,10 @@ function showNameDialog(initialName = "", title = "Nome") {
       background: "#222",
       color: "#fff",
       fontSize: "14px",
+      cursor: "text",
+      pointerEvents: "auto",
+      userSelect: "text",
+      webkitUserSelect: "text",
     });
 
     const actions = document.createElement("div");
@@ -948,7 +957,12 @@ function showNameDialog(initialName = "", title = "Nome") {
     });
 
     overlay.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") finish(null);
+      // Isola o diálogo dos atalhos globais do editor sem bloquear a digitação nativa.
+      event.stopPropagation();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        finish(null);
+      }
     });
 
     actions.append(cancel, confirm);
@@ -956,8 +970,12 @@ function showNameDialog(initialName = "", title = "Nome") {
     overlay.appendChild(form);
     document.body.appendChild(overlay);
 
-    input.focus();
-    input.select();
+    // Focar no próximo frame evita perder o foco enquanto o overlay entra no DOM.
+    requestAnimationFrame(() => {
+      if (!overlay.isConnected || completed) return;
+      input.focus({ preventScroll: true });
+      input.select();
+    });
   });
 }
 
