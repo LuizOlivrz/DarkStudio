@@ -240,7 +240,10 @@ function activeWorkspaceFileKey(id = workspaceId) {
 function rememberActiveWorkspaceFile(node) {
   try {
     if (node?.id) localStorage.setItem(activeWorkspaceFileKey(), node.id);
-    else localStorage.removeItem(activeWorkspaceFileKey());
+    else {
+      localStorage.removeItem(activeWorkspaceFileKey());
+      localStorage.setItem("darkstudio-editor-session-mode", "workspace");
+    }
   } catch (error) {
     console.warn("DarkStudio: não foi possível lembrar o arquivo ativo.", error);
   }
@@ -2606,6 +2609,7 @@ function openNodeInEditor(node) {
   currentEditingNode = node;
   window.darkStudioWorkspaceCurrentFile = node;
   rememberActiveWorkspaceFile(node);
+  try { localStorage.setItem("darkstudio-editor-session-mode", "workspace"); } catch {}
   window.dispatchEvent(new CustomEvent("darkstudio:workspace-file-opened", { detail: { nodeId: node.id, fileName: node.name } }));
 
   if (window.editor && typeof window.editor.setValue === "function") {
