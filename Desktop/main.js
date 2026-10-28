@@ -7,6 +7,8 @@ const extract = require("extract-zip");
 const { spawn } = require("node:child_process");
 const os = require("node:os");
 
+app.setName("DarkStudio");
+
 protocol.registerSchemesAsPrivileged([{
   scheme: "app",
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
@@ -315,6 +317,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 620,
     title: "DarkStudio",
+    icon: path.join(PROJECT_ROOT, "Extras", "Assets", "White Favicon.ico"),
     backgroundColor: "#111111",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
