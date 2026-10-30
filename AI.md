@@ -245,3 +245,6 @@ Formato obrigatório:
 ---
 
 **Regra final:** explore, experimente e melhore o DarkStudio com iniciativa. O limite não é evitar mudanças grandes; é evitar mudanças irresponsáveis, opacas ou impossíveis de revisar.
+
+
+2026-10-30 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Posiciona o NightCoder acionado por Ctrl+I abaixo do editor dentro do grid, mantendo a largura do editor e compatibilidade com o terminal integrado em Web/Desktop. | Branch `feature/chat-abaixo-editor`
