@@ -109,6 +109,8 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     if (event.clientX >= options.getBoundingClientRect().right - 8) beginResize(event, "options");
   });
   editor.addEventListener("pointerdown", event => {
+    // O chat abaixo do editor usa a largura da coluna; não deve abrir o painel lateral.
+    if (WebsiteContainer.classList.contains("chat-below-editor")) return;
     if (event.clientX >= editor.getBoundingClientRect().right - 8) beginResize(event, "chat");
   });
   window.addEventListener("resize", () => {

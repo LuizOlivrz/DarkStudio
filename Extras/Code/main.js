@@ -1605,22 +1605,25 @@ ${code}
         input.blur();
         document.getElementById("Editor-Input").focus();
 
-        WebsiteContainer.classList.remove("with-chat");
+        WebsiteContainer.classList.remove("with-chat", "chat-resize-hidden", "chat-below-editor");
         WebsiteContainer.classList.add("no-chat");
 
         chat.style.display = "none";
 
         chatOpen = false;
+        requestAnimationFrame(() => window.editor?.layout());
       } else {
-        input.focus();
-
         chat.style.display = "flex";
         chat.style.pointerEvents = "auto";
 
-        WebsiteContainer.classList.remove("no-chat", "chat-resize-hidden");
-        WebsiteContainer.classList.add("with-chat");
+        WebsiteContainer.classList.remove("no-chat", "with-chat", "chat-resize-hidden");
+        WebsiteContainer.classList.add("chat-below-editor");
 
         chatOpen = true;
+        requestAnimationFrame(() => {
+          window.editor?.layout();
+          input.focus({ preventScroll: true });
+        });
       }
     }
   });
