@@ -2393,9 +2393,11 @@ body {
 /* No mobile, o editor sempre reserva a faixa fixa de linguagem do rodapé.
    Quando a gaveta abre, sua altura é somada ao espaço já reservado. */
 @media (max-width: 700px) {
+  /* Ancoragem na viewport: o editor e o rodapé passam a compartilhar
+     a mesma referência geométrica, com apenas 5px entre suas bordas. */
   #Website-Container #main-content {
-    position: absolute !important;
-    inset: 0 0 calc(var(--mobile-nav-height, 64px) + 34px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
+    position: fixed !important;
+    inset: 5px 0 calc(var(--mobile-nav-height, 64px) + 34px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
@@ -2404,8 +2406,9 @@ body {
     flex: none !important;
   }
 
+  /* A gaveta fica acima do editor; sua borda superior também mantém 5px. */
   #Website-Container.mobile-options-open #main-content {
-    inset: 0 0 calc(var(--mobile-nav-height, 64px) + var(--mobile-options-height, 0px) + 34px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
+    inset: 5px 0 calc(var(--mobile-nav-height, 64px) + var(--mobile-options-height, 0px) + 13px + env(safe-area-inset-bottom, 0px)) 0 !important;
   }
 
   #Website-Container #main-content #Editor-Input {
