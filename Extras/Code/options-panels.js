@@ -19,6 +19,29 @@ const launcherRail = document.getElementById("workspace-launcher-rail");
 const launcherOrderKey = "darkstudio.workspace-launcher-order.v1";
 let draggedLauncher = null;
 
+// Mede a gaveta móvel e reserva essa altura no layout do editor, evitando sobreposição.
+let mobileOptionsLayoutFrame = 0;
+function syncMobileOptionsSpace() {
+  if (mobileOptionsLayoutFrame) cancelAnimationFrame(mobileOptionsLayoutFrame);
+  mobileOptionsLayoutFrame = requestAnimationFrame(() => {
+    mobileOptionsLayoutFrame = 0;
+    const isOpen = isCompactLayout.matches && container?.classList.contains("mobile-options-open");
+    const height = isOpen && optionsPanel ? Math.ceil(optionsPanel.getBoundingClientRect().height) : 0;
+    container?.style.setProperty("--mobile-options-height", `${height}px`);
+    window.editor?.layout?.();
+  });
+}
+
+if (optionsPanel && typeof ResizeObserver !== "undefined") {
+  const optionsResizeObserver = new ResizeObserver(syncMobileOptionsSpace);
+  optionsResizeObserver.observe(optionsPanel);
+}
+if (container && typeof MutationObserver !== "undefined") {
+  const optionsClassObserver = new MutationObserver(syncMobileOptionsSpace);
+  optionsClassObserver.observe(container, { attributes: true, attributeFilter: ["class"] });
+}
+window.addEventListener("resize", syncMobileOptionsSpace, { passive: true });
+
 function getLaunchers() {
   return launcherRail ? [...launcherRail.querySelectorAll(":scope > .workspace-launcher")] : [];
 }
@@ -127,15 +150,18 @@ fileLauncher?.addEventListener("click", () => {
   if (!isCompactLayout.matches) return setActiveView("files");
   if (activeView === "files") {
     container?.classList.toggle("mobile-options-open");
+    syncMobileOptionsSpace();
     return;
   }
   setActiveView("files");
   container?.classList.add("mobile-options-open");
+  syncMobileOptionsSpace();
 });
 mapLauncher?.addEventListener("click", () => {
   // O mesmo atalho abre Extensões e, quando já está aberto, retorna ao editor.
   setActiveView(activeView === "map" ? "files" : "map");
   container?.classList.remove("mobile-options-open");
+  syncMobileOptionsSpace();
 });
 debuggerLauncher?.addEventListener("click", () => {
   if (isCompactLayout.matches && activeView === "debugger") {
@@ -144,6 +170,7 @@ debuggerLauncher?.addEventListener("click", () => {
   }
   setActiveView("debugger");
   if (isCompactLayout.matches) container?.classList.add("mobile-options-open");
+  syncMobileOptionsSpace();
 });
 chatLauncher?.addEventListener("click", () => {
   document.dispatchEvent(new KeyboardEvent("keydown", {
@@ -170,6 +197,7 @@ container?.addEventListener("pointerdown", (event) => {
   if (!(target instanceof Element)) return;
   if (optionsPanel?.contains(target) || fileLauncher?.contains(target) || debuggerLauncher?.contains(target)) return;
   container.classList.remove("mobile-options-open");
+  syncMobileOptionsSpace();
 });
 
 debuggerToggle?.addEventListener("click", () => {
@@ -230,8 +258,10 @@ if (isCompactLayout.matches) {
   container?.classList.add("mobile-layout");
   container?.classList.remove("mobile-options-open");
 }
+syncMobileOptionsSpace();
 isCompactLayout.addEventListener?.("change", (event) => {
   container?.classList.toggle("mobile-layout", event.matches);
   container?.classList.remove("mobile-options-open");
+  syncMobileOptionsSpace();
   requestAnimationFrame(() => window.editor?.layout());
 });
