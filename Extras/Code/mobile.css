@@ -2460,3 +2460,40 @@ body {
     min-width: 0 !important;
   }
 }
+
+
+/* Harmoniza os dois controles do rodapé e garante o preenchimento da engrenagem. */
+@media (max-width: 700px) {
+  #workspace-footer #config-toggle {
+    height: 42px !important;
+    min-height: 42px !important;
+    flex-basis: 42px !important;
+    align-self: center !important;
+  }
+
+  #workspace-footer #Config-SVG {
+    color: var(--secondary-color, #fff) !important;
+    fill: var(--secondary-color, #fff) !important;
+  }
+
+  #workspace-footer #Config-SVG path {
+    fill: currentColor !important;
+    stroke: none !important;
+  }
+
+  #workspace-footer #code-language {
+    height: 42px !important;
+    min-height: 42px !important;
+    align-self: center !important;
+    flex: 1 1 0 !important;
+  }
+
+  #workspace-footer #code-language h4 {
+    height: 42px !important;
+    min-height: 42px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
