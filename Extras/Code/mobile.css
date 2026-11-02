@@ -2395,7 +2395,7 @@ body {
 @media (max-width: 700px) {
   #Website-Container #main-content {
     position: absolute !important;
-    inset: 0 0 calc(var(--mobile-nav-height, 64px) + 52px + 16px) 0 !important;
+    inset: 0 0 calc(var(--mobile-nav-height, 64px) + 34px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
@@ -2405,7 +2405,7 @@ body {
   }
 
   #Website-Container.mobile-options-open #main-content {
-    inset: 0 0 calc(var(--mobile-nav-height, 64px) + var(--mobile-options-height, 0px) + 52px + 16px) 0 !important;
+    inset: 0 0 calc(var(--mobile-nav-height, 64px) + var(--mobile-options-height, 0px) + 34px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
   }
 
   #Website-Container #main-content #Editor-Input {
