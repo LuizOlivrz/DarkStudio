@@ -152,6 +152,13 @@ chatLauncher?.addEventListener("click", () => {
   chatLauncher.classList.toggle("is-active", isOpen);
   chatLauncher.setAttribute("aria-pressed", String(isOpen));
 });
+container?.addEventListener("pointerdown", (event) => {
+  if (!isCompactLayout.matches || !container.classList.contains("mobile-options-open")) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (optionsPanel?.contains(target) || fileLauncher?.contains(target) || debuggerLauncher?.contains(target)) return;
+  container.classList.remove("mobile-options-open");
+});
 
 debuggerToggle?.addEventListener("click", () => {
   const isOpen = debuggerSection?.classList.toggle("debugger-open") ?? false;
