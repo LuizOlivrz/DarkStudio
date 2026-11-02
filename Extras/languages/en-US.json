@@ -103,6 +103,8 @@
   "workspaceRename": "Rename workspace",
   "renameFolder": "Rename folder",
   "renameFile": "Rename file",
+  "deleteFile": "Delete file",
+  "deleteFileConfirm": "Delete the file \"{name}\"? This action cannot be undone.",
   "newFolder": "Create folder",
   "createFolder": "Create folder",
   "newFile": "New blank file",
