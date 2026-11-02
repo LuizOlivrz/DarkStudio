@@ -264,3 +264,5 @@ Formato obrigatório:
 | 2026-11-02 20:18 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta o limite inferior do editor mobile para manter cerca de 5px de respiro antes do indicador de linguagem, considerando a altura real do rodapé e a área segura. | Branch `melhoria/interface-celular` |
 
 | 2026-11-02 20:18 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a referência geométrica do editor mobile usando posicionamento fixo na viewport; mantém 5px de distância do rodapé de linguagem e da borda superior da gaveta aberta. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 20:22 (UTC-03:00) | ChatGPT — GPT-6 | Restaura a visibilidade e a interação do botão de configurações no rodapé mobile, preservando o indicador de linguagem e o layout desktop. | Branch `melhoria/interface-celular` |
