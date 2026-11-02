@@ -103,6 +103,8 @@
   "workspaceRename": "Renomear workspace",
   "renameFolder": "Renomear pasta",
   "renameFile": "Renomear arquivo",
+  "deleteFile": "Excluir arquivo",
+  "deleteFileConfirm": "Deseja excluir o arquivo \"{name}\"? Esta ação não pode ser desfeita.",
   "newFolder": "Criar pasta",
   "createFolder": "Criar pasta",
   "newFile": "Novo arquivo em branco",
