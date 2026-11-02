@@ -153,6 +153,17 @@ chatLauncher?.addEventListener("click", () => {
   chatLauncher.classList.toggle("is-active", isOpen);
   chatLauncher.setAttribute("aria-pressed", String(isOpen));
 });
+
+// Regra genérica: qualquer ferramenta da barra, atual ou futura, fecha o NightCoder
+// em telas compactas. O próprio botão do NightCoder permanece como alternador.
+launcherRail?.addEventListener("click", (event) => {
+  if (!isCompactLayout.matches || !(event.target instanceof Element)) return;
+
+  const launcher = event.target.closest(".workspace-launcher");
+  if (!launcher || !launcherRail.contains(launcher) || launcher === chatLauncher) return;
+
+  window.darkStudioCloseNightCoder?.();
+});
 container?.addEventListener("pointerdown", (event) => {
   if (!isCompactLayout.matches || !container.classList.contains("mobile-options-open")) return;
   const target = event.target;
