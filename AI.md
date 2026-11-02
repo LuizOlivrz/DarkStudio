@@ -230,6 +230,8 @@ Formato obrigatório:
 | 2026-10-25 11:54 (UTC-03:00) | ChatGPT — GPT-6 | Organiza propostas de extensões em pastas com manifesto, código, estilos e diretórios de recursos; atualiza o catálogo para exibir pastas mantendo compatibilidade com entradas antigas. | PR #34 |
 | 2026-10-25 12:15 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o importador de pastas de extensões, exige manifest.json/main.ds/Assets/demo/demo.txt/demo.ico e mantém pacotes incompletos desativados; corrige regexes inválidas e ajusta o painel Depuração para iniciar recolhido. | PR #35: https://github.com/LuizOlivrz/DarkStudio/pull/35 |
 
+| 2026-11-02 19:16 (UTC-03:00) | ChatGPT — GPT-6 | Adapta a experiência mobile com navegação inferior, gaveta de arquivos/depuração e acesso rápido ao NightCoder; reduz efeitos visuais em telas compactas. | Branch `melhoria/interface-celular` |
+
 ## 13. Checklist rápido antes de enviar uma PR
 
 - [ ] Li este guia e os arquivos relacionados.
