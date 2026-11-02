@@ -280,3 +280,5 @@ Formato obrigatório:
 | 2026-11-02 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta as ações para ícones menores posicionados imediatamente antes e depois do nome definido pelo usuário na própria linha do arquivo. | branch `melhoria/interface-celular` |
 
 | 2026-11-02 | ChatGPT — GPT-6 | Dimensiona os ícones de renomear e excluir arquivos do Explorer em unidades relativas à altura do texto, evitando dimensões fixas. | branch `melhoria/interface-celular` |
+
+| 2026-11-02 | ChatGPT — GPT-6 | Posiciona lápis à esquerda e lixeira à direita do nome do arquivo no Explorer; SVGs ficam com 75% do tamanho relativo à altura do texto. | branch `melhoria/interface-celular` |
