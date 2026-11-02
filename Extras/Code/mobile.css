@@ -874,11 +874,6 @@ body {
   position: absolute;
 }
 
-#mini-player {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
 
 @media (max-width: 700px) {
   #Website-Container {
@@ -1983,14 +1978,6 @@ body {
     max-height: 52dvh;
   }
 
-  #mini-player {
-    max-width: min(46vw, 190px);
-  }
-
-  #mini-player iframe,
-  #mini-player video {
-    max-width: 100%;
-  }
 
   #executor-panel {
     min-width: 0 !important;
@@ -2022,5 +2009,71 @@ body {
     scroll-behavior: auto !important;
     animation: none !important;
     transition: none !important;
+  }
+}
+
+
+/* Ajustes solicitados para a interface compacta. */
+@media (max-width: 700px) {
+  /* A visualização gráfica permanece disponível no desktop, não no celular. */
+  #explorer-graph-button {
+    display: none !important;
+  }
+
+  /* A linguagem detectada fica permanentemente visível, sem depender de hover. */
+  #workspace-footer #code-language {
+    align-self: stretch !important;
+    height: 52px !important;
+    min-height: 52px;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+    transform: none !important;
+  }
+
+  #workspace-footer #code-language::before {
+    display: none !important;
+  }
+
+  #workspace-footer #code-language h4 {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100% !important;
+    min-height: 0;
+    margin: 0;
+    padding: 4px 8px;
+    box-sizing: border-box;
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    background: rgba(9, 9, 9, .96);
+    opacity: 1 !important;
+    overflow: hidden;
+    font-size: 12px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    bottom: auto !important;
+  }
+
+  /* Ícones sociais menores e contidos dentro da tela de configurações. */
+  #social-medias {
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  #social-medias a {
+    width: 26px;
+    height: 26px;
+  }
+
+  #social-medias svg,
+  #social-medias img {
+    width: 22px;
+    height: 22px;
+    max-width: 22px;
+    max-height: 22px;
   }
 }
