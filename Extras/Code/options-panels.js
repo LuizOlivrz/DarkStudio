@@ -133,7 +133,8 @@ fileLauncher?.addEventListener("click", () => {
   container?.classList.add("mobile-options-open");
 });
 mapLauncher?.addEventListener("click", () => {
-  setActiveView("map");
+  // O mesmo atalho abre Extensões e, quando já está aberto, retorna ao editor.
+  setActiveView(activeView === "map" ? "files" : "map");
   container?.classList.remove("mobile-options-open");
 });
 debuggerLauncher?.addEventListener("click", () => {
