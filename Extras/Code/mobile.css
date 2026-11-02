@@ -1694,3 +1694,327 @@ body {
   background: transparent;
   color: var(--secondary-color, #5d00ff);
 }
+
+
+/* =========================================================
+   EXPERIÊNCIA MOBILE — navegação inferior e painéis sob demanda
+   Mantém as ferramentas existentes e evita a grade de desktop
+   em telas compactas.
+   ========================================================= */
+@media (max-width: 700px) {
+  :root {
+    --mobile-nav-height: 64px;
+    --workspace-height: calc(100dvh - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px));
+  }
+
+  html, body {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  #Website-Container,
+  #Website-Container.with-chat,
+  #Website-Container.no-chat,
+  #Website-Container.chat-resize-hidden {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr);
+    width: 100%;
+    height: var(--workspace-height);
+    min-height: 0;
+    max-height: var(--workspace-height);
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  #main-content,
+  #mindmap-container,
+  #config,
+  #extensions-panel,
+  #executor-panel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-sizing: border-box;
+  }
+
+  #main-content {
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #090909 !important;
+  }
+
+  #Editor-Input,
+  #main-content .monaco-editor {
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* A Estação de Arquivos e o Depurador viram uma gaveta contextual. */
+  #options {
+    display: none;
+    position: absolute !important;
+    z-index: 85;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: calc(var(--mobile-nav-height) + 8px + env(safe-area-inset-bottom, 0px));
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: min(54dvh, 440px);
+    min-height: 0;
+    padding: 14px !important;
+    overflow: auto !important;
+    border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .45);
+    border-radius: 18px;
+    background: rgba(12, 12, 14, .98);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, .55);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  #Website-Container.mobile-options-open #options:not([hidden]) {
+    display: block !important;
+  }
+
+  #options button {
+    min-height: 44px;
+    font-size: 14px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #explorer-files {
+    max-height: 30dvh;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Barra inferior fixa: quatro destinos com áreas de toque confortáveis. */
+  #workspace-launcher-rail {
+    position: fixed !important;
+    z-index: 120;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: space-around;
+    gap: 4px;
+    width: 100%;
+    height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    box-sizing: border-box;
+    border-top: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .28);
+    background: rgba(9, 9, 11, .98);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, .28);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    touch-action: manipulation;
+  }
+
+  #workspace-launcher-rail .workspace-launcher {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: auto !important;
+    min-width: 0;
+    max-width: 92px;
+    height: 50px;
+    min-height: 48px;
+    padding: 4px 2px;
+    border: 0 !important;
+    border-radius: 12px;
+    background: transparent !important;
+    color: #a7a7b0;
+    box-shadow: none !important;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #workspace-launcher-rail .workspace-launcher svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+  }
+
+  #workspace-launcher-rail .workspace-launcher::after {
+    content: attr(title);
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: currentColor;
+    font: 500 10px/1.1 Arial, sans-serif;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"] {
+    color: var(--secondary-color, #9b72ff);
+    background: rgba(var(--secondary-rgb, 93, 0, 255), .13) !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher:focus-visible {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 2px;
+  }
+
+  #workspace-footer {
+    position: fixed !important;
+    z-index: 55;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 5px) !important;
+    height: 34px;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  #workspace-footer #config-toggle {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+    border-radius: 12px;
+    transform: none !important;
+    box-shadow: none;
+    background: rgba(9, 9, 9, .92);
+  }
+
+  #workspace-footer #Config-SVG {
+    width: 24px;
+    height: 24px;
+  }
+
+  #workspace-footer #code-language {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 10px;
+    align-self: end;
+  }
+
+  #workspace-footer #code-language h4 {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  #signature,
+  #network-status,
+  #options-resize-handle,
+  #chat-resize-handle,
+  .panel-resize-handle,
+  #options::after,
+  #main-content::after {
+    display: none !important;
+  }
+
+  /* NightCoder ocupa a área de trabalho sem criar uma terceira coluna. */
+  #Website-Container.with-chat #chat {
+    position: absolute !important;
+    z-index: 95;
+    inset: 8px 8px calc(var(--mobile-nav-height) + 8px) 8px;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px;
+    border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .5);
+    border-radius: 16px;
+    background: rgba(9, 9, 11, .99);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, .55);
+  }
+
+  #Website-Container.with-chat #chat h1 {
+    margin: 4px 0 12px;
+    font-size: 20px;
+  }
+
+  #input-area {
+    gap: 8px;
+  }
+
+  #input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  #send {
+    min-height: 44px;
+    padding-inline: 14px;
+  }
+
+  #inline-chat {
+    z-index: 110;
+    bottom: calc(var(--mobile-nav-height) + 8px + env(safe-area-inset-bottom, 0px));
+    max-height: 52dvh;
+  }
+
+  #mini-player {
+    max-width: min(46vw, 190px);
+  }
+
+  #mini-player iframe,
+  #mini-player video {
+    max-width: 100%;
+  }
+
+  #executor-panel {
+    min-width: 0 !important;
+  }
+
+  .ds-extension-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Evita animações contínuas e filtros caros em aparelhos modestos. */
+  #workspace-launcher-rail *,
+  #workspace-footer *,
+  #options,
+  #chat,
+  #inline-chat,
+  #main-content {
+    animation: none !important;
+    transition-duration: .12s !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
