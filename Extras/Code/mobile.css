@@ -2285,3 +2285,74 @@ body {
     overflow-wrap: anywhere;
   }
 }
+
+
+/* Editor mobile: dimensões explícitas, alinhamento estável e contorno visível. */
+@media (max-width: 700px) {
+  #main-content {
+    position: relative !important;
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    padding: 5px !important;
+    border: 2px solid var(--primary-color, #5d00ff) !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+    background: #090909 !important;
+    box-shadow: 0 0 14px rgba(var(--secondary-rgb, 93, 0, 255), .16) !important;
+    overflow: hidden !important;
+    transition: height .18s ease, border-color .18s ease;
+  }
+
+  #main-content #Editor-Input {
+    position: relative !important;
+    display: block !important;
+    flex: 1 1 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .28) !important;
+    border-radius: 7px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    background: #090909 !important;
+    opacity: 1 !important;
+  }
+
+  #main-content #Editor-Input > .monaco-editor {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  #main-content #Editor-Input .monaco-editor .overflow-guard {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* A gaveta inferior deixa de cobrir o código: o editor cede a altura medida. */
+  #Website-Container.mobile-options-open #main-content {
+    height: calc(100% - var(--mobile-options-height, 0px) - 16px) !important;
+    max-height: calc(100% - var(--mobile-options-height, 0px) - 16px) !important;
+    align-self: start !important;
+  }
+
+  #Website-Container.mobile-options-open #main-content #Editor-Input {
+    flex: 1 1 0 !important;
+  }
+}
