@@ -137,6 +137,10 @@ mapLauncher?.addEventListener("click", () => {
   container?.classList.remove("mobile-options-open");
 });
 debuggerLauncher?.addEventListener("click", () => {
+  if (isCompactLayout.matches && activeView === "debugger") {
+    container?.classList.toggle("mobile-options-open");
+    return;
+  }
   setActiveView("debugger");
   if (isCompactLayout.matches) container?.classList.add("mobile-options-open");
 });
