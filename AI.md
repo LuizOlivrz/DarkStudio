@@ -268,3 +268,5 @@ Formato obrigatório:
 | 2026-11-02 20:22 (UTC-03:00) | ChatGPT — GPT-6 | Restaura a visibilidade e a interação do botão de configurações no rodapé mobile, preservando o indicador de linguagem e o layout desktop. | Branch `melhoria/interface-celular` |
 
 | 2026-11-02 20:30 (UTC-03:00) | ChatGPT — GPT-6 | Define preenchimento explícito da engrenagem SVG com a cor de destaque e iguala a altura do indicador de linguagem à do botão de configurações (42px) no mobile. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 20:35 (UTC-03:00) | ChatGPT — GPT-6 | Mantém o main-content a 5px do rodapé mobile após igualar a altura do indicador de linguagem e do botão de configurações em 42px; ajusta a altura do contêiner do rodapé para corresponder aos controles. | Branch `melhoria/interface-celular` |
