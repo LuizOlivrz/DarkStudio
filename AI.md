@@ -254,3 +254,5 @@ Formato obrigatório:
 
 
 | 2026-11-02 19:57 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a área visível do Monaco no mobile, restaura bordas do editor e reserva dinamicamente espaço para a gaveta de ferramentas. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 20:25 (UTC-03:00) | ChatGPT — GPT-6 | Restaura o mini-player original exclusivamente no desktop a partir do histórico anterior à remoção; mantém a opção desktop e oculta player/controle em mobile, preservando a API NightCoder e os ícones sociais compactos. | Branch `melhoria/interface-celular` |
