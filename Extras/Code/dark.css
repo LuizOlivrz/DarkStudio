@@ -4069,3 +4069,33 @@ body {
   max-width: 18px !important;
   max-height: 18px !important;
 }
+
+/* Mantém ações e nome na mesma linha: lápis à esquerda, nome centralizado e lixeira à direita. */
+#explorer-files .explorer-file-entry > .explorer-file {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-sizing: border-box;
+}
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-file-icon {
+  flex: 0 0 16px;
+}
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-rename-action,
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
+  display: inline-flex !important;
+  flex: 0 0 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-file-name {
+  flex: 1 1 0 !important;
+  min-width: 0;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
+  margin-left: auto;
+}
