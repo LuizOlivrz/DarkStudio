@@ -2077,3 +2077,206 @@ body {
     max-height: 22px;
   }
 }
+
+
+/* Configurações mobile: controles compactos, legíveis e fáceis de tocar. */
+@media (max-width: 700px) {
+  /* O modo de depuração é exclusivo do desktop. */
+  #dev-mode-option {
+    display: none !important;
+  }
+
+  #config {
+    padding: 12px !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #config .settings-tree {
+    min-width: 0;
+    margin: 0 0 10px;
+    border-radius: 10px;
+  }
+
+  #config .settings-tree > summary {
+    min-height: 44px;
+    padding: 11px 12px;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  #config .settings-tree > :not(summary) {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #config h3 {
+    margin: 14px 0 8px;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  #config label {
+    display: block;
+    max-width: 100%;
+    margin: 8px 0;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  #config input:not([type="checkbox"]):not([type="color"]):not([type="range"]),
+  #config select,
+  #config textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+
+  #config input[type="file"] {
+    min-height: 0;
+    padding: 8px 0;
+    font-size: 12px;
+  }
+
+  #config input[type="color"] {
+    width: 48px;
+    height: 38px;
+    max-width: 100%;
+    padding: 2px;
+    vertical-align: middle;
+  }
+
+  #config input[type="range"] {
+    width: 100%;
+    max-width: 100%;
+    min-height: 32px;
+  }
+
+  #config button {
+    min-height: 42px;
+    max-width: 100%;
+    padding: 9px 12px;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #config #social-medias {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  #config #social-medias a {
+    display: inline-flex;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #config #social-medias svg,
+  #config #social-medias img {
+    display: block;
+    width: 24px;
+    height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+    object-fit: contain;
+  }
+
+  /* Doações seguem a identidade visual do desktop, com dimensões móveis. */
+  #config .donation-separator {
+    margin: 16px 0 10px;
+  }
+
+  #config #creator-donation-button,
+  #config #creator-pix-copy {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 12px;
+    border: 1px solid var(--primary-color, #5d00ff);
+    border-radius: 9px;
+    background: rgba(var(--secondary-rgb, 93, 0, 255), .06);
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #config #creator-donation-dialog {
+    width: calc(100vw - 28px);
+    max-width: 460px;
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    box-sizing: border-box;
+    border: 1px solid var(--primary-color, #5d00ff);
+    border-radius: 14px;
+    background: var(--bg, #080808);
+    color: var(--text, #e6e6e6);
+    overscroll-behavior: contain;
+  }
+
+  #config #creator-donation-dialog::backdrop {
+    background: rgba(0, 0, 0, .72);
+  }
+
+  #config .donation-dialog-content {
+    gap: 12px;
+    padding: 20px 16px 16px;
+  }
+
+  #config .donation-dialog-content h2 {
+    padding-right: 30px;
+    font-size: 18px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  #config .donation-dialog-content p {
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  #config .donation-dialog-close {
+    top: 8px;
+    right: 10px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 4px;
+    font-size: 24px;
+  }
+
+  #config #creator-pix-code {
+    min-height: 112px;
+    max-height: 30dvh;
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  #config #creator-pix-status {
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+}
