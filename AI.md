@@ -274,3 +274,5 @@ Formato obrigatório:
 | 2026-11-02 20:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove completamente o Leitor de Links do desktop e mobile: interface, estilos, script de extração e análise automática de metadados; mantém apenas a identificação simples de domínio para URLs no indicador de linguagem. | Branch `melhoria/interface-celular` |
 
 | 2026-11-02 20:55 (UTC-03:00) | ChatGPT — GPT-6 | Corrige erro de sintaxe introduzido ao remover a análise automática de URLs, que impedia o carregamento de main.js e a abertura do NightCoder; mantém o chat completo e remove somente o painel visual Leitor de URLs. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ações SVG rápidas de renomear e excluir arquivos diretamente nas linhas da Estação de Arquivos, com confirmação de exclusão e traduções PT-BR/EN. | branch `melhoria/interface-celular` |
