@@ -242,6 +242,10 @@ document.documentElement.lang = currentLang;
 // ─────────────────────────────────────────────
 
 detectDevice();
+
+// Em dispositivos móveis, o modo de depuração fica sempre desativado.
+// A opção permanece disponível no desktop.
+if (device === "Mobile") setDevMode(false);
 const isDesktopApp = window.darkStudioDesktop?.isDesktop === true;
 const isLocalDevelopmentOrigin =
   window.location.protocol === "http:" &&
