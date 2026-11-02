@@ -258,3 +258,5 @@ Formato obrigatório:
 | 2026-11-02 20:25 (UTC-03:00) | ChatGPT — GPT-6 | Restaura o mini-player original exclusivamente no desktop a partir do histórico anterior à remoção; mantém a opção desktop e oculta player/controle em mobile, preservando a API NightCoder e os ícones sociais compactos. | Branch `melhoria/interface-celular` |
 
 | 2026-11-02 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Remove no mobile os gatilhos de arrasto/redimensionamento do mini-player e posiciona o editor acima da gaveta contextual usando o espaço inferior real; mantém os controles do mini-player no desktop. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 20:05 (UTC-03:00) | ChatGPT — GPT-6 | Reserva no mobile a faixa do indicador de linguagem no rodapé, mantendo o editor afastado dela com a gaveta aberta ou fechada. | Branch `melhoria/interface-celular` |
