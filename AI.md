@@ -248,3 +248,4 @@ Formato obrigatório:
 
 **Regra final:** explore, experimente e melhore o DarkStudio com iniciativa. O limite não é evitar mudanças grandes; é evitar mudanças irresponsáveis, opacas ou impossíveis de revisar.
 | 2026-11-02 19:43 (UTC-03:00) | ChatGPT — GPT-6 | Remove o mini-player de mídia e sua opção nas configurações; oculta a visão gráfica no celular, mantém a linguagem detectada aberta e reduz os ícones sociais nas configurações. | Branch `melhoria/interface-celular`; PR #45 |
+| 2026-11-02 19:55 (UTC-03:00) | ChatGPT — GPT-6 | Desativa o modo de depuração em dispositivos móveis e completa os estilos responsivos das configurações e da janela de doações. | Branch `melhoria/interface-celular` |
