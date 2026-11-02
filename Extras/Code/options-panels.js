@@ -3,6 +3,8 @@ import { detectLanguage } from "./language-detection.js";
 const container = document.getElementById("Website-Container");
 const fileLauncher = document.getElementById("file-gutter-icon");
 const debuggerLauncher = document.getElementById("debugger-launcher");
+const chatLauncher = document.getElementById("nightcoder-launcher");
+const isCompactLayout = window.matchMedia("(max-width: 700px)");
 const mapLauncher = document.getElementById("workspace-map-launcher");
 const optionsPanel = document.getElementById("options");
 const fileView = document.getElementById("file-manager-view");
@@ -121,9 +123,31 @@ function setActiveView(view) {
   clearUnsupportedState();
 }
 
-fileLauncher?.addEventListener("click", () => setActiveView("files"));
-mapLauncher?.addEventListener("click", () => setActiveView("map"));
-debuggerLauncher?.addEventListener("click", () => setActiveView("debugger"));
+fileLauncher?.addEventListener("click", () => {
+  if (!isCompactLayout.matches) return setActiveView("files");
+  if (activeView === "files") {
+    container?.classList.toggle("mobile-options-open");
+    return;
+  }
+  setActiveView("files");
+  container?.classList.add("mobile-options-open");
+});
+mapLauncher?.addEventListener("click", () => {
+  setActiveView("map");
+  container?.classList.remove("mobile-options-open");
+});
+debuggerLauncher?.addEventListener("click", () => {
+  setActiveView("debugger");
+  if (isCompactLayout.matches) container?.classList.add("mobile-options-open");
+});
+chatLauncher?.addEventListener("click", () => {
+  document.dispatchEvent(new KeyboardEvent("keydown", {
+    key: "i", ctrlKey: true, bubbles: true, cancelable: true
+  }));
+  const isOpen = container?.classList.contains("with-chat") ?? false;
+  chatLauncher.classList.toggle("is-active", isOpen);
+  chatLauncher.setAttribute("aria-pressed", String(isOpen));
+});
 
 debuggerToggle?.addEventListener("click", () => {
   const isOpen = debuggerSection?.classList.toggle("debugger-open") ?? false;
@@ -179,3 +203,12 @@ function watchEditor() {
 
 watchEditor();
 setActiveView("files");
+if (isCompactLayout.matches) {
+  container?.classList.add("mobile-layout");
+  container?.classList.remove("mobile-options-open");
+}
+isCompactLayout.addEventListener?.("change", (event) => {
+  container?.classList.toggle("mobile-layout", event.matches);
+  container?.classList.remove("mobile-options-open");
+  requestAnimationFrame(() => window.editor?.layout());
+});
