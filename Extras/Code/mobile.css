@@ -1800,7 +1800,7 @@ body {
   }
 
   #options button {
-    min-height: 44px;
+    min-height: 48px;
     font-size: 14px;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -1902,10 +1902,10 @@ body {
   }
 
   #workspace-footer #config-toggle {
-    flex: 0 0 38px;
-    width: 38px;
-    height: 38px;
-    min-height: 38px;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
     border-radius: 12px;
     transform: none !important;
     box-shadow: none;
@@ -1968,12 +1968,12 @@ body {
   }
 
   #input {
-    min-height: 44px;
+    min-height: 48px;
     font-size: 16px;
   }
 
   #send {
-    min-height: 44px;
+    min-height: 48px;
     padding-inline: 14px;
   }
 
