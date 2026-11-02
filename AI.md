@@ -283,3 +283,4 @@ Formato obrigatório:
 
 | 2026-11-02 | ChatGPT — GPT-6 | Posiciona lápis à esquerda e lixeira à direita do nome do arquivo no Explorer; SVGs ficam com 75% do tamanho relativo à altura do texto. | branch `melhoria/interface-celular` |
 | 2026-11-02 | ChatGPT — GPT-6 | Limita os SVGs dos ícones dos nós do Workspace a 18×18 px em temas e no layout mobile, evitando ampliação por regras globais. | branch `melhoria/interface-celular` |
+| 2026-11-02 | ChatGPT — GPT-6 | Alinha horizontalmente as ações do Explorer: lápis à esquerda, nome centralizado e lixeira à direita, inclusive no mobile. | branch `melhoria/interface-celular` |
