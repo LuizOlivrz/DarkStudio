@@ -110,7 +110,7 @@ O clima depende da geolocalização do navegador e de um serviço externo de pre
 
 ### Links e visualizações
 
-O editor reconhece links de serviços populares e identifica tipos de conteúdo compatíveis. Dependendo do link, a interface pode disponibilizar uma visualização ou um mini player integrado.
+O editor reconhece links e permite consultar conteúdo público por meio do Leitor de Links integrado.
 
 ---
 
