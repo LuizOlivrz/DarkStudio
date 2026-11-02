@@ -1392,18 +1392,6 @@ function refreshExplorerList() {
       row.className = "explorer-entry" + (node.type === "folder" ? " explorer-folder-entry" : " explorer-file-entry");
       row.dataset.nodeId = node.id;
 
-      if (node.type !== "folder") {
-        const renameButton = document.createElement("button");
-        renameButton.type = "button";
-        renameButton.className = "explorer-action explorer-rename-action";
-        renameButton.dataset.explorerAction = "rename";
-        renameButton.dataset.nodeId = node.id;
-        renameButton.title = tr("renameFile");
-        renameButton.setAttribute("aria-label", tr("renameFile"));
-        renameButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
-        row.appendChild(renameButton);
-      }
-
       const item = document.createElement("button");
       item.type = "button";
       item.className = "explorer-file";
@@ -1435,7 +1423,32 @@ function refreshExplorerList() {
       label.className = "explorer-file-name";
       label.style.fontSize = "14px";
       label.textContent = node.name;
-      item.append(icon, label);
+      item.appendChild(icon);
+      if (node.type !== "folder") {
+        const renameAction = document.createElement("span");
+        renameAction.className = "explorer-inline-action explorer-rename-action";
+        renameAction.dataset.explorerAction = "rename";
+        renameAction.dataset.nodeId = node.id;
+        renameAction.title = tr("renameFile");
+        renameAction.setAttribute("role", "button");
+        renameAction.setAttribute("tabindex", "0");
+        renameAction.setAttribute("aria-label", tr("renameFile"));
+        renameAction.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
+        item.appendChild(renameAction);
+      }
+      item.appendChild(label);
+      if (node.type !== "folder") {
+        const deleteAction = document.createElement("span");
+        deleteAction.className = "explorer-inline-action explorer-delete-action";
+        deleteAction.dataset.explorerAction = "delete";
+        deleteAction.dataset.nodeId = node.id;
+        deleteAction.title = tr("deleteFile");
+        deleteAction.setAttribute("role", "button");
+        deleteAction.setAttribute("tabindex", "0");
+        deleteAction.setAttribute("aria-label", tr("deleteFile"));
+        deleteAction.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>';
+        item.appendChild(deleteAction);
+      }
       if (node.detectedLanguageLabel && node.type !== "folder") {
         const languageBadge = document.createElement("span");
         languageBadge.className = "explorer-file-language";
@@ -1445,17 +1458,6 @@ function refreshExplorerList() {
       }
       row.appendChild(item);
 
-      if (node.type !== "folder") {
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.className = "explorer-action explorer-delete-action";
-        deleteButton.dataset.explorerAction = "delete";
-        deleteButton.dataset.nodeId = node.id;
-        deleteButton.title = tr("deleteFile");
-        deleteButton.setAttribute("aria-label", tr("deleteFile"));
-        deleteButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>';
-        row.appendChild(deleteButton);
-      }
       container.appendChild(row);
 
       if (node.type === "folder" && node.isOpen !== false) {
@@ -3110,9 +3112,17 @@ function wireUI() {
     explorerToggle.setAttribute("aria-expanded", String(isOpen));
   });
   const explorerFiles = document.getElementById("explorer-files");
+  explorerFiles?.addEventListener("keydown", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const action = target?.closest("[data-explorer-action][data-node-id]");
+    if (!action || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    action.click();
+  });
+
   explorerFiles?.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-    const actionButton = target?.closest("button[data-explorer-action][data-node-id]");
+    const actionButton = target?.closest("[data-explorer-action][data-node-id]");
     if (actionButton) {
       event.preventDefault();
       event.stopPropagation();
