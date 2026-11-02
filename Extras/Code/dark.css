@@ -4000,24 +4000,47 @@ body {
 }
 
 
-/* Ações rápidas dos arquivos na Estação de Arquivos. */
-#explorer-files .explorer-entry.explorer-file-entry { display: grid; grid-template-columns: 24px minmax(0, 1fr) 24px; align-items: center; gap: 2px; }
-#explorer-files .explorer-file-entry > .explorer-file { grid-column: 2; min-width: 0; }
-#explorer-files .explorer-file-entry > .explorer-rename-action { grid-column: 1; grid-row: 1; }
-#explorer-files .explorer-file-entry > .explorer-delete-action { grid-column: 3; grid-row: 1; }
-#explorer-files .explorer-entry.explorer-folder-entry > .explorer-file { width: 100%; }
-#explorer-files .explorer-file-entry > .explorer-children, #explorer-files .explorer-folder-entry > .explorer-children { grid-column: 1 / -1; }
-#explorer-files .explorer-action { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 28px; min-width: 24px; padding: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--primary-color, #aaa); opacity: .72; cursor: pointer; transition: color .15s ease, opacity .15s ease, background .15s ease; }
-#explorer-files .explorer-action svg { display: block; width: 16px; height: 16px; }
-#explorer-files .explorer-action:hover, #explorer-files .explorer-action:focus-visible { opacity: 1; color: var(--secondary-color, #fff); background: rgba(var(--secondary-rgb, 93, 0, 255), .16); outline: none; }
-#explorer-files .explorer-delete-action:hover, #explorer-files .explorer-delete-action:focus-visible { color: #ff6b6b; background: rgba(255, 70, 70, .12); }
-
-
-/* Ações compactas posicionadas junto ao nome do arquivo. */
-#explorer-files .explorer-entry.explorer-file-entry { display: flex; flex-direction: column; min-width: 0; }
-#explorer-files .explorer-file-entry > .explorer-file { width: 100%; min-width: 0; gap: 4px; }
-#explorer-files .explorer-inline-action { display: inline-flex; flex: 0 0 13px; align-items: center; justify-content: center; width: 13px; height: 16px; margin: 0 1px; padding: 0; border-radius: 3px; color: var(--primary-color, #aaa); opacity: .72; cursor: pointer; vertical-align: middle; }
-#explorer-files .explorer-inline-action svg { display: block; width: 11px; height: 11px; }
-#explorer-files .explorer-inline-action:hover, #explorer-files .explorer-inline-action:focus-visible { color: var(--secondary-color, #fff); opacity: 1; outline: none; }
-#explorer-files .explorer-delete-action:hover, #explorer-files .explorer-delete-action:focus-visible { color: #ff6b6b; }
-#explorer-files .explorer-file-name { flex: 0 1 auto; }
+/* Ações compactas junto ao nome, dimensionadas pela altura do texto do arquivo. */
+#explorer-files .explorer-entry.explorer-file-entry {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+#explorer-files .explorer-file-entry > .explorer-file {
+  width: 100%;
+  min-width: 0;
+  gap: 4px;
+}
+#explorer-files .explorer-inline-action {
+  display: inline-flex;
+  flex: 0 0 .75em;
+  align-items: center;
+  justify-content: center;
+  width: .75em;
+  height: 1em;
+  margin: 0 .05em;
+  padding: 0;
+  border-radius: 2px;
+  color: var(--primary-color, #aaa);
+  opacity: .72;
+  cursor: pointer;
+  vertical-align: middle;
+}
+#explorer-files .explorer-inline-action svg {
+  display: block;
+  width: .65em;
+  height: .65em;
+}
+#explorer-files .explorer-inline-action:hover,
+#explorer-files .explorer-inline-action:focus-visible {
+  color: var(--secondary-color, #fff);
+  opacity: 1;
+  outline: none;
+}
+#explorer-files .explorer-delete-action:hover,
+#explorer-files .explorer-delete-action:focus-visible {
+  color: #ff6b6b;
+}
+#explorer-files .explorer-file-name {
+  flex: 0 1 auto;
+}
