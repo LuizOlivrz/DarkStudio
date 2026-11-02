@@ -129,7 +129,7 @@ if (!blockWeb) {
     const isUrl = language === "Link (URL)";
     const rawUrl = isUrl ? (window.editor.getValue() || "").trim().replace(/[),.;!?]+$/, "") : "";
     const displayText = isUrl
-      ? `${t("linkPrefix")} - `NaN`
+      ? `${t("linkPrefix")} - ${getLinkSiteName(rawUrl)}`
       : language;
 
     if (display && display.textContent !== displayText) display.textContent = displayText;
