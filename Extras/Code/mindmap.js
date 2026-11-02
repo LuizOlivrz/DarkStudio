@@ -1389,8 +1389,20 @@ function refreshExplorerList() {
   const renderBranch = (parent, container) => {
     for (const node of childrenOf(parent)) {
       const row = document.createElement("div");
-      row.className = "explorer-entry";
+      row.className = "explorer-entry" + (node.type === "folder" ? " explorer-folder-entry" : " explorer-file-entry");
       row.dataset.nodeId = node.id;
+
+      if (node.type !== "folder") {
+        const renameButton = document.createElement("button");
+        renameButton.type = "button";
+        renameButton.className = "explorer-action explorer-rename-action";
+        renameButton.dataset.explorerAction = "rename";
+        renameButton.dataset.nodeId = node.id;
+        renameButton.title = tr("renameFile");
+        renameButton.setAttribute("aria-label", tr("renameFile"));
+        renameButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
+        row.appendChild(renameButton);
+      }
 
       const item = document.createElement("button");
       item.type = "button";
@@ -1432,6 +1444,18 @@ function refreshExplorerList() {
         item.appendChild(languageBadge);
       }
       row.appendChild(item);
+
+      if (node.type !== "folder") {
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "explorer-action explorer-delete-action";
+        deleteButton.dataset.explorerAction = "delete";
+        deleteButton.dataset.nodeId = node.id;
+        deleteButton.title = tr("deleteFile");
+        deleteButton.setAttribute("aria-label", tr("deleteFile"));
+        deleteButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>';
+        row.appendChild(deleteButton);
+      }
       container.appendChild(row);
 
       if (node.type === "folder" && node.isOpen !== false) {
@@ -3086,8 +3110,23 @@ function wireUI() {
     explorerToggle.setAttribute("aria-expanded", String(isOpen));
   });
   const explorerFiles = document.getElementById("explorer-files");
-  explorerFiles?.addEventListener("click", (event) => {
+  explorerFiles?.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const actionButton = target?.closest("button[data-explorer-action][data-node-id]");
+    if (actionButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      const actionNode = getNode(actionButton.dataset.nodeId);
+      if (!actionNode || actionNode.type === "folder") return;
+      if (actionButton.dataset.explorerAction === "rename") {
+        const name = (await showNameDialog(actionNode.name, tr("renameFile")) || "").trim();
+        if (name && name !== actionNode.name) renameFileNode(actionNode, name);
+      } else if (actionButton.dataset.explorerAction === "delete") {
+        if (!confirm(tr("deleteFileConfirm").replace("{name}", actionNode.name || ""))) return;
+        deleteNode(actionNode.id);
+      }
+      return;
+    }
     const button = target?.closest("button.explorer-file[data-node-id]");
     if (!button) return;
     const node = getNode(button.dataset.nodeId);
