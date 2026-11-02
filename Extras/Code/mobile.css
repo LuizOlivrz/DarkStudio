@@ -2497,3 +2497,24 @@ body {
     justify-content: center !important;
   }
 }
+
+/* Impede que regras responsivas ampliem os SVGs dos ícones dos nós do Workspace. */
+#mindmap-container .mm-node .mm-icon {
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  overflow: hidden;
+}
+#mindmap-container .mm-node .mm-icon svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+}
