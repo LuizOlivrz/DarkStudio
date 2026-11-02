@@ -270,3 +270,5 @@ Formato obrigatório:
 | 2026-11-02 20:30 (UTC-03:00) | ChatGPT — GPT-6 | Define preenchimento explícito da engrenagem SVG com a cor de destaque e iguala a altura do indicador de linguagem à do botão de configurações (42px) no mobile. | Branch `melhoria/interface-celular` |
 
 | 2026-11-02 20:35 (UTC-03:00) | ChatGPT — GPT-6 | Mantém o main-content a 5px do rodapé mobile após igualar a altura do indicador de linguagem e do botão de configurações em 42px; ajusta a altura do contêiner do rodapé para corresponder aos controles. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 20:45 (UTC-03:00) | ChatGPT — GPT-6 | Remove completamente o Leitor de Links do desktop e mobile: interface, estilos, script de extração e análise automática de metadados; mantém apenas a identificação simples de domínio para URLs no indicador de linguagem. | Branch `melhoria/interface-celular` |
