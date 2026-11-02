@@ -839,8 +839,9 @@ function setExtensionsView(open) {
   requestAnimationFrame(() => window.editor?.layout());
 }
 
-// A barra lateral pode abrir a mesma tela de Extensões sem depender do botão em #options.
+// A barra lateral pode abrir Extensões e retornar ao editor sem depender do botão em #options.
 window.darkStudioShowExtensions = () => setExtensionsView(true);
+window.darkStudioShowWorkspaceEditor = () => setExtensionsView(false);
 
 document.getElementById("extensions-button")?.addEventListener("click", () => {
   const container = document.getElementById("Website-Container");
