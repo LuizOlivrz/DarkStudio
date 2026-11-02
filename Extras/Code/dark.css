@@ -4044,3 +4044,28 @@ body {
 #explorer-files .explorer-file-name {
   flex: 0 1 auto;
 }
+
+/* Mantém os ícones SVG dos nós do Workspace no tamanho compacto definido pelo componente. */
+#mindmap-container .mm-node .mm-icon {
+  display: inline-flex;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px;
+  min-height: 18px;
+  max-width: 18px;
+  max-height: 18px;
+  overflow: hidden;
+}
+#mindmap-container .mm-node .mm-icon svg {
+  display: block !important;
+  flex: 0 0 18px;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+}
