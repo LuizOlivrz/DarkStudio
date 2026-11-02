@@ -251,3 +251,6 @@ Formato obrigatório:
 | 2026-11-02 19:55 (UTC-03:00) | ChatGPT — GPT-6 | Desativa o modo de depuração em dispositivos móveis e completa os estilos responsivos das configurações e da janela de doações. | Branch `melhoria/interface-celular` |
 | 2026-11-02 20:10 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o retorno da tela de Extensões ao editor pelo atalho lateral e renomeia o atalho para Extensões com suporte à tradução e acessibilidade. | Branch `melhoria/interface-celular` |
 | 2026-11-02 19:52 (UTC-03:00) | ChatGPT — GPT-6 | Fecha o NightCoder automaticamente ao selecionar qualquer ferramenta da barra lateral em telas mobile, incluindo ferramentas futuras, sem simular atalhos de teclado. | Branch `melhoria/interface-celular` |
+
+
+| 2026-11-02 19:57 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a área visível do Monaco no mobile, restaura bordas do editor e reserva dinamicamente espaço para a gaveta de ferramentas. | Branch `melhoria/interface-celular` |
