@@ -2356,3 +2356,18 @@ body {
     flex: 1 1 0 !important;
   }
 }
+
+
+/* O mini-player permanece disponível no desktop, mas não integra a interface mobile. */
+@media (max-width: 700px) {
+  #mini-player,
+  #mini-player[hidden] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  #mini-player-enabled-option {
+    display: none !important;
+  }
+}
