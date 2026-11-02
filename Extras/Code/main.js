@@ -79,7 +79,6 @@ if (!blockWeb) {
   }
   let configValue = false;
   let currentDetectedLanguage = "";
-  let lastLinkAnalysis = null;
 
   // ─────────────────────────────────────────────
   // 🗺️ Monaco Mode Map / Mapeamento de Linguagens
@@ -129,18 +128,13 @@ if (!blockWeb) {
     currentDetectedLanguage = language;
     const isUrl = language === "Link (URL)";
     const rawUrl = isUrl ? (window.editor.getValue() || "").trim().replace(/[),.;!?]+$/, "") : "";
-    let normalizedUrl = rawUrl;
-    try { if (rawUrl) normalizedUrl = new URL(rawUrl).href; } catch {}
-    const metadata = lastLinkAnalysis?.url === normalizedUrl ? lastLinkAnalysis.metadata : null;
     const displayText = isUrl
-      ? `${t("linkPrefix")} - ${getLinkSiteName(rawUrl, metadata || {})}`
+      ? `${t("linkPrefix")} - `NaN`
       : language;
 
     if (display && display.textContent !== displayText) display.textContent = displayText;
     if (display) {
-      display.title = isUrl
-        ? buildLinkTooltip(rawUrl, metadata || {})
-        : language;
+      display.title = isUrl ? rawUrl : language;
       display.dataset.detectedLanguage = language;
     }
 
@@ -243,9 +237,7 @@ if (!blockWeb) {
 
   initEditorEvents();
 
-  function getLinkSiteName(rawUrl, metadata = {}) {
-    const metadataName = typeof metadata.ogSiteName === "string" ? metadata.ogSiteName.trim() : "";
-    if (metadataName) return metadataName;
+  function getLinkSiteName(rawUrl) {
     let host = "";
     try { host = new URL(rawUrl).hostname.toLowerCase().replace(/^www\./, ""); } catch {}
     const knownSites = [
@@ -267,26 +259,6 @@ if (!blockWeb) {
     const firstLabel = host.split(".")[0] || host || "URL";
     return firstLabel.charAt(0).toUpperCase() + firstLabel.slice(1);
   }
-
-  function buildLinkTooltip(rawUrl, metadata = {}) {
-    const details = [
-      metadata.title && `${t("linkMetaTitle")}: ${metadata.title}`,
-      metadata.description && `${t("linkMetaDescription")}: ${metadata.description}`,
-      metadata.author && `${t("linkMetaAuthor")}: ${metadata.author}`,
-      rawUrl,
-    ].filter(Boolean);
-    return details.join("\n");
-  }
-
-  window.addEventListener("darkstudio:site-analysis", (event) => {
-    const detail = event.detail || {};
-    const rawUrl = (window.editor?.getValue() || "").trim().replace(/[),.;!?]+$/, "");
-    let currentUrl = "";
-    try { currentUrl = new URL(rawUrl).href; } catch {}
-    if (!currentUrl || currentDetectedLanguage !== "Link (URL)" || detail.url !== currentUrl) return;
-    lastLinkAnalysis = { url: currentUrl, metadata: detail.metadata || {}, ok: Boolean(detail.ok) };
-    updateLanguageDisplay("Link (URL)");
-  });
 
   // ─────────────────────────────────────────────
   // 🧹 Remove código Markdown (inline e blocos)
@@ -321,7 +293,6 @@ if (!blockWeb) {
     const urls = text.match(/https?:\/\/[^\s<>"']+/gi) || [];
     const embeds = [];
     const seen = new Set();
-    let websiteUrl = "";
 
     for (const rawUrl of urls) {
       const cleanedUrl = rawUrl.replace(/[),.;!?]+$/, "").replace(/&amp;/gi, "&");
@@ -400,8 +371,6 @@ if (!blockWeb) {
         if (embed) {
           if (!seen.has(embed.src)) embeds.push(embed);
           seen.add(embed.src);
-        } else if (!websiteUrl && /^https?:$/.test(url.protocol)) {
-          websiteUrl = url.href;
         }
       } catch {
         // Ignore malformed URLs and continue.
@@ -449,12 +418,7 @@ if (!blockWeb) {
     if (player.classList.contains("is-expanded")) {
       requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
     }
-    const editorUrl = detectLanguage(text) === "Link (URL)"
-      ? text.replace(/[),.;!?]+$/, "")
-      : "";
-    const metadataUrl = editorUrl || websiteUrl;
-    player.dataset.pendingWebsite = metadataUrl;
-    if (metadataUrl) window.dispatchEvent(new CustomEvent("darkstudio:url-detected", { detail: { url: metadataUrl } }));
+
   }
 
   // Pause off-screen embeds. TikTok may ignore pause messages, so unload its
