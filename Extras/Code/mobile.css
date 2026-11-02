@@ -2079,6 +2079,11 @@ body {
 }
 
 
+/* Dispositivos móveis não expõem a opção de modo de depuração. */
+.mobile-device #dev-mode-option {
+  display: none !important;
+}
+
 /* Configurações mobile: controles compactos, legíveis e fáceis de tocar. */
 @media (max-width: 700px) {
   /* O modo de depuração é exclusivo do desktop. */
