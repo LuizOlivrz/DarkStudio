@@ -1891,7 +1891,7 @@ body {
     left: 8px !important;
     right: 8px !important;
     bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 5px) !important;
-    height: 34px;
+    height: 42px !important;
     gap: 6px;
     pointer-events: none;
   }
@@ -2397,7 +2397,7 @@ body {
      a mesma referência geométrica, com apenas 5px entre suas bordas. */
   #Website-Container #main-content {
     position: fixed !important;
-    inset: 5px 0 calc(var(--mobile-nav-height, 64px) + 34px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
+    inset: 5px 0 calc(var(--mobile-nav-height, 64px) + 42px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
