@@ -345,24 +345,7 @@
         <button id="send" data-i18n="send">Send</button>
       </div>
 
-      <section id="link-reader" aria-labelledby="link-reader-heading">
-        <h2 id="link-reader-heading"><span data-i18n="linkReaderTitle">Link Reader</span> <span data-i18n="linkReaderNoAI">no AI</span></h2>
-        <form id="link-reader-form">
-          <label for="link-reader-url" data-i18n="linkReaderUrlLabel">Read content from a URL</label>
-          <div class="link-reader-controls">
-            <input id="link-reader-url" type="url" inputmode="url" placeholder="https://example.com or a GitHub link"
-              data-i18n-placeholder="linkReaderUrlPlaceholder" autocomplete="url" required />
-            <button id="link-reader-submit" type="submit" data-i18n="linkReaderRead">Read link</button>
-          </div>
-        </form>
-        <p id="link-reader-status" role="status" aria-live="polite" data-i18n="linkReaderInitialStatus">Paste a public link to extract its readable content.</p>
-        <div id="link-reader-result" hidden>
-          <h3 id="link-reader-title"></h3>
-          <p id="link-reader-source"></p>
-          <pre id="link-reader-content" tabindex="0"></pre>
-          <button id="link-reader-copy" type="button" data-i18n="linkReaderCopy">Copy content</button>
-        </div>
-      </section>
+
     </div>
 
     <div id="inline-chat">
@@ -383,7 +366,6 @@
     <script src="desktop/desktop-bridge.js"></script>
     <script src="Extras/Code/config.js" type="module"></script>
     <script src="Extras/Code/mindmap.js" type="module"></script>
-    <script src="Extras/Code/link-reader.js" type="module"></script>
     <script src="Extras/Code/html-events.js" type="module"></script>
     <script src="Extras/Code/options-panels.js" type="module"></script>
     <script src="Extras/Code/donations.js" type="module"></script>
