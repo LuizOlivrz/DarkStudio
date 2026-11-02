@@ -64,6 +64,11 @@ export function setDevMode(value) {
   localStorage.setItem("devMode", String(value));
 }
 
+ // Identifica o dispositivo antes de qualquer diagnóstico de inicialização.
+detectDevice();
+if (device === "Mobile") setDevMode(false);
+document.documentElement.classList.toggle("mobile-device", device === "Mobile");
+
 /**
  * Centralized developer feedback.
  * Keep application diagnostics in config.js so feature modules do not
@@ -241,11 +246,6 @@ document.documentElement.lang = currentLang;
 // Detecção de Dispositivo
 // ─────────────────────────────────────────────
 
-detectDevice();
-
-// Em dispositivos móveis, o modo de depuração fica sempre desativado.
-// A opção permanece disponível no desktop.
-if (device === "Mobile") setDevMode(false);
 const isDesktopApp = window.darkStudioDesktop?.isDesktop === true;
 const isLocalDevelopmentOrigin =
   window.location.protocol === "http:" &&
