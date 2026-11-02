@@ -260,3 +260,5 @@ Formato obrigatório:
 | 2026-11-02 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Remove no mobile os gatilhos de arrasto/redimensionamento do mini-player e posiciona o editor acima da gaveta contextual usando o espaço inferior real; mantém os controles do mini-player no desktop. | Branch `melhoria/interface-celular` |
 
 | 2026-11-02 20:05 (UTC-03:00) | ChatGPT — GPT-6 | Reserva no mobile a faixa do indicador de linguagem no rodapé, mantendo o editor afastado dela com a gaveta aberta ou fechada. | Branch `melhoria/interface-celular` |
+
+| 2026-11-02 20:18 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta o limite inferior do editor mobile para manter cerca de 5px de respiro antes do indicador de linguagem, considerando a altura real do rodapé e a área segura. | Branch `melhoria/interface-celular` |
