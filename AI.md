@@ -278,3 +278,5 @@ Formato obrigatório:
 | 2026-11-02 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ações SVG rápidas de renomear e excluir arquivos diretamente nas linhas da Estação de Arquivos, com confirmação de exclusão e traduções PT-BR/EN. | branch `melhoria/interface-celular` |
 
 | 2026-11-02 19:00 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta as ações para ícones menores posicionados imediatamente antes e depois do nome definido pelo usuário na própria linha do arquivo. | branch `melhoria/interface-celular` |
+
+| 2026-11-02 | ChatGPT — GPT-6 | Dimensiona os ícones de renomear e excluir arquivos do Explorer em unidades relativas à altura do texto, evitando dimensões fixas. | branch `melhoria/interface-celular` |
