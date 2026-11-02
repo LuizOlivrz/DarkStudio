@@ -248,6 +248,9 @@ function watchEditor() {
     return;
   }
 
+  // Recalcula o Monaco depois que a instância e os estilos responsivos estiverem prontos.
+  window.editor.layout?.();
+  syncMobileOptionsSpace();
   window.editor.onDidChangeModelContent?.(clearUnsupportedState);
   window.editor.onDidChangeModel?.(clearUnsupportedState);
 }
