@@ -3998,3 +3998,16 @@ body {
   -moz-user-select: text !important;
   -ms-user-select: text !important;
 }
+
+
+/* Ações rápidas dos arquivos na Estação de Arquivos. */
+#explorer-files .explorer-entry.explorer-file-entry { display: grid; grid-template-columns: 24px minmax(0, 1fr) 24px; align-items: center; gap: 2px; }
+#explorer-files .explorer-file-entry > .explorer-file { grid-column: 2; min-width: 0; }
+#explorer-files .explorer-file-entry > .explorer-rename-action { grid-column: 1; grid-row: 1; }
+#explorer-files .explorer-file-entry > .explorer-delete-action { grid-column: 3; grid-row: 1; }
+#explorer-files .explorer-entry.explorer-folder-entry > .explorer-file { width: 100%; }
+#explorer-files .explorer-file-entry > .explorer-children, #explorer-files .explorer-folder-entry > .explorer-children { grid-column: 1 / -1; }
+#explorer-files .explorer-action { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 28px; min-width: 24px; padding: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--primary-color, #aaa); opacity: .72; cursor: pointer; transition: color .15s ease, opacity .15s ease, background .15s ease; }
+#explorer-files .explorer-action svg { display: block; width: 16px; height: 16px; }
+#explorer-files .explorer-action:hover, #explorer-files .explorer-action:focus-visible { opacity: 1; color: var(--secondary-color, #fff); background: rgba(var(--secondary-rgb, 93, 0, 255), .16); outline: none; }
+#explorer-files .explorer-delete-action:hover, #explorer-files .explorer-delete-action:focus-visible { color: #ff6b6b; background: rgba(255, 70, 70, .12); }
