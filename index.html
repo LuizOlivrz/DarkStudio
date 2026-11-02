@@ -117,6 +117,10 @@
       </details>
       <details class="settings-tree">
         <summary data-i18n="interfaceSettings">Interface</summary>
+        <label id="mini-player-enabled-option" for="mini-player-enabled-checkbox">
+          <input type="checkbox" id="mini-player-enabled-checkbox" checked />
+          <span data-i18n="enableMiniPlayers">Ativar mini-players de mídia</span>
+        </label><br />
 <h3 data-i18n="extras">Extras:</h3>
         <label for="bg-image-checkbox">
           <input type="checkbox" id="bg-image-checkbox" />
@@ -130,12 +134,9 @@
             id="bg-blur-value">6</span>px</label>
         <input type="range" id="bg-blur-range" min="0" max="20" value="6" />
         <br />
-        <div id="dev-mode-option">
-          <label for="dev-mode-checkbox">
-            <input type="checkbox" id="dev-mode-checkbox" />
-            <span data-i18n="debugMode">Debug mode (shows additional information).</span>
-          </label>
-        </div>
+        <label for="dev-mode-checkbox">
+          <input type="checkbox" id="dev-mode-checkbox" />
+          <span data-i18n="debugMode">Debug mode (shows additional information).</span> </label><br /><br />
       </details>
       <details class="settings-tree">
         <summary data-i18n="signatureSocial">Signature</summary>
@@ -202,6 +203,20 @@
       <div id="executor-output"></div>
     </div>
 
+    <div id="mini-player" aria-label="Media and website mini player">
+      <div id="mini-player-toolbar" aria-label="Arrastar para mover o vídeo" title="Arraste para mover o vídeo"></div>
+      <div id="mini-player-list"></div>
+      <button id="mini-player-expand" type="button" title="Expandir vídeo" aria-label="Expandir vídeo">⛶</button>
+      <div class="mini-player-resize-handle resize-n" data-resize="n" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-e" data-resize="e" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-s" data-resize="s" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-w" data-resize="w" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-ne" data-resize="ne" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-nw" data-resize="nw" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-se" data-resize="se" aria-hidden="true"></div>
+      <div class="mini-player-resize-handle resize-sw" data-resize="sw" aria-hidden="true"></div>
+    </div>
+
     <!-- ====== MINDMAP CONTAINER / CONTAINER DO MAPA MENTAL ====== -->
     <div id="mindmap-container" style="
           display: none;
@@ -230,8 +245,7 @@
         </svg>
       </button>
       <button id="workspace-map-launcher" class="workspace-launcher" type="button" draggable="true"
-        aria-label="Extensões" data-i18n-aria-label="extensions" aria-pressed="false"
-        title="Extensões" data-i18n-title="extensions">
+        aria-label="Mapa do Workspace" aria-pressed="false" title="Mapa do Workspace">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
           <path d="M9 20L3 17V4L9 7M9 20L15 17M9 20V7M15 17L21 20V7L15 4M15 17V4M9 7L15 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
