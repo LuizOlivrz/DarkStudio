@@ -1794,6 +1794,11 @@ body {
     display: block !important;
   }
 
+  #Website-Container.settings-active #options,
+  #Website-Container.extensions-active #options {
+    display: none !important;
+  }
+
   #options button {
     min-height: 44px;
     font-size: 14px;
@@ -2008,13 +2013,14 @@ body {
     backdrop-filter: none !important;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      scroll-behavior: auto !important;
-      animation: none !important;
-      transition: none !important;
-    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
   }
 }
