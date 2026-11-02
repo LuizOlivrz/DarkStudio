@@ -2518,3 +2518,19 @@ body {
   max-width: 18px !important;
   max-height: 18px !important;
 }
+
+/* No mobile, ações e nome permanecem alinhados horizontalmente na linha do arquivo. */
+#explorer-files .explorer-file-entry > .explorer-file {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-file-name {
+  flex: 1 1 0 !important;
+  min-width: 0;
+  text-align: center !important;
+}
+#explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
+  margin-left: auto;
+}
