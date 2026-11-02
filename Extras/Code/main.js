@@ -53,6 +53,26 @@ if (!blockWeb) {
   const resetSignatureButton = document.getElementById("reset-signature");
   const signatureElement = document.getElementById("signature");
   const WebsiteContainer = document.getElementById("Website-Container");
+
+  // Fecha o NightCoder pela API interna, sem simular atalhos de teclado.
+  // Isso também funciona quando o chat inline está aberto.
+  window.darkStudioCloseNightCoder = () => {
+    if (!chatOpen && !WebsiteContainer?.classList.contains("with-chat")) return false;
+
+    document.getElementById("input")?.blur();
+    WebsiteContainer?.classList.remove("with-chat", "chat-resize-hidden");
+    WebsiteContainer?.classList.add("no-chat");
+    if (chat) {
+      chat.style.display = "none";
+      chat.style.pointerEvents = "none";
+    }
+    chatOpen = false;
+
+    const launcher = document.getElementById("nightcoder-launcher");
+    launcher?.classList.remove("is-active");
+    launcher?.setAttribute("aria-pressed", "false");
+    return true;
+  };
   // A execução ocupa o próprio espaço de #main-content; #options permanece independente.
   if (editor && executorPanel && executorPanel.parentElement !== editor) {
     editor.appendChild(executorPanel);
