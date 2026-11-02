@@ -2345,15 +2345,32 @@ body {
     height: 100% !important;
   }
 
-  /* A gaveta inferior deixa de cobrir o código: o editor cede a altura medida. */
+  /* A gaveta ocupa uma camada flutuante; ao abrir, o editor termina
+     exatamente antes dela, em vez de apenas reduzir sua altura no grid. */
   #Website-Container.mobile-options-open #main-content {
-    height: calc(100% - var(--mobile-options-height, 0px) - 16px) !important;
-    max-height: calc(100% - var(--mobile-options-height, 0px) - 16px) !important;
-    align-self: start !important;
+    position: absolute !important;
+    inset: 0 0 calc(var(--mobile-nav-height) + var(--mobile-options-height, 0px) + 16px) 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    align-self: auto !important;
+    flex: none !important;
   }
 
   #Website-Container.mobile-options-open #main-content #Editor-Input {
     flex: 1 1 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  /* No celular, não há alças nem área de toque para mover/redimensionar
+     o mini-player. O comportamento completo continua no desktop. */
+  #mini-player-toolbar,
+  #mini-player .mini-player-resize-handle {
+    display: none !important;
+    pointer-events: none !important;
   }
 }
 
