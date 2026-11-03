@@ -1579,6 +1579,10 @@ ${code}
   document.addEventListener("keydown", (e) => {
     if (e.repeat) return;
 
+    // Ctrl+I dentro do Monaco pertence ao assistente inline; não deve
+    // também alternar o painel completo do NightCoder.
+    if (e.target instanceof Element && e.target.closest("#Editor-Input, .monaco-editor")) return;
+
     if (e.ctrlKey && e.key.toLowerCase() === "i") {
       e.preventDefault();
 
