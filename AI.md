@@ -287,4 +287,4 @@ Formato obrigatório:
 | 2026-11-02 | ChatGPT — GPT-6 | Move os estilos das ações de renomear/excluir do Explorer para mobile.css e oculta as ações no desktop a partir de 701px. | branch `melhoria/interface-celular` |
 
 | 2026-11-02 21:23 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona assinatura de lançamento Android acima do editor no mobile, reserva a altura correspondente e evita conflito entre Ctrl+I do Monaco e a abertura do NightCoder. | branch `correcao-espacamento-mobile-editor` |
-| 2026-11-02 19:xx (UTC-03:00) | ChatGPT — GPT-6 | Mantém a faixa e o espaço de lançamento apenas no mobile e oculta a assinatura personalizável no desktop web e no aplicativo desktop. | branch `correcao-espacamento-mobile-editor` |
+| 2026-11-02 21:29 (UTC-03:00) | ChatGPT — GPT-6 | Mantém a faixa e o espaço de lançamento apenas no mobile e oculta a assinatura personalizável no desktop web e no aplicativo desktop. | branch `correcao-espacamento-mobile-editor` |
