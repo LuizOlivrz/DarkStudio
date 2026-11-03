@@ -4040,3 +4040,16 @@ body {
 @media (min-width: 701px) {
   #explorer-files .explorer-inline-action { display: none !important; }
 }
+
+
+/* A rolagem pertence ao Monaco, nunca ao elemento-montagem #Editor-Input. */
+#main-content #Editor-Input {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#main-content #Editor-Input::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
