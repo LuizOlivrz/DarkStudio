@@ -2572,49 +2572,39 @@ body {
 }
 
 
-/* Por padrão, os elementos do lançamento Android ficam ocultos em qualquer desktop,
-   inclusive quando a janela do navegador/aplicativo é estreita. */
-#mobile-announcement,
-#signature {
-  display: none !important;
-}
-
-/* Só considera mobile quando a tela é estreita e usa interação primária por toque.
-   A largura isolada não identifica corretamente janelas desktop redimensionadas. */
+/* Reserva uma faixa superior somente em smartphones; no desktop, o layout
+   original de #options, #main-content e demais painéis permanece inalterado. */
 @media (max-width: 700px) and (hover: none) and (pointer: coarse) {
   :root {
-    --mobile-announcement-height: 42px;
-    --workspace-height: calc(100dvh - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px) - var(--mobile-announcement-height));
-  }
-
-  #mobile-announcement {
-    display: flex !important;
-    position: fixed;
-    z-index: 130;
-    top: 0;
-    left: 0;
-    right: 0;
-    min-height: var(--mobile-announcement-height);
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    padding: 6px 10px;
-    color: var(--secondary-color, #9b72ff);
-    background: #09090b;
-    border-bottom: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .3);
-    font: 600 11px/1.25 Arial, sans-serif;
-    letter-spacing: .025em;
-    text-align: center;
-    overflow-wrap: anywhere;
+    --mobile-signature-space: 42px;
+    --workspace-height: calc(100dvh - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px) - var(--mobile-signature-space));
   }
 
   #Website-Container {
     height: var(--workspace-height) !important;
     max-height: var(--workspace-height) !important;
-    margin-top: var(--mobile-announcement-height) !important;
+    margin-top: var(--mobile-signature-space) !important;
   }
 
   #signature {
+    position: fixed !important;
+    z-index: 140 !important;
+    top: 5px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 !important;
+    padding: 0 4px !important;
+    transform: none !important;
     display: block !important;
+    box-sizing: border-box !important;
+    font-size: clamp(11px, 3.4vw, 16px) !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 }
