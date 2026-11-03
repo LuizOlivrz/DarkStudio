@@ -288,3 +288,5 @@ Formato obrigatório:
 
 | 2026-11-02 21:23 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona assinatura de lançamento Android acima do editor no mobile, reserva a altura correspondente e evita conflito entre Ctrl+I do Monaco e a abertura do NightCoder. | branch `correcao-espacamento-mobile-editor` |
 | 2026-11-02 21:29 (UTC-03:00) | ChatGPT — GPT-6 | Mantém a faixa e o espaço de lançamento apenas no mobile e oculta a assinatura personalizável no desktop web e no aplicativo desktop. | branch `correcao-espacamento-mobile-editor` |
+
+| 2026-11-02 21:34 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a detecção do lançamento mobile: exige tela estreita, ausência de hover e ponteiro primário coarse; oculta anúncio e assinatura por padrão em desktop, mesmo com janela redimensionada. | branch `correcao/espacamento-mobile-editor` |
