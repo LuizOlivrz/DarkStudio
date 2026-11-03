@@ -293,3 +293,4 @@ Formato obrigatório:
 | 2026-11-02 19:30 (UTC-03:00) | ChatGPT — GPT-6 | Remove a faixa de anúncio mobile e reserva o espaço superior dos smartphones para a assinatura configurável, mantendo o layout desktop original. | Branch `correcao-espacamento-mobile-editor` |
 | 2026-11-02 19:35 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta o topo do `#main-content` no mobile para começar abaixo da faixa reservada à assinatura, inclusive com opções abertas. | Branch `correcao-espacamento-mobile-editor` |
 | 2026-11-02 21:43 (UTC-03:00) | ChatGPT — GPT-6 | Reduz a faixa superior reservada à assinatura mobile de 42px para 28px e aproxima o editor sem alterar o desktop. | branch `correcao-espacamento-mobile-editor` |
+| 2026-11-02 21:46 (UTC-03:00) | ChatGPT — GPT-6 | Padroniza o fallback do espaçamento superior em 28px também quando a gaveta da Estação de Arquivos/Depurador está aberta, evitando aumento da distância. | branch `correcao-espacamento-mobile-editor` |
