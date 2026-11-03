@@ -299,3 +299,4 @@ Formato obrigatório:
 
 | 2026-11-02 19:16 (UTC-03:00) | ChatGPT — GPT-6 | Aumenta para 8px o espaço entre o editor mobile e o controle de linguagem e restaura o ajuste da altura do editor conforme a gaveta da Estação de Arquivos/Depurador, usando a altura dinâmica já medida por options-panels.js. | Branch `correcao-espacamento-mobile-editor`; commit CSS `f902534` |
 | 2026-11-03 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a visibilidade dos scrollbars do Monaco: remove a opacidade forçada e deixa o CSS mobile ocultar apenas o contêiner externo, permitindo que as barras horizontal/vertical apareçam somente quando houver overflow. | Branch `correcao/scrollbars-editor-sob-demanda` |
+| 2026-11-03 20:15 (UTC-03:00) | ChatGPT — GPT-6 | Direciona a rolagem exclusivamente às barras internas do Monaco e oculta qualquer scrollbar nativo do contêiner `#Editor-Input`, em desktop e mobile. | Branch `correcao/scrollbars-editor-sob-demanda` |
