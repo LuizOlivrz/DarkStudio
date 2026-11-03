@@ -2610,3 +2610,17 @@ body {
 @media (min-width: 701px) {
   #mobile-announcement { display: none !important; }
 }
+
+/* A assinatura personalizável só é exibida no layout mobile. */
+@media (max-width: 700px) {
+  #signature {
+    display: block !important;
+  }
+}
+
+/* Oculta a assinatura no desktop web e no aplicativo desktop. */
+@media (min-width: 701px) {
+  #signature {
+    display: none !important;
+  }
+}
