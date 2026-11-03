@@ -4000,51 +4000,6 @@ body {
 }
 
 
-/* Ações em lados opostos do nome, com SVG a 75% da altura do texto. */
-#explorer-files .explorer-entry.explorer-file-entry {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-#explorer-files .explorer-file-entry > .explorer-file {
-  width: 100%;
-  min-width: 0;
-  gap: 4px;
-}
-#explorer-files .explorer-inline-action {
-  display: inline-flex;
-  flex: 0 0 .75em;
-  align-items: center;
-  justify-content: center;
-  width: .75em;
-  height: .75em;
-  margin: 0 .05em;
-  padding: 0;
-  border-radius: 2px;
-  color: var(--primary-color, #aaa);
-  opacity: .72;
-  cursor: pointer;
-  vertical-align: middle;
-}
-#explorer-files .explorer-inline-action svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-#explorer-files .explorer-inline-action:hover,
-#explorer-files .explorer-inline-action:focus-visible {
-  color: var(--secondary-color, #fff);
-  opacity: 1;
-  outline: none;
-}
-#explorer-files .explorer-delete-action:hover,
-#explorer-files .explorer-delete-action:focus-visible {
-  color: #ff6b6b;
-}
-#explorer-files .explorer-file-name {
-  flex: 0 1 auto;
-}
-
 /* Mantém os ícones SVG dos nós do Workspace no tamanho compacto definido pelo componente. */
 #mindmap-container .mm-node .mm-icon {
   display: inline-flex;
@@ -4070,24 +4025,7 @@ body {
   max-height: 18px !important;
 }
 
-/* Mantém ações e nome na mesma linha: lápis à esquerda, nome centralizado e lixeira à direita. */
-#explorer-files .explorer-file-entry > .explorer-file {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 6px !important;
-  box-sizing: border-box;
-}
-#explorer-files .explorer-file-entry > .explorer-file > .explorer-file-icon {
-  flex: 0 0 16px;
-}
-#explorer-files .explorer-file-entry > .explorer-file > .explorer-rename-action,
-#explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
-  display: inline-flex !important;
-  flex: 0 0 14px !important;
-  width: 14px !important;
-  height: 14px !important;
-}
+
 #explorer-files .explorer-file-entry > .explorer-file > .explorer-file-name {
   flex: 1 1 0 !important;
   min-width: 0;
@@ -4098,4 +4036,10 @@ body {
 }
 #explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
   margin-left: auto;
+}
+
+
+/* As ações de renomear/excluir pertencem somente à interface mobile. */
+@media (min-width: 701px) {
+  #explorer-files .explorer-inline-action { display: none !important; }
 }
