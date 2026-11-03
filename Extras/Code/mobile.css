@@ -2572,15 +2572,23 @@ body {
 }
 
 
-/* Assinatura temporária de lançamento Android: reserva espaço acima do editor apenas no mobile. */
-@media (max-width: 700px) {
+/* Por padrão, os elementos do lançamento Android ficam ocultos em qualquer desktop,
+   inclusive quando a janela do navegador/aplicativo é estreita. */
+#mobile-announcement,
+#signature {
+  display: none !important;
+}
+
+/* Só considera mobile quando a tela é estreita e usa interação primária por toque.
+   A largura isolada não identifica corretamente janelas desktop redimensionadas. */
+@media (max-width: 700px) and (hover: none) and (pointer: coarse) {
   :root {
     --mobile-announcement-height: 42px;
     --workspace-height: calc(100dvh - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px) - var(--mobile-announcement-height));
   }
 
   #mobile-announcement {
-    display: flex;
+    display: flex !important;
     position: fixed;
     z-index: 130;
     top: 0;
@@ -2605,22 +2613,8 @@ body {
     max-height: var(--workspace-height) !important;
     margin-top: var(--mobile-announcement-height) !important;
   }
-}
 
-@media (min-width: 701px) {
-  #mobile-announcement { display: none !important; }
-}
-
-/* A assinatura personalizável só é exibida no layout mobile. */
-@media (max-width: 700px) {
   #signature {
     display: block !important;
-  }
-}
-
-/* Oculta a assinatura no desktop web e no aplicativo desktop. */
-@media (min-width: 701px) {
-  #signature {
-    display: none !important;
   }
 }
