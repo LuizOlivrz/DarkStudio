@@ -285,3 +285,5 @@ Formato obrigatório:
 | 2026-11-02 | ChatGPT — GPT-6 | Limita os SVGs dos ícones dos nós do Workspace a 18×18 px em temas e no layout mobile, evitando ampliação por regras globais. | branch `melhoria/interface-celular` |
 | 2026-11-02 | ChatGPT — GPT-6 | Alinha horizontalmente as ações do Explorer: lápis à esquerda, nome centralizado e lixeira à direita, inclusive no mobile. | branch `melhoria/interface-celular` |
 | 2026-11-02 | ChatGPT — GPT-6 | Move os estilos das ações de renomear/excluir do Explorer para mobile.css e oculta as ações no desktop a partir de 701px. | branch `melhoria/interface-celular` |
+
+| 2026-11-02 21:23 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona assinatura de lançamento Android acima do editor no mobile, reserva a altura correspondente e evita conflito entre Ctrl+I do Monaco e a abertura do NightCoder. | branch `correcao-espacamento-mobile-editor` |
