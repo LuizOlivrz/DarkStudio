@@ -2397,7 +2397,7 @@ body {
      a mesma referência geométrica, com apenas 5px entre suas bordas. */
   #Website-Container #main-content {
     position: fixed !important;
-    inset: calc(var(--mobile-signature-space, 42px) + 5px) 0 calc(var(--mobile-nav-height, 64px) + 42px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
+    inset: calc(var(--mobile-signature-space, 28px) + 5px) 0 calc(var(--mobile-nav-height, 64px) + 42px + 10px + env(safe-area-inset-bottom, 0px)) 0 !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
@@ -2576,7 +2576,7 @@ body {
    original de #options, #main-content e demais painéis permanece inalterado. */
 @media (max-width: 700px) and (hover: none) and (pointer: coarse) {
   :root {
-    --mobile-signature-space: 42px;
+    --mobile-signature-space: 28px;
     --workspace-height: calc(100dvh - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px) - var(--mobile-signature-space));
   }
 
