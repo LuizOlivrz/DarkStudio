@@ -2570,3 +2570,43 @@ body {
 #explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
   margin-left: auto;
 }
+
+
+/* Assinatura temporária de lançamento Android: reserva espaço acima do editor apenas no mobile. */
+@media (max-width: 700px) {
+  :root {
+    --mobile-announcement-height: 42px;
+    --workspace-height: calc(100dvh - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px) - var(--mobile-announcement-height));
+  }
+
+  #mobile-announcement {
+    display: flex;
+    position: fixed;
+    z-index: 130;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: var(--mobile-announcement-height);
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    color: var(--secondary-color, #9b72ff);
+    background: #09090b;
+    border-bottom: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .3);
+    font: 600 11px/1.25 Arial, sans-serif;
+    letter-spacing: .025em;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  #Website-Container {
+    height: var(--workspace-height) !important;
+    max-height: var(--workspace-height) !important;
+    margin-top: var(--mobile-announcement-height) !important;
+  }
+}
+
+@media (min-width: 701px) {
+  #mobile-announcement { display: none !important; }
+}
