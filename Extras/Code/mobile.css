@@ -2519,17 +2519,53 @@ body {
   max-height: 18px !important;
 }
 
-/* No mobile, ações e nome permanecem alinhados horizontalmente na linha do arquivo. */
+/* Ações rápidas exclusivas do Explorer mobile: lápis à esquerda, nome centralizado e lixeira à direita. */
+#explorer-files .explorer-inline-action {
+  display: inline-flex !important;
+  flex: 0 0 14px !important;
+  align-items: center;
+  justify-content: center;
+  width: 14px !important;
+  height: 14px !important;
+  margin: 0 2px;
+  padding: 0;
+  border-radius: 2px;
+  color: var(--primary-color, #aaa);
+  opacity: .8;
+  cursor: pointer;
+  vertical-align: middle;
+}
+#explorer-files .explorer-inline-action svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+#explorer-files .explorer-inline-action:hover,
+#explorer-files .explorer-inline-action:focus-visible {
+  color: var(--secondary-color, #fff);
+  opacity: 1;
+  outline: none;
+}
+#explorer-files .explorer-delete-action:hover,
+#explorer-files .explorer-delete-action:focus-visible {
+  color: #ff6b6b;
+}
 #explorer-files .explorer-file-entry > .explorer-file {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
   gap: 5px !important;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 #explorer-files .explorer-file-entry > .explorer-file > .explorer-file-name {
   flex: 1 1 0 !important;
   min-width: 0;
   text-align: center !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 #explorer-files .explorer-file-entry > .explorer-file > .explorer-delete-action {
   margin-left: auto;
