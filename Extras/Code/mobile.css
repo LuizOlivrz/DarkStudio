@@ -2390,16 +2390,14 @@ body {
 }
 
 
-/* No mobile, o editor sempre reserva a faixa fixa de linguagem do rodapé.
-   Quando a gaveta abre, sua altura é somada ao espaço já reservado. */
+/* No mobile, o editor respeita o rodapé e acompanha a altura real da gaveta.
+   A distância entre o editor e o controle de linguagem é de 8px. */
 @media (max-width: 700px) {
-  /* Ancoragem na viewport: o editor e o rodapé passam a compartilhar
-     a mesma referência geométrica, com apenas 5px entre suas bordas. */
   #Website-Container #main-content {
-    /* O contêiner possui transform; ancorar o editor nele evita que o
-       espaço da assinatura seja somado novamente ao topo da viewport. */
+    /* O contêiner possui transform; manter a ancoragem nele evita somar
+       novamente a faixa superior reservada para a assinatura. */
     position: absolute !important;
-    inset: 5px 0 calc(42px + 5px) 0 !important;
+    inset: 5px 0 calc(42px + 8px) 0 !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
@@ -2408,10 +2406,10 @@ body {
     flex: none !important;
   }
 
-  /* A gaveta fica acima do editor; sua borda superior também mantém 5px. */
+  /* Ao abrir a Estação de Arquivos ou o Depurador, considera a altura
+     medida em options-panels.js e mantém 8px entre a gaveta e o editor. */
   #Website-Container.mobile-options-open #main-content {
-    /* Mantém exatamente o mesmo topo quando a Estação/Depurador abre. */
-    inset: 5px 0 calc(42px + 5px) 0 !important;
+    inset: 5px 0 calc(var(--mobile-options-height, 0px) + 16px) 0 !important;
   }
 
   #Website-Container #main-content #Editor-Input {
