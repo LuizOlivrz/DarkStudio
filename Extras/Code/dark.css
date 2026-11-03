@@ -3267,10 +3267,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Keep Monaco's native scrollbars visible when the model overflows. */
-#main-content .monaco-editor .monaco-scrollable-element > .scrollbar {
-  opacity: 1 !important;
-}
+/* Personaliza o indicador sem sobrescrever a visibilidade automática do Monaco. */
 #main-content .monaco-editor .monaco-scrollable-element > .scrollbar .slider {
   background: rgba(180, 180, 180, 0.45);
 }
