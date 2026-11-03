@@ -290,3 +290,4 @@ Formato obrigatório:
 | 2026-11-02 21:29 (UTC-03:00) | ChatGPT — GPT-6 | Mantém a faixa e o espaço de lançamento apenas no mobile e oculta a assinatura personalizável no desktop web e no aplicativo desktop. | branch `correcao-espacamento-mobile-editor` |
 
 | 2026-11-02 21:34 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a detecção do lançamento mobile: exige tela estreita, ausência de hover e ponteiro primário coarse; oculta anúncio e assinatura por padrão em desktop, mesmo com janela redimensionada. | branch `correcao/espacamento-mobile-editor` |
+| 2026-11-02 19:30 (UTC-03:00) | ChatGPT — GPT-6 | Remove a faixa de anúncio mobile e reserva o espaço superior dos smartphones para a assinatura configurável, mantendo o layout desktop original. | Branch `correcao-espacamento-mobile-editor` |
