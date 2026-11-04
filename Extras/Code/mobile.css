@@ -1559,19 +1559,15 @@ body {
   box-sizing: border-box;
 }
 
-/* Hide editor/workbench scrollbars during resizing; keep settings scrollbars visible. */
-#main-content,
-#main-content #Editor-Input,
-#main-content .monaco-editor,
-#main-content .monaco-editor .monaco-scrollable-element {
+/* Oculta somente a rolagem do contêiner externo. As barras internas do
+   Monaco permanecem sob controle do próprio editor e aparecem apenas
+   quando o conteúdo excede a área visível. */
+#main-content {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
 
-#main-content #Editor-Input::-webkit-scrollbar,
-#main-content .monaco-editor::-webkit-scrollbar,
-#main-content .monaco-editor .monaco-scrollable-element::-webkit-scrollbar,
-#main-content .monaco-editor .scrollbar {
+#main-content::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
@@ -2608,4 +2604,17 @@ body {
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
+}
+
+
+/* A rolagem pertence ao Monaco, nunca ao elemento-montagem #Editor-Input. */
+#main-content #Editor-Input {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#main-content #Editor-Input::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

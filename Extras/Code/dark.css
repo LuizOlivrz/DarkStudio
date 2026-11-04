@@ -3267,10 +3267,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Keep Monaco's native scrollbars visible when the model overflows. */
-#main-content .monaco-editor .monaco-scrollable-element > .scrollbar {
-  opacity: 1 !important;
-}
+/* Personaliza o indicador sem sobrescrever a visibilidade automática do Monaco. */
 #main-content .monaco-editor .monaco-scrollable-element > .scrollbar .slider {
   background: rgba(180, 180, 180, 0.45);
 }
@@ -4042,4 +4039,17 @@ body {
 /* As ações de renomear/excluir pertencem somente à interface mobile. */
 @media (min-width: 701px) {
   #explorer-files .explorer-inline-action { display: none !important; }
+}
+
+
+/* A rolagem pertence ao Monaco, nunca ao elemento-montagem #Editor-Input. */
+#main-content #Editor-Input {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#main-content #Editor-Input::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
