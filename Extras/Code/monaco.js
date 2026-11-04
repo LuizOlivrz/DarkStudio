@@ -347,12 +347,12 @@ if (!blockWeb) {
           automaticLayout: true,
           fontSize,
           minimap: { enabled: false },
-          // Permite rolagem horizontal quando linhas excedem a largura visível.
+          // Mantém as barras do Monaco visíveis somente quando houver overflow.
           wordWrap: "off",
           scrollbar: {
-            vertical: "auto",
+            vertical: "visible",
             verticalScrollbarSize: 10,
-            horizontal: "auto",
+            horizontal: "visible",
             horizontalScrollbarSize: 10,
             alwaysConsumeMouseWheel: true,
           },
