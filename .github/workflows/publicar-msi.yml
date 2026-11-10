@@ -1,0 +1,47 @@
+name: Publicar instalador MSI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de uma release já criada no GitHub"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  gerar-msi:
+    name: Gerar instalador Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar código da release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+
+      - name: Validar arquivos desktop
+        run: npm run check:desktop
+
+      - name: Compilar instalador MSI
+        run: npm run dist:msi
+
+      - name: Anexar MSI à release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name || inputs.tag }}
+          files: dist/*.msi
+          fail_on_unmatched_files: true
