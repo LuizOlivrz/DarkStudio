@@ -9,10 +9,12 @@
     "start": "electron .",
     "start:debug": "electron . --enable-logging",
     "dist": "npm run dist:win",
-    "dist:win": "electron-builder --win nsis portable",
+    "dist:win": "npm run version:sync && electron-builder --win nsis msi portable",
     "dist:linux": "electron-builder --linux",
     "dist:mac": "electron-builder --mac",
-    "check:desktop": "node --check Desktop/main.js && node --check Desktop/preload.js && node --check Desktop/desktop-bridge.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\""
+    "check:desktop": "node --check Desktop/main.js && node --check Desktop/preload.js && node --check Desktop/desktop-bridge.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\"",
+    "dist:msi": "npm run version:sync && electron-builder --win msi --x64",
+    "version:sync": "node scripts/sincronizar-versao.js"
   },
   "devDependencies": {
     "electron": "^30.0.0",
@@ -28,6 +30,12 @@
       "target": [
         {
           "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
           "arch": [
             "x64"
           ]
@@ -78,7 +86,16 @@
       "!**/.git/**"
     ],
     "asar": true,
-    "executableName": "DarkStudio"
+    "executableName": "DarkStudio",
+    "msi": {
+      "oneClick": false,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DarkStudio",
+      "runAfterFinish": true,
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
+    }
   },
   "dependencies": {
     "monaco-editor": "0.52.2",
