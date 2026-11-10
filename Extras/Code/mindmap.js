@@ -3271,6 +3271,7 @@ async function initMindmap() {
   renderNodes();
   updateWorkspaceNameUI();
   waitForEditor();
+  processPendingSharedTexts();
 
   devLog("DarkStudio Workspace inicializado.");
 }
@@ -3382,5 +3383,54 @@ document.addEventListener("drop", async (event) => {
 // API para a barra lateral alternar entre o editor e o mapa gráfico.
 window.darkStudioShowWorkspaceMap = showMap;
 window.darkStudioShowWorkspaceEditor = showEditor;
+
+// Recebe texto encaminhado pelo app Android e sempre cria um novo item.
+// O item ativo e os demais itens do Workspace não são substituídos.
+let sharedTextWorkspaceReady = false;
+const pendingSharedTexts = [];
+
+function appendSharedTextToWorkspace(payload) {
+  const sharedText = typeof payload === "string"
+    ? payload
+    : typeof payload?.text === "string" ? payload.text : "";
+  const normalizedText = sharedText.trim();
+  if (!normalizedText) return { accepted: false, reason: "empty" };
+  if (normalizedText.length > 1000000) return { accepted: false, reason: "too-large" };
+
+  const requestedTitle = typeof payload?.title === "string" ? payload.title.trim() : "";
+  const title = (requestedTitle || `Texto compartilhado - ${new Date().toLocaleString()}`)
+    .replace(/[\\\\/]/g, "-")
+    .slice(0, 100);
+
+  if (!sharedTextWorkspaceReady) {
+    pendingSharedTexts.push({ text: normalizedText, title });
+    return { accepted: true, queued: true };
+  }
+
+  const node = addNode(title, normalizedText, "text");
+  showMap();
+  return { accepted: true, queued: false, itemId: node.id };
+}
+
+window.darkStudioReceiveSharedText = appendSharedTextToWorkspace;
+window.addEventListener("darkstudio:shared-text", (event) => {
+  appendSharedTextToWorkspace(event.detail);
+});
+
+function processPendingSharedTexts() {
+  sharedTextWorkspaceReady = true;
+  while (pendingSharedTexts.length) {
+    appendSharedTextToWorkspace(pendingSharedTexts.shift());
+  }
+
+  // Fallback para wrappers Android que encaminham o texto compartilhado pela URL.
+  const url = new URL(window.location.href);
+  const sharedText = url.searchParams.get("shared_text");
+  if (sharedText) {
+    appendSharedTextToWorkspace(sharedText);
+    url.searchParams.delete("shared_text");
+    window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+  }
+}
 
 export {};
