@@ -28,7 +28,7 @@ Os arquivos gerados ficam em `dist/`.
 
 A versão exibida pelo aplicativo é definida em `Extras/Code/config.js`, no formato `DD.MM.YY`. Antes de compilar, `scripts/sincronizar-versao.js` converte essa data para o formato numérico `YY.MM.DD` usado pelo Windows Installer. Isso permite que releases posteriores sejam reconhecidas como atualizações pelo MSI.
 
-Mantenha o `appId` em `package.json` estável entre versões: o Electron Builder deriva dele o identificador de atualização do MSI. Não altere esse identificador depois de distribuir a primeira versão.
+Mantenha o `appId` em `package.json` estável entre versões: o Electron Builder deriva dele o identificador de atualização do MSI. Não altere esse identificador depois de distribuir a primeira versão. Ao detectar que o pacote MSI instalado é mais novo que uma atualização ZIP previamente baixada, o processo principal invalida o ponteiro do overlay antigo para que os arquivos recém-instalados sejam usados.
 
 ## Releases no GitHub
 
