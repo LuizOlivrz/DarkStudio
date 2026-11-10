@@ -17,7 +17,7 @@ Execute os comandos na raiz do repositório:
 
 | Comando | Resultado |
 |---|---|
-| `npm run dist:msi` | Instalador Windows `.msi` x64 |
+| `npm run dist:msi` | Somente o instalador Windows `.msi` x64 em `dist/` (arquivos temporários removidos ao concluir) |
 | `npm run dist:win` | Instalador NSIS `.exe`, MSI e versão portátil |
 | `npm run dist:linux` | Pacotes Linux |
 | `npm run dist:mac` | Pacotes macOS |
