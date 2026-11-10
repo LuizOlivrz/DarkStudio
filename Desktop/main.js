@@ -175,13 +175,34 @@ function parseOfficialVersion(value) {
   return year * 10000 + month * 100 + day;
 }
 
-async function checkForUpdates() {
+async function checkForUpdates(options = {}) {
+  const manual = options.manual === true;
+  if (process.platform !== "win32" || !app.isPackaged) {
+    if (manual) {
+      await dialog.showMessageBox({
+        type: "info",
+        title: "Atualizações do DarkStudio",
+        message: "A verificação está disponível somente no aplicativo desktop Windows instalado."
+      });
+    }
+    return { status: "unsupported" };
+  }
+
   let manifest;
   try {
     manifest = await fetchUpdateManifest();
   } catch (error) {
     console.warn("DarkStudio: não foi possível verificar atualizações; mantendo a versão local.", error);
-    return;
+    if (manual) {
+      await dialog.showMessageBox({
+        type: "error",
+        title: "Falha ao verificar atualizações",
+        message: "Não foi possível consultar o servidor de atualizações.",
+        detail: String(error?.message || error),
+        buttons: ["OK"]
+      });
+    }
+    return { status: "error", message: String(error?.message || error) };
   }
 
   const localVersion = await getLocalVersion();
@@ -194,7 +215,16 @@ async function checkForUpdates() {
       "DarkStudio: formato de versão inválido; a comparação esperada é DD.MM.YY.",
       { installedVersion: localVersion, officialVersion }
     );
-    return;
+    if (manual) {
+      await dialog.showMessageBox({
+        type: "error",
+        title: "Versão inválida",
+        message: "Não foi possível comparar as versões do DarkStudio.",
+        detail: `Versão instalada: ${localVersion}; versão publicada: ${officialVersion}.`,
+        buttons: ["OK"]
+      });
+    }
+    return { status: "invalid-version" };
   }
 
   // Only offer an update when the official calendar version is strictly newer.
@@ -203,13 +233,29 @@ async function checkForUpdates() {
     console.info(
       `DarkStudio: sem atualização. Versão instalada: ${localVersion}; versão oficial: ${officialVersion}.`
     );
-    return;
+    if (manual) {
+      await dialog.showMessageBox({
+        type: "info",
+        title: "DarkStudio atualizado",
+        message: `Você já está usando a versão mais recente (${localVersion}).`,
+        buttons: ["OK"]
+      });
+    }
+    return { status: "up-to-date", localVersion, officialVersion };
   }
 
   // Never prompt for an update until a public package has actually been published.
   if (typeof manifest.updatePackageUrl !== "string" || !manifest.updatePackageUrl.trim()) {
     console.warn(`DarkStudio: a versão ${officialVersion} está anunciada, mas ainda não há pacote publicado.`);
-    return;
+    if (manual) {
+      await dialog.showMessageBox({
+        type: "info",
+        title: "Atualização ainda não disponível",
+        message: `A versão ${officialVersion} foi anunciada, mas o pacote ainda não foi publicado.`,
+        buttons: ["OK"]
+      });
+    }
+    return { status: "package-unavailable", officialVersion };
   }
 
   let packageUrl;
@@ -218,7 +264,15 @@ async function checkForUpdates() {
     if (packageUrl.protocol !== "https:") throw new Error("A URL do pacote precisa usar HTTPS.");
   } catch {
     console.error("DarkStudio: URL do pacote de atualização inválida.");
-    return;
+    if (manual) {
+      await dialog.showMessageBox({
+        type: "error",
+        title: "Link de atualização inválido",
+        message: "O endereço do pacote publicado não é válido.",
+        buttons: ["OK"]
+      });
+    }
+    return { status: "invalid-package-url" };
   }
 
   const choice = await dialog.showMessageBox({
@@ -231,7 +285,7 @@ async function checkForUpdates() {
     cancelId: 1,
     noLink: true
   });
-  if (choice.response !== 0) return;
+  if (choice.response !== 0) return { status: "cancelled", localVersion, officialVersion };
 
   let stagingDir;
   try {
@@ -314,6 +368,7 @@ async function checkForUpdates() {
     });
     app.relaunch();
     app.exit(0);
+    return { status: "updated", officialVersion };
   } catch (error) {
     await dialog.showMessageBox({
       type: "error",
@@ -323,8 +378,17 @@ async function checkForUpdates() {
       buttons: ["OK"]
     });
     if (stagingDir) await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+    return { status: "error", message: String(error?.message || error) };
   }
 }
+
+ipcMain.handle("darkstudio:check-for-updates", async (event) => {
+  const senderUrl = String(event.senderFrame?.url || "");
+  if (event.sender.isDestroyed() || !senderUrl.startsWith("app://darkstudio/")) {
+    throw new Error("Origem não autorizada para verificar atualizações.");
+  }
+  return checkForUpdates({ manual: true });
+});
 
 const WINDOW_STATE_FILE = () => path.join(app.getPath("userData"), "window-state.json");
 const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
@@ -481,8 +545,10 @@ app.whenReady().then(async () => {
   app.setAppUserModelId("dev.darkstudio.desktop");
   Menu.setApplicationMenu(null);
   createWindow();
-  // Update checks run after the window is usable; network failure is intentionally silent.
-  void checkForUpdates();
+  // Atualizações automáticas são exclusivas do executável desktop Windows empacotado.
+  if (process.platform === "win32" && app.isPackaged) {
+    void checkForUpdates();
+  }
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
