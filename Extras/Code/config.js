@@ -20,7 +20,7 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
-export const version = "19.11.26"; // Current version / versão atual
+export const version = "27.11.26"; // Current version / versão atual
 
 const versionLabel = document.getElementById("app-version");
 if (versionLabel) versionLabel.textContent = `v${version}`;
@@ -34,8 +34,12 @@ if (
 ) {
   versionLabel.setAttribute("role", "button");
   versionLabel.setAttribute("tabindex", "0");
-  versionLabel.setAttribute("aria-label", "Verificar atualizações do DarkStudio");
-  versionLabel.title = "Clique para verificar atualizações do aplicativo desktop";
+  versionLabel.setAttribute(
+    "aria-label",
+    "Verificar atualizações do DarkStudio",
+  );
+  versionLabel.title =
+    "Clique para verificar atualizações do aplicativo desktop";
   versionLabel.style.cursor = "pointer";
 
   let checkingForDesktopUpdates = false;
@@ -43,16 +47,23 @@ if (
     if (checkingForDesktopUpdates) return;
     checkingForDesktopUpdates = true;
     versionLabel.setAttribute("aria-busy", "true");
-    versionLabel.dataset.previousText = versionLabel.textContent || `v${version}`;
+    versionLabel.dataset.previousText =
+      versionLabel.textContent || `v${version}`;
     versionLabel.textContent = "Verificando atualizações...";
 
     try {
       await window.darkStudioDesktop.checkForUpdates();
     } catch (error) {
-      console.error("DarkStudio: falha ao iniciar a verificação manual de atualizações.", error);
-      window.alert("Não foi possível verificar atualizações. Tente novamente mais tarde.");
+      console.error(
+        "DarkStudio: falha ao iniciar a verificação manual de atualizações.",
+        error,
+      );
+      window.alert(
+        "Não foi possível verificar atualizações. Tente novamente mais tarde.",
+      );
     } finally {
-      versionLabel.textContent = versionLabel.dataset.previousText || `v${version}`;
+      versionLabel.textContent =
+        versionLabel.dataset.previousText || `v${version}`;
       delete versionLabel.dataset.previousText;
       versionLabel.removeAttribute("aria-busy");
       checkingForDesktopUpdates = false;
