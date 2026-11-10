@@ -94,7 +94,8 @@
       "shortcutName": "DarkStudio",
       "runAfterFinish": true,
       "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
-    }
+    },
+    "msiProjectCreated": "./scripts/corrigir-msi-sem-icone.js"
   },
   "dependencies": {
     "monaco-editor": "0.52.2",
