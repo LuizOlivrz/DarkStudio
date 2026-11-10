@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 
-module.exports = async function corrigirProjetoMsiSemIcone(caminhoProjeto) {
+exports.default = async function corrigirProjetoMsiSemIcone(caminhoProjeto) {
   if (!fs.existsSync(caminhoProjeto) || !fs.statSync(caminhoProjeto).isFile()) {
     throw new Error("O Electron Builder não forneceu o arquivo WiX do MSI.");
   }
