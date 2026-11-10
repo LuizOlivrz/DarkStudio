@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="description" content="Política de Privacidade do DarkStudio. Saiba como os dados são armazenados e processados.">
+  <title>Política de Privacidade — DarkStudio</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101014;--panel:#19191f;--text:#f1f1f5;--muted:#b7b7c2;--accent:#a78bfa;--border:#30303a}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{width:min(900px,calc(100% - 32px));margin:48px auto 72px}
+    header{padding:32px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,#211c31,var(--panel))}
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3rem);line-height:1.15}
+    h2{margin:34px 0 10px;font-size:1.35rem}
+    p,li{color:var(--muted)}
+    a{color:var(--accent);text-underline-offset:3px}
+    .updated{font-size:.92rem;color:var(--muted)}
+    section{padding:0 4px}
+    footer{margin-top:42px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:.92rem}
+    code{padding:2px 5px;border-radius:5px;background:#252530;color:#e5ddff}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Política de Privacidade</h1>
+      <p>DarkStudio — As melhores coisas acontecem no escuro.</p>
+      <p class="updated">Última atualização: 10 de novembro de 2026</p>
+    </header>
+
+    <section>
+      <h2>1. Sobre esta política</h2>
+      <p>Esta política explica como o DarkStudio trata informações durante o uso do site e do aplicativo desktop. O DarkStudio oferece editor de código, Workspaces, preferências de interface e o assistente NightCoder.</p>
+
+      <h2>2. Informações armazenadas no dispositivo</h2>
+      <p>O conteúdo criado no editor e nos Workspaces, incluindo textos, arquivos, pastas, conexões, nomes, descrições, tags e preferências, é armazenado localmente no navegador ou no perfil de dados do aplicativo desktop. O armazenamento utiliza recursos do navegador, como LocalStorage e IndexedDB.</p>
+      <p>Esses dados locais não são enviados automaticamente para uma conta ou sincronizados entre dispositivos pelo DarkStudio. Eles permanecem no dispositivo até que sejam apagados pelo usuário ou pelo gerenciamento de dados do navegador/aplicativo.</p>
+
+      <h2>3. Uso do NightCoder</h2>
+      <p>Quando você envia uma mensagem ao NightCoder, o histórico recente da conversa e as instruções de contexto necessárias para responder são enviados ao endpoint seguro do DarkStudio hospedado na Netlify. Esse serviço encaminha as mensagens à API da Groq para gerar a resposta, utilizando o modelo <code>openai/gpt-oss-120b</code>.</p>
+      <p>Portanto, o conteúdo que você enviar ao NightCoder será processado pela infraestrutura do DarkStudio/Netlify e pela Groq. O tratamento, a segurança e a retenção realizados por esses provedores também estão sujeitos às respectivas políticas:</p>
+      <ul>
+        <li><a href="https://www.netlify.com/privacy/" target="_blank" rel="noopener noreferrer">Política de Privacidade da Netlify</a>.</li>
+        <li><a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Política de Privacidade da Groq</a>.</li>
+      </ul>
+      <p>Não envie senhas, chaves privadas, dados financeiros, informações médicas ou outros dados confidenciais ao assistente. O histórico recente da conversa também pode permanecer armazenado localmente no dispositivo para permitir a continuidade do chat.</p>
+
+      <h2>4. Dados técnicos e prevenção de abuso</h2>
+      <p>O endpoint do NightCoder processa temporariamente o endereço IP disponibilizado pela plataforma de hospedagem para aplicar limites de frequência e reduzir abusos. O controle em memória utilizado pela função tem janela de dez minutos. A infraestrutura da Netlify e o provedor de IA podem processar dados técnicos adicionais conforme suas próprias políticas.</p>
+
+      <h2>5. Conteúdo e serviços de terceiros</h2>
+      <p>Se você abrir links ou utilizar players incorporados de serviços externos, como YouTube, Spotify, TikTok, Vimeo, Dailymotion ou Twitch, esses serviços poderão receber dados técnicos da conexão e aplicar suas próprias tecnologias e políticas de privacidade. A interação com esses serviços é regida pelas políticas dos respectivos provedores.</p>
+
+      <h2>6. Compartilhamento de informações</h2>
+      <p>O DarkStudio não vende informações pessoais. O conteúdo do editor e dos Workspaces permanece no armazenamento local, exceto quando você decide enviá-lo a um serviço integrado, como o NightCoder, ou acessa conteúdo de terceiros que recebe sua conexão.</p>
+
+      <h2>7. Controle e exclusão de dados</h2>
+      <p>Você pode apagar o histórico do NightCoder pelos controles disponíveis no aplicativo. Os Workspaces e preferências podem ser removidos pelos recursos do próprio aplicativo quando disponíveis. Também é possível limpar os dados de site do navegador ou do perfil local do aplicativo; essa ação pode apagar Workspaces, arquivos e preferências armazenados localmente.</p>
+
+      <h2>8. Segurança</h2>
+      <p>O DarkStudio utiliza mecanismos de isolamento para determinados recursos e mantém a chave de acesso à API do NightCoder no ambiente do servidor, não no JavaScript entregue ao navegador. Nenhum sistema conectado à internet pode garantir segurança absoluta. Evite inserir informações confidenciais em recursos que as enviem a serviços externos.</p>
+
+      <h2>9. Alterações nesta política</h2>
+      <p>Esta política poderá ser atualizada para refletir mudanças nas funcionalidades, nos serviços integrados ou nas exigências aplicáveis. A versão vigente será publicada nesta página, com a data da última atualização.</p>
+
+      <h2>10. Contato</h2>
+      <p>Para dúvidas ou solicitações relacionadas a esta política, entre em contato pelo <a href="https://github.com/LuizOlivrz/DarkStudio/issues" target="_blank" rel="noopener noreferrer">repositório oficial do DarkStudio no GitHub</a>.</p>
+    </section>
+
+    <footer>
+      <a href="/">Voltar ao DarkStudio</a>
+      <p>Desenvolvido por Luiz.Olivrz.</p>
+    </footer>
+  </main>
+</body>
+</html>
