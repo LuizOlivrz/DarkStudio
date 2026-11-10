@@ -91,6 +91,23 @@ async function readActiveUpdate() {
     const indexPath = path.join(UPDATE_ROOT(), data.directory, "index.html");
     const configPath = path.join(UPDATE_ROOT(), data.directory, "Extras", "Code", "config.js");
     await Promise.all([fs.access(indexPath), fs.access(configPath)]);
+
+    // An MSI upgrade installs a newer bundled version but preserves userData.
+    // Do not let an older ZIP overlay shadow the newly installed application.
+    const bundledConfigPath = path.join(PROJECT_ROOT, "Extras", "Code", "config.js");
+    const bundledConfig = await fs.readFile(bundledConfigPath, "utf8");
+    const bundledVersion = bundledConfig.match(VERSION_PATTERN)?.[1];
+    const activeVersionNumber = parseOfficialVersion(data.version);
+    const bundledVersionNumber = parseOfficialVersion(bundledVersion);
+    if (
+      activeVersionNumber !== null &&
+      bundledVersionNumber !== null &&
+      bundledVersionNumber > activeVersionNumber
+    ) {
+      await fs.rm(ACTIVE_VERSION_FILE(), { force: true });
+      return null;
+    }
+
     return data;
   } catch {
     return null;
