@@ -190,6 +190,8 @@ DarkStudio/
 
 ## Segurança e privacidade
 
+Consulte a [Política de Privacidade](https://darkstudio-code.netlify.app/privacy) para entender o armazenamento local e o processamento realizado pelo NightCoder.
+
 O DarkStudio combina funcionalidades locais com integrações externas.
 
 - Preferências e determinados dados são armazenados no navegador.
