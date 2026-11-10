@@ -25,6 +25,48 @@ export const version = "19.11.26"; // Current version / versão atual
 const versionLabel = document.getElementById("app-version");
 if (versionLabel) versionLabel.textContent = `v${version}`;
 
+// A verificação manual existe apenas no executável desktop para Windows.
+// A versão web e os APKs não recebem este controle nem chamam o atualizador.
+if (
+  versionLabel &&
+  window.darkStudioDesktop?.isDesktop === true &&
+  window.darkStudioDesktop.platform === "win32"
+) {
+  versionLabel.setAttribute("role", "button");
+  versionLabel.setAttribute("tabindex", "0");
+  versionLabel.setAttribute("aria-label", "Verificar atualizações do DarkStudio");
+  versionLabel.title = "Clique para verificar atualizações do aplicativo desktop";
+  versionLabel.style.cursor = "pointer";
+
+  let checkingForDesktopUpdates = false;
+  const runDesktopUpdateCheck = async () => {
+    if (checkingForDesktopUpdates) return;
+    checkingForDesktopUpdates = true;
+    versionLabel.setAttribute("aria-busy", "true");
+    versionLabel.dataset.previousText = versionLabel.textContent || `v${version}`;
+    versionLabel.textContent = "Verificando atualizações...";
+
+    try {
+      await window.darkStudioDesktop.checkForUpdates();
+    } catch (error) {
+      console.error("DarkStudio: falha ao iniciar a verificação manual de atualizações.", error);
+      window.alert("Não foi possível verificar atualizações. Tente novamente mais tarde.");
+    } finally {
+      versionLabel.textContent = versionLabel.dataset.previousText || `v${version}`;
+      delete versionLabel.dataset.previousText;
+      versionLabel.removeAttribute("aria-busy");
+      checkingForDesktopUpdates = false;
+    }
+  };
+
+  versionLabel.addEventListener("click", runDesktopUpdateCheck);
+  versionLabel.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    runDesktopUpdateCheck();
+  });
+}
+
 // ─────────────────────────────────────────────
 // ▶️ CODE EXECUTOR SETTINGS
 // Controle de execução de código
