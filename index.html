@@ -227,6 +227,10 @@
       background: color-mix(in srgb, var(--settings-accent) 25%, var(--settings-surface));
     }
     #config .settings-tree > br { display: none; }
+    #config .settings-social-footer {
+      margin-top: 24px;
+      padding: 4px 0 18px;
+    }
     #config #social-medias {
       display: flex;
       align-items: center;
@@ -443,8 +447,7 @@
         </label>
       </details>
 
-      <details class="settings-tree">
-        <summary data-i18n="socialLinks">Social</summary>
+      <div class="settings-social-footer">
         <div id="social-medias">
           <a href="http://github.com/LuizOlivrz">
             <img src="Extras/Assets/github-mark-white.svg" alt="GitHub" width="32" height="32" />
@@ -474,7 +477,7 @@
           </div>
         </dialog>
         <div id="app-version" aria-label="DarkStudio version">Versão</div>
-      </details>
+      </div>
     </div>
 
     <section id="extensions-panel" aria-labelledby="extensions-heading" hidden>
