@@ -90,7 +90,7 @@
   "accentColor": "Цвет акцента",
   "accentColorLabel": "Цвет акцентного текста:",
   "reset": "Сбросить",
-  "extras": "Дополнительно:",
+  "extras": "Дополнительно",
   "enableBackground": "Включить фоновое изображение.",
   "chooseImage": "Выбрать изображение:",
   "backgroundBlur": "Размытие фона:",
@@ -134,7 +134,7 @@
   "iframeTitle": "Скопировать новый iframe",
   "siteDescription": "DarkStudio — кодим ночью 🌃.",
   "ogDescription": "Веб-редактор кода для HTML, CSS и JavaScript.",
-  "generalSettings": "Общие",
+  "generalSettings": "Настройки",
   "appearanceSettings": "Внешний вид",
   "interfaceSettings": "Интерфейс",
   "hideMiniPlayers": "Скрыть мини-плееры",
@@ -211,5 +211,6 @@
   "currentFile": "Текущий файл",
   "runDebugCurrentFile": "Запустить/отладить (текущий файл)",
   "debuggerUnsupportedLanguage": "Для этого языка пока нет отладчика",
-  "debuggerToggleTitle": "Развернуть или свернуть текущий файл"
+  "debuggerToggleTitle": "Развернуть или свернуть текущий файл",
+  "backgroundSettings": "Фон"
 }
