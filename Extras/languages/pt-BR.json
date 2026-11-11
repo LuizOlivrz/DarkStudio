@@ -214,5 +214,6 @@
   "runDebugCurrentFile": "Executar/Depurar (Arquivo atual)",
   "debuggerUnsupportedLanguage": "Ainda não temos um depurador para essa linguagem",
   "debuggerToggleTitle": "Abrir ou recolher o arquivo atual",
-  "backgroundSettings": "Plano de fundo"
+  "backgroundSettings": "Plano de fundo",
+  "settingsDescription": "Personalize a aparência, o comportamento e as ferramentas do DarkStudio."
 }
