@@ -30,6 +30,271 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&display=swap" rel="stylesheet" />
+
+  <style id="material-you-settings">
+    /* Configurações — linguagem visual inspirada no Material You */
+    #config {
+      --settings-accent: var(--accent-color, var(--secondary-color, #b9a3ff));
+      --settings-surface: color-mix(in srgb, var(--settings-accent) 8%, var(--background-color, #17171b));
+      --settings-surface-high: color-mix(in srgb, var(--settings-accent) 13%, var(--background-color, #17171b));
+      --settings-outline: color-mix(in srgb, var(--settings-accent) 22%, transparent);
+      box-sizing: border-box;
+      width: min(100%, 1080px);
+      margin-inline: auto;
+      padding: clamp(22px, 4vw, 42px);
+      color: var(--text-color, inherit);
+      scrollbar-gutter: stable;
+    }
+
+    #config *,
+    #config *::before,
+    #config *::after { box-sizing: border-box; }
+
+    #config > h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      line-height: 1.15;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+    }
+
+    #config > .brand {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      margin: 0 0 26px;
+      padding: 0 15px;
+      border: 1px solid var(--settings-outline);
+      border-radius: 999px;
+      background: var(--settings-surface);
+      color: inherit !important;
+      font-size: .88rem;
+      text-decoration: none;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    #config > .brand:hover {
+      background: var(--settings-surface-high);
+      border-color: var(--settings-accent);
+      transform: translateY(-1px);
+    }
+
+    #config .settings-tree {
+      margin: 0 0 14px;
+      padding: 0;
+      overflow: clip;
+      border: 1px solid var(--settings-outline);
+      border-radius: 24px;
+      background: var(--settings-surface);
+      box-shadow: 0 2px 10px color-mix(in srgb, #000 9%, transparent);
+      transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    #config .settings-tree[open] {
+      border-color: color-mix(in srgb, var(--settings-accent) 42%, transparent);
+      background: var(--settings-surface-high);
+      box-shadow: 0 8px 26px color-mix(in srgb, #000 12%, transparent);
+    }
+
+    #config .settings-tree > summary {
+      display: flex;
+      align-items: center;
+      min-height: 66px;
+      padding: 17px 22px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 1.04rem;
+      font-weight: 620;
+      letter-spacing: -.015em;
+      user-select: none;
+      transition: background .2s ease;
+    }
+
+    #config .settings-tree > summary::-webkit-details-marker { display: none; }
+    #config .settings-tree > summary::after {
+      content: "";
+      width: 9px;
+      height: 9px;
+      margin-left: auto;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      opacity: .65;
+      transform: rotate(45deg) translateY(-2px);
+      transition: transform .2s ease;
+    }
+    #config .settings-tree[open] > summary::after {
+      transform: rotate(225deg) translate(-2px, -1px);
+    }
+    #config .settings-tree > summary:hover {
+      background: color-mix(in srgb, var(--settings-accent) 8%, transparent);
+    }
+    #config .settings-tree > summary:focus-visible,
+    #config a:focus-visible,
+    #config button:focus-visible,
+    #config input:focus-visible,
+    #config select:focus-visible,
+    #config textarea:focus-visible {
+      outline: 2px solid var(--settings-accent);
+      outline-offset: 3px;
+    }
+
+    #config .settings-tree > :not(summary) {
+      margin-inline: 22px;
+    }
+    #config .settings-tree > h3 {
+      margin-top: 22px;
+      margin-bottom: 10px;
+      font-size: .91rem;
+      font-weight: 650;
+      letter-spacing: .01em;
+      color: var(--settings-accent);
+    }
+    #config .settings-tree > summary + h3 { margin-top: 2px; }
+    #config .settings-tree > label,
+    #config .settings-tree > div > label {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 42px;
+      font-size: .92rem;
+      line-height: 1.45;
+    }
+    #config .settings-tree > select,
+    #config .settings-tree > input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    #config .settings-tree > textarea,
+    #config .settings-tree > div > input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]) {
+      width: calc(100% - 44px);
+      min-height: 46px;
+      margin-top: 7px;
+      padding: 11px 14px;
+      border: 1px solid var(--settings-outline);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--background-color, #17171b) 78%, var(--settings-accent) 5%);
+      color: inherit;
+      font: inherit;
+    }
+    #config .settings-tree textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    #config .settings-tree input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      flex: 0 0 auto;
+      accent-color: var(--settings-accent);
+      cursor: pointer;
+    }
+    #config .settings-tree input[type="range"] {
+      width: min(100%, 420px);
+      accent-color: var(--settings-accent);
+      cursor: pointer;
+    }
+    #config .settings-tree input[type="color"] {
+      width: 48px;
+      height: 38px;
+      padding: 3px;
+      border: 1px solid var(--settings-outline);
+      border-radius: 12px;
+      background: var(--settings-surface);
+      cursor: pointer;
+    }
+    #config .settings-tree input[type="file"] {
+      max-width: calc(100% - 44px);
+      margin-block: 8px 14px;
+      font: inherit;
+    }
+    #config .settings-tree button,
+    #config > button,
+    #config dialog button {
+      min-height: 40px;
+      margin: 8px 6px 16px 0;
+      padding: 9px 17px;
+      border: 1px solid var(--settings-outline);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--settings-accent) 17%, var(--settings-surface));
+      color: inherit;
+      font: inherit;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    #config .settings-tree button:hover,
+    #config > button:hover,
+    #config dialog button:hover {
+      transform: translateY(-1px);
+      border-color: var(--settings-accent);
+      background: color-mix(in srgb, var(--settings-accent) 25%, var(--settings-surface));
+    }
+    #config .settings-tree > br { display: none; }
+    #config #social-medias {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 18px;
+    }
+    #config #social-medias a {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--settings-outline);
+      border-radius: 16px;
+      background: var(--settings-surface);
+    }
+    #config #social-medias img,
+    #config #social-medias svg {
+      width: 23px;
+      height: 23px;
+    }
+    #config .donation-separator {
+      border: 0;
+      border-top: 1px solid var(--settings-outline);
+      margin: 24px 0;
+    }
+    #config #app-version {
+      display: inline-flex;
+      margin-top: 18px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--settings-surface);
+      color: inherit;
+      font-size: .78rem;
+      opacity: .75;
+    }
+    #config dialog {
+      max-width: min(92vw, 520px);
+      border: 1px solid var(--settings-outline);
+      border-radius: 26px;
+      background: var(--background-color, #1c1b1f);
+      color: inherit;
+      box-shadow: 0 24px 80px #0007;
+    }
+    #config dialog::backdrop { background: #0009; backdrop-filter: blur(5px); }
+
+    @media (max-width: 700px) {
+      #config { padding: 20px 14px 32px; }
+      #config .settings-tree { border-radius: 20px; margin-bottom: 11px; }
+      #config .settings-tree > summary { min-height: 60px; padding: 15px 17px; }
+      #config .settings-tree > :not(summary) { margin-inline: 17px; }
+      #config .settings-tree > select,
+      #config .settings-tree > input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]),
+      #config .settings-tree > textarea,
+      #config .settings-tree > div > input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]) {
+        width: calc(100% - 34px);
+      }
+      #config .settings-tree input[type="file"] { max-width: calc(100% - 34px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #config *, #config *::before, #config *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+      }
+    }
+  </style>
 </head>
 
 <body style="background-color: black">
@@ -55,6 +320,7 @@
 <!-- ====== SETTINGS PANEL / PAINEL DE CONFIGURAÇÕES ====== -->
     <div id="config" hidden>
       <h1 data-i18n="settings">Settings</h1>
+      <p class="settings-intro" style="margin: 0 0 14px; max-width: 620px; opacity: .72; line-height: 1.6">Personalize a aparência, o comportamento e as ferramentas do DarkStudio.</p>
       <a class="brand" href="help/index.html" style="color: var(--secondary-color, inherit)">Página de ajuda</a>
       <details class="settings-tree" open>
         <summary data-i18n="generalSettings">General</summary>
