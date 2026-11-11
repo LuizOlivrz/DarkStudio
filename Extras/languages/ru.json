@@ -212,5 +212,6 @@
   "runDebugCurrentFile": "Запустить/отладить (текущий файл)",
   "debuggerUnsupportedLanguage": "Для этого языка пока нет отладчика",
   "debuggerToggleTitle": "Развернуть или свернуть текущий файл",
-  "backgroundSettings": "Фон"
+  "backgroundSettings": "Фон",
+  "settingsDescription": "Настройте внешний вид, поведение и инструменты DarkStudio."
 }
