@@ -90,7 +90,7 @@
   "accentColor": "Cor de destaque",
   "accentColorLabel": "Cor de destaque do texto:",
   "reset": "Redefinir",
-  "extras": "Extras:",
+  "extras": "Avançado",
   "enableBackground": "Ativar imagem de fundo.",
   "chooseImage": "Escolher imagem:",
   "backgroundBlur": "Desfoque do fundo:",
@@ -136,7 +136,7 @@
   "iframeTitle": "Copiar um novo iframe",
   "siteDescription": "DarkStudio — Programando noite adentro 🌃.",
   "ogDescription": "Um editor web para HTML, CSS e JavaScript.",
-  "generalSettings": "Geral",
+  "generalSettings": "Preferências",
   "appearanceSettings": "Aparência",
   "interfaceSettings": "Interface",
   "hideMiniPlayers": "Ocultar mini players",
@@ -213,5 +213,6 @@
   "currentFile": "Arquivo atual",
   "runDebugCurrentFile": "Executar/Depurar (Arquivo atual)",
   "debuggerUnsupportedLanguage": "Ainda não temos um depurador para essa linguagem",
-  "debuggerToggleTitle": "Abrir ou recolher o arquivo atual"
+  "debuggerToggleTitle": "Abrir ou recolher o arquivo atual",
+  "backgroundSettings": "Plano de fundo"
 }
