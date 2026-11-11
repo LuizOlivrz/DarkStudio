@@ -305,3 +305,4 @@ Formato obrigatório:
 | 2026-11-11 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a mensagem inicial do Code Language para acolher diferentes formas de uso e mantém a orientação traduzida nos idiomas disponíveis. | branch `melhoria/mensagem-inicial-code-language` |
  
 | 2026-11-11 17:15 (UTC-03:00) | ChatGPT — GPT-6 | Remove os glows de Options, Configurações e NightCoder; no mobile, restringe o Material You ao SVG, preserva a cor dos rótulos e desativa o efeito de hover. | branch `repaginar-configuracoes-material-you`; PR #53 |
+| 2026-11-11 19:26 (UTC-03:00) | ChatGPT — GPT-6 | Consolida os rótulos de navegação e a ocultação mobile de Extensões; padroniza border-radius global em 10px e elimina espaçamento/borda entre o editor e #main-content, com margem lateral mobile de 3px. | branch `ajustes-interface-global-mobile` |

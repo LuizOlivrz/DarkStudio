@@ -4344,3 +4344,26 @@ body {
 #chat {
   box-shadow: none !important;
 }
+
+
+/* Acabamento global unificado: desktop e mobile usam o mesmo raio. */
+#main-content,
+#main-content #Editor-Input,
+#main-content #Editor-Input > .monaco-editor,
+#main-content #Editor-Input .monaco-editor .overflow-guard,
+#options,
+#chat {
+  border-radius: 10px !important;
+}
+
+/* O Monaco encosta nas bordas internas do painel, sem margem ou moldura. */
+#main-content {
+  padding: 0 !important;
+}
+
+#main-content #Editor-Input {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
