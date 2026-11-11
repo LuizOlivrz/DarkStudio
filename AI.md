@@ -301,3 +301,5 @@ Formato obrigatório:
 | 2026-11-03 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a visibilidade dos scrollbars do Monaco: remove a opacidade forçada e deixa o CSS mobile ocultar apenas o contêiner externo, permitindo que as barras horizontal/vertical apareçam somente quando houver overflow. | Branch `correcao/scrollbars-editor-sob-demanda` |
 | 2026-11-03 20:15 (UTC-03:00) | ChatGPT — GPT-6 | Direciona a rolagem exclusivamente às barras internas do Monaco e oculta qualquer scrollbar nativo do contêiner `#Editor-Input`, em desktop e mobile. | Branch `correcao/scrollbars-editor-sob-demanda` |
 | 2026-11-03 20:30 (UTC-03:00) | ChatGPT — GPT-6 | Ajusta as opções de rolagem do Monaco para `visible`: as barras internas são exibidas quando necessárias pelo overflow, sem depender do hover; o contêiner externo continua sem scrollbar. | Branch `correcao/scrollbars-editor-sob-demanda` |
+
+| 2026-11-11 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a mensagem inicial do Code Language para acolher diferentes formas de uso e mantém a orientação traduzida nos idiomas disponíveis. | branch `melhoria/mensagem-inicial-code-language` |
