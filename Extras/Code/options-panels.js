@@ -164,14 +164,10 @@ function setActiveView(view) {
 }
 
 fileLauncher?.addEventListener("click", () => {
-  if (!isCompactLayout.matches) return setActiveView("files");
-  if (activeView === "files") {
-    container?.classList.toggle("mobile-options-open");
-    syncMobileOptionsSpace();
-    return;
-  }
+  const wasActive = activeView === "files";
   setActiveView("files");
-  container?.classList.add("mobile-options-open");
+  if (!isCompactLayout.matches) return;
+  container?.classList.toggle("mobile-options-open", !wasActive);
   syncMobileOptionsSpace();
 });
 mapLauncher?.addEventListener("click", () => {
@@ -181,12 +177,11 @@ mapLauncher?.addEventListener("click", () => {
   syncMobileOptionsSpace();
 });
 debuggerLauncher?.addEventListener("click", () => {
-  if (isCompactLayout.matches && activeView === "debugger") {
-    container?.classList.toggle("mobile-options-open");
-    return;
-  }
+  const wasActive = activeView === "debugger";
   setActiveView("debugger");
-  if (isCompactLayout.matches && activeView === "debugger") container?.classList.add("mobile-options-open");
+  if (isCompactLayout.matches) {
+    container?.classList.toggle("mobile-options-open", !wasActive);
+  }
   syncMobileOptionsSpace();
 });
 chatLauncher?.addEventListener("click", () => {
