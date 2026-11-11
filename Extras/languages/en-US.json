@@ -214,5 +214,6 @@
   "runDebugCurrentFile": "Run/Debug (Current File)",
   "debuggerUnsupportedLanguage": "We don’t have a debugger for this language yet",
   "debuggerToggleTitle": "Expand or collapse the current file",
-  "backgroundSettings": "Background"
+  "backgroundSettings": "Background",
+  "settingsDescription": "Customize DarkStudio’s appearance, behavior, and tools."
 }
