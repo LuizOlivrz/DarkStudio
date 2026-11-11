@@ -4053,3 +4053,294 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+
+/* Formas orgânicas animadas para os seletores principais da interface. */
+#workspace-launcher-rail .workspace-launcher,
+#workspace-footer #config-toggle {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border-color: transparent;
+  background: transparent !important;
+}
+
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  opacity: 0;
+  pointer-events: none;
+  clip-path: polygon(
+    50% 0%, 59% 5%, 68% 2%, 75% 10%, 85% 12%, 89% 22%,
+    98% 29%, 95% 40%, 100% 50%, 95% 60%, 98% 71%, 89% 78%,
+    85% 88%, 75% 90%, 68% 98%, 59% 95%, 50% 100%, 41% 95%,
+    32% 98%, 25% 90%, 15% 88%, 11% 78%, 2% 71%, 5% 60%,
+    0% 50%, 5% 40%, 2% 29%, 11% 22%, 15% 12%, 25% 10%,
+    32% 2%, 41% 5%
+  );
+  background: linear-gradient(
+    145deg,
+    var(--secondary-color, #a855f7),
+    color-mix(in srgb, var(--secondary-color, #a855f7) 58%, #f2a6e8)
+  );
+  filter: drop-shadow(0 3px 9px rgba(var(--secondary-rgb, 93, 0, 255), .28));
+  transform: rotate(0deg) scale(.72);
+  transition: opacity .22s ease, transform .28s ease;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg,
+#workspace-footer #config-toggle > svg {
+  position: relative;
+  z-index: 1;
+  transform: none !important;
+  animation: none !important;
+}
+
+#workspace-launcher-rail .workspace-launcher:hover::before,
+#workspace-launcher-rail .workspace-launcher:focus-visible::before,
+#workspace-footer #config-toggle:hover::before,
+#workspace-footer #config-toggle:focus-visible::before {
+  opacity: .42;
+  transform: rotate(0deg) scale(.9);
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"] {
+  color: #fff;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active::before,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+#Website-Container.settings-active #workspace-footer #config-toggle::before {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  animation: darkstudio-organic-spin 9s linear infinite;
+}
+
+#Website-Container.settings-active #workspace-footer #config-toggle {
+  color: #fff;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+#workspace-footer #config-toggle {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent !important;
+}
+
+#workspace-footer #config-toggle::before {
+  inset: 0;
+}
+
+#workspace-footer #Config-SVG {
+  fill: currentColor;
+}
+
+@keyframes darkstudio-organic-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-footer #config-toggle::before {
+    animation: none !important;
+  }
+}
+
+
+/* Ajuste das formas: 12 ondas arredondadas e contraste pela luminosidade do tema. */
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
+  clip-path: polygon(50.00% 3.30%, 51.62% 3.60%, 53.18% 4.47%, 54.65% 5.75%, 56.01% 7.25%, 57.28% 8.74%, 58.51% 9.98%, 59.77% 10.83%, 61.13% 11.19%, 62.64% 11.09%, 64.33% 10.63%, 66.17% 9.98%, 68.10% 9.36%, 70.01% 8.98%, 71.79% 9.01%, 73.35% 9.56%, 74.60% 10.63%, 75.52% 12.16%, 76.15% 14.01%, 76.58% 15.99%, 76.93% 17.90%, 77.37% 19.60%, 78.04% 20.96%, 79.04% 21.96%, 80.40% 22.63%, 82.10% 23.07%, 84.01% 23.42%, 85.99% 23.85%, 87.84% 24.48%, 89.37% 25.40%, 90.44% 26.65%, 90.99% 28.21%, 91.02% 29.99%, 90.64% 31.90%, 90.02% 33.83%, 89.37% 35.67%, 88.91% 37.36%, 88.81% 38.87%, 89.17% 40.23%, 90.02% 41.49%, 91.26% 42.72%, 92.75% 43.99%, 94.25% 45.35%, 95.53% 46.82%, 96.40% 48.38%, 96.70% 50.00%, 96.40% 51.62%, 95.53% 53.18%, 94.25% 54.65%, 92.75% 56.01%, 91.26% 57.28%, 90.02% 58.51%, 89.17% 59.77%, 88.81% 61.13%, 88.91% 62.64%, 89.37% 64.33%, 90.02% 66.17%, 90.64% 68.10%, 91.02% 70.01%, 90.99% 71.79%, 90.44% 73.35%, 89.37% 74.60%, 87.84% 75.52%, 85.99% 76.15%, 84.01% 76.58%, 82.10% 76.93%, 80.40% 77.37%, 79.04% 78.04%, 78.04% 79.04%, 77.37% 80.40%, 76.93% 82.10%, 76.58% 84.01%, 76.15% 85.99%, 75.52% 87.84%, 74.60% 89.37%, 73.35% 90.44%, 71.79% 90.99%, 70.01% 91.02%, 68.10% 90.64%, 66.17% 90.02%, 64.33% 89.37%, 62.64% 88.91%, 61.13% 88.81%, 59.77% 89.17%, 58.51% 90.02%, 57.28% 91.26%, 56.01% 92.75%, 54.65% 94.25%, 53.18% 95.53%, 51.62% 96.40%, 50.00% 96.70%, 48.38% 96.40%, 46.82% 95.53%, 45.35% 94.25%, 43.99% 92.75%, 42.72% 91.26%, 41.49% 90.02%, 40.23% 89.17%, 38.87% 88.81%, 37.36% 88.91%, 35.67% 89.37%, 33.83% 90.02%, 31.90% 90.64%, 29.99% 91.02%, 28.21% 90.99%, 26.65% 90.44%, 25.40% 89.37%, 24.48% 87.84%, 23.85% 85.99%, 23.42% 84.01%, 23.07% 82.10%, 22.63% 80.40%, 21.96% 79.04%, 20.96% 78.04%, 19.60% 77.37%, 17.90% 76.93%, 15.99% 76.58%, 14.01% 76.15%, 12.16% 75.52%, 10.63% 74.60%, 9.56% 73.35%, 9.01% 71.79%, 8.98% 70.01%, 9.36% 68.10%, 9.98% 66.17%, 10.63% 64.33%, 11.09% 62.64%, 11.19% 61.13%, 10.83% 59.77%, 9.98% 58.51%, 8.74% 57.28%, 7.25% 56.01%, 5.75% 54.65%, 4.47% 53.18%, 3.60% 51.62%, 3.30% 50.00%, 3.60% 48.38%, 4.47% 46.82%, 5.75% 45.35%, 7.25% 43.99%, 8.74% 42.72%, 9.98% 41.49%, 10.83% 40.23%, 11.19% 38.87%, 11.09% 37.36%, 10.63% 35.67%, 9.98% 33.83%, 9.36% 31.90%, 8.98% 29.99%, 9.01% 28.21%, 9.56% 26.65%, 10.63% 25.40%, 12.16% 24.48%, 14.01% 23.85%, 15.99% 23.42%, 17.90% 23.07%, 19.60% 22.63%, 20.96% 21.96%, 21.96% 20.96%, 22.63% 19.60%, 23.07% 17.90%, 23.42% 15.99%, 23.85% 14.01%, 24.48% 12.16%, 25.40% 10.63%, 26.65% 9.56%, 28.21% 9.01%, 29.99% 8.98%, 31.90% 9.36%, 33.83% 9.98%, 35.67% 10.63%, 37.36% 11.09%, 38.87% 11.19%, 40.23% 10.83%, 41.49% 9.98%, 42.72% 8.74%, 43.99% 7.25%, 45.35% 5.75%, 46.82% 4.47%, 48.38% 3.60%);
+  background: var(--secondary-color, #a855f7);
+  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--secondary-color, #a855f7) 32%, transparent));
+  transform: scale(.72);
+}
+
+#workspace-launcher-rail .workspace-launcher:hover::before,
+#workspace-launcher-rail .workspace-launcher:focus-visible::before,
+#workspace-footer #config-toggle:hover::before,
+#workspace-footer #config-toggle:focus-visible::before {
+  transform: scale(.9);
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"],
+#Website-Container.settings-active #workspace-footer #config-toggle {
+  color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) calc(c * (1 - l)) h);
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active > svg,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg,
+#Website-Container.settings-active #workspace-footer #Config-SVG {
+  color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) calc(c * (1 - l)) h);
+  fill: currentColor !important;
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active > svg *,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg *,
+#Website-Container.settings-active #workspace-footer #Config-SVG * {
+  fill: currentColor !important;
+  stroke: currentColor;
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active::before,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+#Website-Container.settings-active #workspace-footer #config-toggle::before {
+  animation: darkstudio-organic-spin 18s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #workspace-launcher-rail .workspace-launcher.is-active::before,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+  #Website-Container.settings-active #workspace-footer #config-toggle::before {
+    animation: none !important;
+  }
+}
+
+
+/* Mantém os SVGs dentro dos seletores e oculta NightCoder no layout desktop/web. */
+#workspace-launcher-rail .workspace-launcher {
+  box-sizing: border-box;
+  padding: 8px;
+  overflow: hidden;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+#workspace-footer #config-toggle {
+  box-sizing: border-box;
+  padding: 8px;
+  overflow: hidden;
+}
+
+#workspace-footer #config-toggle > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* NightCoder continua no HTML e permanece disponível nos layouts compactos. */
+#workspace-launcher-rail #nightcoder-launcher {
+  display: none !important;
+}
+
+
+/* Acabamento unificado dos três painéis principais. */
+#main-content,
+#main-content #Editor-Input,
+#options,
+#chat {
+  border-radius: 20px !important;
+}
+
+#main-content {
+  overflow: hidden;
+}
+
+#main-content #Editor-Input {
+  overflow: hidden !important;
+}
+
+/* A forma gira no sentido horário somente quando o seletor está ativo.
+   O SVG permanece em uma camada independente e não recebe rotação. */
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
+  transform-origin: center;
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active::before,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+#Website-Container.settings-active #workspace-footer #config-toggle::before {
+  animation: darkstudio-organic-spin 18s linear infinite !important;
+}
+
+#workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"])::before,
+#Website-Container:not(.settings-active) #workspace-footer #config-toggle::before {
+  animation: none !important;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg,
+#workspace-footer #config-toggle > svg {
+  transform: none !important;
+  animation: none !important;
+}
+
+@keyframes darkstudio-organic-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-footer #config-toggle::before {
+    animation: none !important;
+  }
+}
+
+/* O contraste ativo altera somente a cor herdada pelo SVG.
+   Paths e formas internas preservam seus preenchimentos e traços originais. */
+#workspace-launcher-rail .workspace-launcher.is-active > svg,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg,
+#Website-Container.settings-active #workspace-footer #Config-SVG {
+  color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) c h);
+}
+
+
+/* Mantém a forma Material You perfeitamente circular, mesmo quando
+   a área clicável do seletor é retangular no layout responsivo. */
+#workspace-launcher-rail .workspace-launcher::before {
+  inset: 50% auto auto 50%;
+  width: 40px;
+  height: 40px;
+  max-width: calc(100% - 4px);
+  max-height: 40px;
+  box-sizing: border-box;
+  translate: -50% -50%;
+}
+
+#workspace-footer #config-toggle::before {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
+
+
+/* Remove os glows dos painéis e do botão de configurações. */
+#options {
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+#workspace-footer #config-toggle {
+  box-shadow: none !important;
+}
+
+#workspace-footer #config-toggle::before {
+  filter: none !important;
+}
+
+#chat {
+  box-shadow: none !important;
+}

@@ -1520,8 +1520,15 @@ ${code}
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
       const fileLauncher = document.getElementById("file-gutter-icon");
+      const fileView = document.getElementById("file-manager-view");
+      const fileAlreadySelected = fileLauncher?.getAttribute("aria-pressed") === "true";
       if (wasExtensionsActive && optionsPanel) optionsPanel.hidden = false;
-      fileLauncher?.click();
+      if (!fileAlreadySelected) {
+        fileLauncher?.click();
+      } else {
+        if (optionsPanel) optionsPanel.hidden = false;
+        if (fileView) fileView.hidden = false;
+      }
     }
 
     configValue = opening;
@@ -1748,9 +1755,15 @@ ${code}
 
   function toggleBg(enable) {
     const pageBg = document.getElementById("page-bg");
+    const pageBgImg = document.getElementById("page-bg-img");
     if (!pageBg) return;
-    if (enable) pageBg.classList.add("active");
-    else pageBg.classList.remove("active");
+
+    const hasImage =
+      Boolean(pageBgImg?.getAttribute("src")?.trim()) &&
+      pageBgImg.complete &&
+      pageBgImg.naturalWidth > 0;
+
+    pageBg.classList.toggle("active", Boolean(enable && hasImage));
   }
 
   let wallpaperColorStatusKey = "";
@@ -1841,8 +1854,12 @@ ${code}
     const savedImg = localStorage.getItem("bgImageData") || "";
     const savedBlur = parseInt(localStorage.getItem("bgBlur") || "10", 10);
 
-    pageBgImg?.addEventListener("load", applyWallpaperColors);
+    pageBgImg?.addEventListener("load", () => {
+      toggleBg(checkbox.checked);
+      applyWallpaperColors();
+    });
     pageBgImg?.addEventListener("error", () => {
+      toggleBg(false);
       if (localStorage.getItem("wallpaperColorsEnabled") === "true") {
         setWallpaperColorStatus("wallpaperColorsError");
       }

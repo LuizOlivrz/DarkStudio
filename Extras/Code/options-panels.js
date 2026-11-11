@@ -119,7 +119,24 @@ function clearUnsupportedState() {
 }
 
 function setActiveView(view) {
-  if (view === activeView) return;
+  if (view === activeView) {
+    // Um segundo clique no seletor ativo recolhe o painel atual.
+    const wasMapActive = activeView === "map";
+    activeView = null;
+    if (optionsPanel) optionsPanel.hidden = true;
+    if (fileView) fileView.hidden = true;
+    if (debuggerView) debuggerView.hidden = true;
+    fileLauncher?.classList.remove("is-active");
+    fileLauncher?.setAttribute("aria-pressed", "false");
+    mapLauncher?.classList.remove("is-active");
+    mapLauncher?.setAttribute("aria-pressed", "false");
+    debuggerLauncher?.classList.remove("is-active");
+    debuggerLauncher?.setAttribute("aria-pressed", "false");
+    if (wasMapActive) window.darkStudioShowWorkspaceEditor?.();
+    clearUnsupportedState();
+    syncMobileOptionsSpace();
+    return;
+  }
 
   const showMap = view === "map";
   const showDebugger = view === "debugger";
@@ -147,29 +164,24 @@ function setActiveView(view) {
 }
 
 fileLauncher?.addEventListener("click", () => {
-  if (!isCompactLayout.matches) return setActiveView("files");
-  if (activeView === "files") {
-    container?.classList.toggle("mobile-options-open");
-    syncMobileOptionsSpace();
-    return;
-  }
+  const wasActive = activeView === "files";
   setActiveView("files");
-  container?.classList.add("mobile-options-open");
+  if (!isCompactLayout.matches) return;
+  container?.classList.toggle("mobile-options-open", !wasActive);
   syncMobileOptionsSpace();
 });
 mapLauncher?.addEventListener("click", () => {
-  // O mesmo atalho abre Extensões e, quando já está aberto, retorna ao editor.
-  setActiveView(activeView === "map" ? "files" : "map");
+  // O mesmo atalho abre Extensões; um segundo clique recolhe o painel.
+  setActiveView("map");
   container?.classList.remove("mobile-options-open");
   syncMobileOptionsSpace();
 });
 debuggerLauncher?.addEventListener("click", () => {
-  if (isCompactLayout.matches && activeView === "debugger") {
-    container?.classList.toggle("mobile-options-open");
-    return;
-  }
+  const wasActive = activeView === "debugger";
   setActiveView("debugger");
-  if (isCompactLayout.matches) container?.classList.add("mobile-options-open");
+  if (isCompactLayout.matches) {
+    container?.classList.toggle("mobile-options-open", !wasActive);
+  }
   syncMobileOptionsSpace();
 });
 chatLauncher?.addEventListener("click", () => {
