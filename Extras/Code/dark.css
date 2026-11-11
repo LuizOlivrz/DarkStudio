@@ -4297,19 +4297,10 @@ body {
   }
 }
 
-/* O contraste ativo colore somente o traço/cor base do SVG.
-   Não força preenchimento nos elementos internos, preservando vazios e detalhes. */
+/* O contraste ativo altera somente a cor herdada pelo SVG.
+   Paths e formas internas preservam seus preenchimentos e traços originais. */
 #workspace-launcher-rail .workspace-launcher.is-active > svg,
 #workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg,
 #Website-Container.settings-active #workspace-footer #Config-SVG {
   color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) c h);
-  fill: none !important;
-}
-
-/* Mantém os atributos originais de cada path, circle e demais formas do SVG. */
-#workspace-launcher-rail .workspace-launcher.is-active > svg *,
-#workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg *,
-#Website-Container.settings-active #workspace-footer #Config-SVG * {
-  fill: revert !important;
-  stroke: currentColor;
 }
