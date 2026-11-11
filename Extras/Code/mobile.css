@@ -2885,3 +2885,92 @@ body {
   aspect-ratio: 1 / 1;
   box-sizing: border-box;
 }
+
+
+/* Ajustes do Material You no mobile: a forma destaca somente o SVG,
+   sem alterar o texto do atalho nem responder a hover/toque simulado. */
+@media (max-width: 700px) and (hover: none) and (pointer: coarse) {
+  #options {
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  #workspace-footer #config-toggle {
+    box-shadow: none !important;
+  }
+
+  #workspace-footer #config-toggle::before {
+    filter: none !important;
+  }
+
+  #chat {
+    box-shadow: none !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher {
+    position: relative;
+    isolation: isolate;
+    color: #a7a7b0 !important;
+    transition: none !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher::before {
+    z-index: 0;
+    inset: 9px auto auto 50%;
+    width: 32px;
+    height: 32px;
+    max-width: none;
+    max-height: none;
+    translate: -50% 0;
+    transform: scale(.72);
+    filter: none;
+    transition: none !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher > svg {
+    position: relative;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    color: inherit;
+  }
+
+  #workspace-launcher-rail .workspace-launcher::after {
+    position: relative;
+    z-index: 2;
+    color: #a7a7b0 !important;
+  }
+
+  /* Hover não aplica cor, fundo ou expansão no layout de toque. */
+  #workspace-launcher-rail .workspace-launcher:hover::before,
+  #workspace-launcher-rail .workspace-launcher:focus-visible::before {
+    transition: none !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher:hover:not(.is-active):not([aria-pressed="true"])::before {
+    opacity: 0 !important;
+    transform: scale(.72) !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"] {
+    color: #a7a7b0 !important;
+    background: transparent !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active > svg,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg {
+    color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) c h) !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active::before,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+  }
+
+  #workspace-footer #config-toggle::before {
+    filter: none !important;
+  }
+}
