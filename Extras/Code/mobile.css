@@ -2977,3 +2977,19 @@ body {
     filter: none !important;
   }
 }
+
+/* Rótulos compactos da navegação inferior: alterações exclusivas do mobile. */
+@media (max-width: 700px) {
+  #workspace-launcher-rail #file-gutter-icon::after {
+    content: "Arquivos" !important;
+  }
+
+  #workspace-launcher-rail #workspace-map-launcher::after {
+    content: "Extensões" !important;
+  }
+
+  /* O botão continua clicável e abre Extensões; somente o SVG é ocultado. */
+  #workspace-launcher-rail #workspace-map-launcher > svg {
+    display: none !important;
+  }
+}
