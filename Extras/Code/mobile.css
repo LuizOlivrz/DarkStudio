@@ -3022,3 +3022,11 @@ body {
     pointer-events: none !important;
   }
 }
+
+
+/* Nome correto da Estação de Arquivos na navegação mobile. */
+@media (max-width: 700px) {
+  #workspace-launcher-rail #file-gutter-icon::after {
+    content: "Arquivos" !important;
+  }
+}
