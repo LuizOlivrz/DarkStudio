@@ -2393,8 +2393,8 @@ body {
     /* O contêiner possui transform; manter a ancoragem nele evita somar
        novamente a faixa superior reservada para a assinatura. */
     position: absolute !important;
-    inset: 5px 0 calc(42px + 8px) 0 !important;
-    width: 100% !important;
+    inset: 5px 3px calc(42px + 8px) 3px !important;
+    width: auto !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -2405,7 +2405,7 @@ body {
   /* Ao abrir a Estação de Arquivos ou o Depurador, considera a altura
      medida em options-panels.js e mantém 8px entre a gaveta e o editor. */
   #Website-Container.mobile-options-open #main-content {
-    inset: 5px 0 calc(var(--mobile-options-height, 0px) + 16px) 0 !important;
+    inset: 5px 3px calc(var(--mobile-options-height, 0px) + 16px) 3px !important;
   }
 
   #Website-Container #main-content #Editor-Input {
@@ -2805,12 +2805,12 @@ body {
 }
 
 
-/* Acabamento compacto dos três painéis principais. */
+/* Raio global dos painéis principais, compartilhado entre desktop e mobile. */
 #main-content,
 #main-content #Editor-Input,
 #options,
 #chat {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
 }
 
 #main-content {
