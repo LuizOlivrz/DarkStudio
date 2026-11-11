@@ -2618,3 +2618,107 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+
+/* Formas orgânicas animadas para os seletores principais da interface. */
+#workspace-launcher-rail .workspace-launcher,
+#workspace-footer #config-toggle {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border-color: transparent;
+  background: transparent !important;
+}
+
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  opacity: 0;
+  pointer-events: none;
+  clip-path: polygon(
+    50% 0%, 59% 5%, 68% 2%, 75% 10%, 85% 12%, 89% 22%,
+    98% 29%, 95% 40%, 100% 50%, 95% 60%, 98% 71%, 89% 78%,
+    85% 88%, 75% 90%, 68% 98%, 59% 95%, 50% 100%, 41% 95%,
+    32% 98%, 25% 90%, 15% 88%, 11% 78%, 2% 71%, 5% 60%,
+    0% 50%, 5% 40%, 2% 29%, 11% 22%, 15% 12%, 25% 10%,
+    32% 2%, 41% 5%
+  );
+  background: linear-gradient(
+    145deg,
+    var(--secondary-color, #a855f7),
+    color-mix(in srgb, var(--secondary-color, #a855f7) 58%, #f2a6e8)
+  );
+  filter: drop-shadow(0 3px 9px rgba(var(--secondary-rgb, 93, 0, 255), .28));
+  transform: rotate(0deg) scale(.72);
+  transition: opacity .22s ease, transform .28s ease;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg,
+#workspace-footer #config-toggle > svg {
+  position: relative;
+  z-index: 1;
+  transform: none !important;
+  animation: none !important;
+}
+
+#workspace-launcher-rail .workspace-launcher:hover::before,
+#workspace-launcher-rail .workspace-launcher:focus-visible::before,
+#workspace-footer #config-toggle:hover::before,
+#workspace-footer #config-toggle:focus-visible::before {
+  opacity: .42;
+  transform: rotate(0deg) scale(.9);
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"] {
+  color: #fff;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active::before,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+#Website-Container.settings-active #workspace-footer #config-toggle::before {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  animation: darkstudio-organic-spin 9s linear infinite;
+}
+
+#Website-Container.settings-active #workspace-footer #config-toggle {
+  color: #fff;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+#workspace-footer #config-toggle {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent !important;
+}
+
+#workspace-footer #config-toggle::before {
+  inset: 0;
+}
+
+#workspace-footer #Config-SVG {
+  fill: currentColor;
+}
+
+@keyframes darkstudio-organic-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-footer #config-toggle::before {
+    animation: none !important;
+  }
+}
