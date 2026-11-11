@@ -4245,12 +4245,12 @@ body {
 }
 
 
-/* Acabamento unificado dos três painéis principais. */
+/* Acabamento compacto dos três painéis principais. */
 #main-content,
 #main-content #Editor-Input,
 #options,
 #chat {
-  border-radius: 20px !important;
+  border-radius: 5px !important;
 }
 
 #main-content {
