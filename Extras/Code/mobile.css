@@ -2810,7 +2810,7 @@ body {
 #main-content #Editor-Input,
 #options,
 #chat {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
 }
 
 #main-content {
@@ -2975,5 +2975,50 @@ body {
 
   #workspace-footer #config-toggle::before {
     filter: none !important;
+  }
+}
+
+
+/* Ajustes finais unificados da interface mobile. */
+@media (max-width: 700px) {
+  /* Margem externa exata de 3px nas laterais do conteúdo principal. */
+  #Website-Container #main-content {
+    inset-inline: 3px !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+  }
+
+  #Website-Container.mobile-options-open #main-content {
+    inset-inline: 3px !important;
+    width: auto !important;
+    padding: 0 !important;
+  }
+
+  /* O editor ocupa toda a superfície do main-content, sem moldura ou vão. */
+  #main-content #Editor-Input {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  #main-content #Editor-Input > .monaco-editor,
+  #main-content #Editor-Input .monaco-editor .overflow-guard {
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+  }
+
+  /* O atalho do mapa/Extensões não aparece no mobile, nem ícone nem rótulo.
+     A navegação e o atalho continuam disponíveis no desktop. */
+  #workspace-launcher-rail #workspace-map-launcher {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 }
