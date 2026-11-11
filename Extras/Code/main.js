@@ -1520,8 +1520,15 @@ ${code}
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
       const fileLauncher = document.getElementById("file-gutter-icon");
+      const fileView = document.getElementById("file-manager-view");
+      const fileAlreadySelected = fileLauncher?.getAttribute("aria-pressed") === "true";
       if (wasExtensionsActive && optionsPanel) optionsPanel.hidden = false;
-      fileLauncher?.click();
+      if (!fileAlreadySelected) {
+        fileLauncher?.click();
+      } else {
+        if (optionsPanel) optionsPanel.hidden = false;
+        if (fileView) fileView.hidden = false;
+      }
     }
 
     configValue = opening;
