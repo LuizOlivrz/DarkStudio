@@ -2916,7 +2916,9 @@ body {
 
   #workspace-launcher-rail .workspace-launcher::before {
     z-index: 0;
-    inset: 9px auto auto 50%;
+    /* Alinha o centro do círculo ao centro do SVG, não ao botão inteiro
+       que também reserva espaço para o rótulo abaixo do ícone. */
+    inset: 3px auto auto 50%;
     width: 32px;
     height: 32px;
     max-width: none;
