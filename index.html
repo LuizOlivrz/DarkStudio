@@ -294,6 +294,41 @@
         animation-duration: .01ms !important;
       }
     }
+
+    /* Ajustes de densidade e hierarquia para as categorias reorganizadas. */
+    #config .settings-tree { margin-bottom: 10px; border-radius: 20px; }
+    #config .settings-tree > summary { min-height: 56px; padding: 13px 20px; font-size: .98rem; }
+    #config .settings-tree > h3 {
+      margin-top: 17px;
+      margin-bottom: 7px;
+      font-size: .82rem;
+      text-transform: none;
+    }
+    #config .settings-tree > label,
+    #config .settings-tree > div > label { min-height: 36px; font-size: .88rem; }
+    #config .settings-tree > select,
+    #config .settings-tree > input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    #config .settings-tree > textarea,
+    #config .settings-tree > div > input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]) {
+      min-height: 40px;
+      margin-top: 4px;
+      padding: 8px 12px;
+      border-radius: 12px;
+    }
+    #config .settings-tree button { min-height: 36px; margin-block: 6px 10px; padding: 7px 14px; }
+    #config .settings-tree > br { display: none; }
+    #config .settings-tree #system-prompt-editor { width: calc(100% - 44px); }
+    #config .settings-tree #social-medias { margin: 10px 22px 14px; }
+    #config .settings-tree .donation-separator { margin: 14px 22px; }
+    #config .settings-tree #app-version { margin: 8px 22px 16px; }
+    @media (max-width: 700px) {
+      #config .settings-tree > summary { min-height: 52px; padding: 12px 16px; }
+      #config .settings-tree > h3 { margin-top: 14px; }
+      #config .settings-tree #system-prompt-editor { width: calc(100% - 34px); }
+      #config .settings-tree #social-medias { margin-inline: 17px; }
+      #config .settings-tree .donation-separator { margin-inline: 17px; }
+      #config .settings-tree #app-version { margin-inline: 17px; }
+    }
   </style>
 </head>
 
@@ -322,31 +357,15 @@
       <h1 data-i18n="settings">Settings</h1>
       <p class="settings-intro" style="margin: 0 0 14px; max-width: 620px; opacity: .72; line-height: 1.6">Personalize a aparência, o comportamento e as ferramentas do DarkStudio.</p>
       <a class="brand" href="help/index.html" style="color: var(--secondary-color, inherit)">Página de ajuda</a>
+
       <details class="settings-tree" open>
-        <summary data-i18n="generalSettings">General</summary>
-        <h3 data-i18n="languageHeading">Language</h3>
+        <summary data-i18n="generalSettings">Preferences</summary>
         <label for="language-select" data-i18n="languageLabel">Site language:</label>
         <select id="language-select" title="Select language" data-i18n-title="languageTitle">
           <option value="en-US">English</option>
           <option value="pt-BR">Português (Brasil)</option>
           <option value="ru">Русский</option>
-        </select><br />
-      </details>
-      <details class="settings-tree">
-        <summary data-i18n="aiHeading">AI (NightCoder)</summary>
-        <button id="clearIAChat" data-action="clear-ai-chat" data-i18n="deleteAIChat">
-          Delete AI Chat
-        </button>
-        <br /><br />
-        <span data-i18n="editAIPrompt">Edit AI Prompt</span>
-        <br /><textarea id="system-prompt-editor" placeholder="NightCoder system behavior..."
-          data-i18n-placeholder="aiPromptPlaceholder" style="height: 120px"></textarea><br />
-
-        <button data-action="save-ai-prompt" data-i18n="saveAIBehavior">Save AI Behavior</button>
-        <button data-action="reset-ai-prompt" data-i18n="resetAIBehavior">Reset AI Behavior</button>
-      </details>
-      <details class="settings-tree">
-        <summary data-i18n="appearanceSettings">Appearance</summary>
+        </select>
         <h3 data-i18n="editorTheme">Editor theme:</h3>
         <select id="theme-select" title="Select Theme" data-i18n-title="themeTitle">
           <option value="dark" data-i18n="themeDark">Dark</option>
@@ -354,13 +373,17 @@
           <option value="solarized-dark" data-i18n="themeSolarizedDark">Solarized Dark</option>
           <option value="solarized-light" data-i18n="themeSolarizedLight">Solarized Light</option>
           <option value="auto" data-i18n="themeAutomatic">Automatic</option>
-        </select><br />
+        </select>
         <div id="seasonal-theme-option">
           <label for="auto-fest-checkbox">
             <input type="checkbox" id="auto-fest-checkbox" checked />
             <span data-i18n="autoTheme">Automatically change theme based on holidays.</span>
           </label>
         </div>
+      </details>
+
+      <details class="settings-tree">
+        <summary data-i18n="appearanceSettings">Appearance</summary>
         <div id="wallpaper-colors-option">
           <label for="wallpaper-colors-checkbox">
             <input type="checkbox" id="wallpaper-colors-checkbox" />
@@ -373,81 +396,84 @@
           <label for="border-color-input" data-i18n="borderColorLabel">Border color for accent elements:</label>
           <input type="color" id="border-color-input" value="#5d00ff" />
           <button type="button" id="reset-border-color" data-i18n="reset">Reset</button>
-          <br /><br />
           <h3 data-i18n="accentColor">Accent color</h3>
           <label for="accent-color-input" data-i18n="accentColorLabel">Text accent color:</label>
           <input type="color" id="accent-color-input" value="#5d00ff" />
           <button type="button" id="reset-accent-color" data-i18n="reset">Reset</button>
-          <br /><br />
         </div>
-      </details>
-      <details class="settings-tree">
-        <summary data-i18n="interfaceSettings">Interface</summary>
-        <label id="mini-player-enabled-option" for="mini-player-enabled-checkbox">
-          <input type="checkbox" id="mini-player-enabled-checkbox" checked />
-          <span data-i18n="enableMiniPlayers">Ativar mini-players de mídia</span>
-        </label><br />
-<h3 data-i18n="extras">Extras:</h3>
+        <h3 data-i18n="extras">Background</h3>
         <label for="bg-image-checkbox">
           <input type="checkbox" id="bg-image-checkbox" />
           <span data-i18n="enableBackground">Enable background image.</span>
         </label>
-        <br />
         <label for="bg-image-file" data-i18n="chooseImage">Choose image:</label>
         <input type="file" id="bg-image-file" accept="image/*" />
-        <br />
-        <label for="bg-blur-range"><span data-i18n="backgroundBlur">Background blur:</span> <span
-            id="bg-blur-value">6</span>px</label>
+        <label for="bg-blur-range">
+          <span data-i18n="backgroundBlur">Background blur:</span>
+          <span id="bg-blur-value">6</span>px
+        </label>
         <input type="range" id="bg-blur-range" min="0" max="20" value="6" />
-        <br />
-        <label for="dev-mode-checkbox">
-          <input type="checkbox" id="dev-mode-checkbox" />
-          <span data-i18n="debugMode">Debug mode (shows additional information).</span> </label><br /><br />
-      </details>
-      <details class="settings-tree">
-        <summary data-i18n="signatureSocial">Signature</summary>
+        <h3 data-i18n="interfaceSettings">Interface</h3>
+        <label id="mini-player-enabled-option" for="mini-player-enabled-checkbox">
+          <input type="checkbox" id="mini-player-enabled-checkbox" checked />
+          <span data-i18n="enableMiniPlayers">Ativar mini-players de mídia</span>
+        </label>
         <h3 data-i18n="signature">Signature</h3>
-        <label for="signature-input" data-i18n="signatureLabel">Your signature (max 22 chars):</label><br>
-        <input type="text" id="signature-input" value="LUIZzz" maxlength="22" /><br>
+        <label for="signature-input" data-i18n="signatureLabel">Your signature (max 22 chars):</label>
+        <input type="text" id="signature-input" value="LUIZzz" maxlength="22" />
         <button type="button" id="reset-signature" data-i18n="reset">Reset</button>
       </details>
 
-      <!-- ====== SOCIAL LINKS / REDES SOCIAIS ====== -->
-      <h3 data-i18n="socialLinks">Social</h3>
-      <div id="social-medias">
-        <a href="http://github.com/LuizOlivrz">
-          <img src="Extras\Assets\github-mark-white.svg" alt="GitHub" width="32" height="32" />
-        </a>
-        <a href="https://discord.gg/6bByN2QDZ4">
-          <svg width="800px" height="800px" viewBox="0 -28.5 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid">
-            <g>
-              <path
-                d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"
-                fill="#5865F2" fill-rule="nonzero"></path>
-            </g>
-          </svg>
-        </a>
-      </div>
-      <hr class="donation-separator" aria-hidden="true" />
-      <button id="creator-donation-button" type="button">Doações para o criador (LuizOlivrz)</button>
-      <dialog id="creator-donation-dialog" aria-labelledby="creator-donation-title">
-        <div class="donation-dialog-content">
-          <button id="creator-donation-close" class="donation-dialog-close" type="button" aria-label="Fechar">×</button>
-          <h2 id="creator-donation-title">Doações para o criador</h2>
-          <p>Ajude a apoiar o desenvolvimento do DarkStudio via Pix.</p>
-          <label for="creator-pix-code">Pix Copia e Cola</label>
-          <textarea id="creator-pix-code" readonly spellcheck="false">00020126830014BR.GOV.BCB.PIX0136ac649743-2477-4b5a-a1bd-66527c657f560221Criador Do DarkStudio5204000053039865802BR5925Luiz Eduardo Ribeiro de O6009SAO PAULO62140510nV4ve7K7fI63042B42</textarea>
-          <button id="creator-pix-copy" type="button">Copiar código Pix</button>
-          <p id="creator-pix-status" role="status" aria-live="polite"></p>
+      <details class="settings-tree">
+        <summary data-i18n="aiHeading">AI (NightCoder)</summary>
+        <button id="clearIAChat" data-action="clear-ai-chat" data-i18n="deleteAIChat">Delete AI Chat</button>
+        <h3 data-i18n="editAIPrompt">Edit AI Prompt</h3>
+        <textarea id="system-prompt-editor" placeholder="NightCoder system behavior..."
+          data-i18n-placeholder="aiPromptPlaceholder" style="height: 120px"></textarea>
+        <button data-action="save-ai-prompt" data-i18n="saveAIBehavior">Save AI Behavior</button>
+        <button data-action="reset-ai-prompt" data-i18n="resetAIBehavior">Reset AI Behavior</button>
+      </details>
+
+      <details class="settings-tree">
+        <summary data-i18n="extras">Advanced</summary>
+        <label for="dev-mode-checkbox">
+          <input type="checkbox" id="dev-mode-checkbox" />
+          <span data-i18n="debugMode">Debug mode (shows additional information).</span>
+        </label>
+      </details>
+
+      <details class="settings-tree">
+        <summary data-i18n="socialLinks">Social</summary>
+        <div id="social-medias">
+          <a href="http://github.com/LuizOlivrz">
+            <img src="Extras\\Assets\\github-mark-white.svg" alt="GitHub" width="32" height="32" />
+          </a>
+          <a href="https://discord.gg/6bByN2QDZ4">
+            <svg width="800px" height="800px" viewBox="0 -28.5 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid">
+              <g>
+                <path
+                  d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.192189 4.11318106 91.897189,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971335 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.720961,163.310589 61.513130,161.891452 63.244589,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"
+                  fill="#5865F2" fill-rule="nonzero"></path>
+              </g>
+            </svg>
+          </a>
         </div>
-      </dialog>
-      <div id="app-version" aria-label="DarkStudio version">Versão</div>
-      <!-- <div id="Patreons">
-          <h4>Confiado por:</h4>
-          <img width="100px" height="auto" src="https://www.solidarios.org.br/wp-content/uploads/logo-guarda-mirim.png" alt="Guarda Mirim"/>
-          <p>Para ensinar seus alunos</p>
-        </div> -->
+        <hr class="donation-separator" aria-hidden="true" />
+        <button id="creator-donation-button" type="button">Doações para o criador (LuizOlivrz)</button>
+        <dialog id="creator-donation-dialog" aria-labelledby="creator-donation-title">
+          <div class="donation-dialog-content">
+            <button id="creator-donation-close" class="donation-dialog-close" type="button" aria-label="Fechar">×</button>
+            <h2 id="creator-donation-title">Doações para o criador</h2>
+            <p>Ajude a apoiar o desenvolvimento do DarkStudio via Pix.</p>
+            <label for="creator-pix-code">Pix Copia e Cola</label>
+            <textarea id="creator-pix-code" readonly spellcheck="false">00020126830014BR.GOV.BCB.PIX0136ac649743-2477-4b5a-a1bd-66527c657f560221Criador Do DarkStudio5204000053039865802BR5925Luiz Eduardo Ribeiro de O6009SAO PAULO62140510nV4ve7K7fI63042B42</textarea>
+            <button id="creator-pix-copy" type="button">Copiar código Pix</button>
+            <p id="creator-pix-status" role="status" aria-live="polite"></p>
+          </div>
+        </dialog>
+        <div id="app-version" aria-label="DarkStudio version">Versão</div>
+      </details>
     </div>
 
     <section id="extensions-panel" aria-labelledby="extensions-heading" hidden>
