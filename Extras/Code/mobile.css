@@ -2948,7 +2948,8 @@ body {
     transition: none !important;
   }
 
-  #workspace-launcher-rail .workspace-launcher:hover:not(.is-active):not([aria-pressed="true"])::before {
+  #workspace-launcher-rail .workspace-launcher:hover:not(.is-active):not([aria-pressed="true"])::before,
+  #workspace-launcher-rail .workspace-launcher:focus-visible:not(.is-active):not([aria-pressed="true"])::before {
     opacity: 0 !important;
     transform: scale(.72) !important;
   }
