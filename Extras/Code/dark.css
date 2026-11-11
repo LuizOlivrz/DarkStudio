@@ -4304,3 +4304,24 @@ body {
 #Website-Container.settings-active #workspace-footer #Config-SVG {
   color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) c h);
 }
+
+
+/* Mantém a forma Material You perfeitamente circular, mesmo quando
+   a área clicável do seletor é retangular no layout responsivo. */
+#workspace-launcher-rail .workspace-launcher::before {
+  inset: 50% auto auto 50%;
+  width: 40px;
+  height: 40px;
+  max-width: calc(100% - 4px);
+  max-height: 40px;
+  box-sizing: border-box;
+  translate: -50% -50%;
+}
+
+#workspace-footer #config-toggle::before {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
