@@ -4245,12 +4245,12 @@ body {
 }
 
 
-/* Acabamento compacto dos três painéis principais. */
+/* Raio global dos painéis principais, compartilhado entre desktop e mobile. */
 #main-content,
 #main-content #Editor-Input,
 #options,
 #chat {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
 }
 
 #main-content {
