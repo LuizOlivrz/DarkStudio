@@ -113,7 +113,10 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
   });
   window.addEventListener("resize", () => {
     setOptionsWidth(current("--options-width"));
-    if (!WebsiteContainer.classList.contains("chat-resize-hidden")) {
+
+    // Redimensionar a janela nunca deve abrir o NightCoder.
+    // Atualiza a largura somente se o chat já estiver aberto.
+    if (WebsiteContainer.classList.contains("with-chat")) {
       setChatWidth(current("--chat-width"));
     }
   });
