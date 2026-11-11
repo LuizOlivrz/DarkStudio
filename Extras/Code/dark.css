@@ -4325,3 +4325,22 @@ body {
   aspect-ratio: 1 / 1;
   box-sizing: border-box;
 }
+
+
+/* Remove os glows dos painéis e do botão de configurações. */
+#options {
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+#workspace-footer #config-toggle {
+  box-shadow: none !important;
+}
+
+#workspace-footer #config-toggle::before {
+  filter: none !important;
+}
+
+#chat {
+  box-shadow: none !important;
+}
