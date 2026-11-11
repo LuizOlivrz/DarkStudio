@@ -90,7 +90,7 @@
   "accentColor": "Accent color",
   "accentColorLabel": "Text accent color:",
   "reset": "Reset",
-  "extras": "Extras:",
+  "extras": "Advanced",
   "enableBackground": "Enable background image.",
   "chooseImage": "Choose image:",
   "backgroundBlur": "Background blur:",
@@ -136,7 +136,7 @@
   "iframeTitle": "Copy a new iframe",
   "siteDescription": "DarkStudio — Coding into the night 🌃.",
   "ogDescription": "A web code editor for HTML, CSS, and JavaScript.",
-  "generalSettings": "General",
+  "generalSettings": "Preferences",
   "appearanceSettings": "Appearance",
   "interfaceSettings": "Interface",
   "hideMiniPlayers": "Hide mini players",
@@ -213,5 +213,6 @@
   "currentFile": "Current file",
   "runDebugCurrentFile": "Run/Debug (Current File)",
   "debuggerUnsupportedLanguage": "We don’t have a debugger for this language yet",
-  "debuggerToggleTitle": "Expand or collapse the current file"
+  "debuggerToggleTitle": "Expand or collapse the current file",
+  "backgroundSettings": "Background"
 }
