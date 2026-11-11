@@ -2803,3 +2803,56 @@ body {
   max-width: 100%;
   max-height: 100%;
 }
+
+
+/* Acabamento unificado dos três painéis principais. */
+#main-content,
+#main-content #Editor-Input,
+#options,
+#chat {
+  border-radius: 20px !important;
+}
+
+#main-content {
+  overflow: hidden;
+}
+
+#main-content #Editor-Input {
+  overflow: hidden !important;
+}
+
+/* A forma gira no sentido horário somente quando o seletor está ativo.
+   O SVG permanece em uma camada independente e não recebe rotação. */
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
+  transform-origin: center;
+}
+
+#workspace-launcher-rail .workspace-launcher.is-active::before,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+#Website-Container.settings-active #workspace-footer #config-toggle::before {
+  animation: darkstudio-organic-spin 18s linear infinite !important;
+}
+
+#workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"])::before,
+#Website-Container:not(.settings-active) #workspace-footer #config-toggle::before {
+  animation: none !important;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg,
+#workspace-footer #config-toggle > svg {
+  transform: none !important;
+  animation: none !important;
+}
+
+@keyframes darkstudio-organic-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-footer #config-toggle::before {
+    animation: none !important;
+  }
+}
