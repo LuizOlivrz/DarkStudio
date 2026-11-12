@@ -4433,6 +4433,7 @@ body {
   #Website-Container:not(.settings-active) #workspace-footer #config-toggle::before {
     opacity: 0;
     transform: scale(.72);
+    transition-duration: .72s;
     transition-delay: .12s;
     animation: none !important;
   }
