@@ -2273,3 +2273,118 @@ ${code}
     });
   }
 }
+
+
+/* Material You: desenha a cobrinha sobre o caminho orgânico real do seletor. */
+(() => {
+  const selectors = [
+    "#workspace-launcher-rail .workspace-launcher",
+    "#workspace-footer #config-toggle",
+  ].join(",");
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const desktopPointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+  function polygonToPath(clipPath) {
+    const match = clipPath.match(/^polygon\\((.*)\\)$/i);
+    if (!match) return null;
+    const points = [...match[1].matchAll(/(-?\\d+(?:\\.\\d+)?)%\\s+(-?\\d+(?:\\.\\d+)?)%/g)]
+      .map((item) => [Number(item[1]), Number(item[2])]);
+    if (points.length < 8) return null;
+
+    const tension = 0.18;
+    let d = `M ${points[0][0]} ${points[0][1]}`;
+    for (let i = 0; i < points.length; i++) {
+      const previous = points[(i - 1 + points.length) % points.length];
+      const current = points[i];
+      const next = points[(i + 1) % points.length];
+      const afterNext = points[(i + 2) % points.length];
+      const c1 = [
+        current[0] + (next[0] - previous[0]) * tension,
+        current[1] + (next[1] - previous[1]) * tension,
+      ];
+      const c2 = [
+        next[0] - (afterNext[0] - current[0]) * tension,
+        next[1] - (afterNext[1] - current[1]) * tension,
+      ];
+      d += ` C ${c1[0]} ${c1[1]}, ${c2[0]} ${c2[1]}, ${next[0]} ${next[1]}`;
+    }
+    return d + " Z";
+  }
+
+  function attachWorm(element) {
+    if (!element || element.querySelector(":scope > .material-you-worm")) return;
+
+    const shape = getComputedStyle(element, "::before").clipPath;
+    const pathData = polygonToPath(shape);
+    if (!pathData) return;
+
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("aria-hidden", "true");
+    svg.classList.add("material-you-worm");
+
+    const path = document.createElementNS(ns, "path");
+    path.setAttribute("d", pathData);
+    path.setAttribute("pathLength", "1000");
+    path.setAttribute("vector-effect", "non-scaling-stroke");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "var(--primary-color, #6750a4)");
+    path.setAttribute("stroke-width", "3.2");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    path.style.strokeDasharray = "190 1000";
+    path.style.strokeDashoffset = "0";
+    svg.appendChild(path);
+    element.appendChild(svg);
+
+    const isSelected = () =>
+      element.matches(".is-active, [aria-pressed='true']") ||
+      element.id === "config-toggle" &&
+        element.closest("#Website-Container")?.classList.contains("settings-active");
+
+    const syncState = () => {
+      svg.classList.toggle("is-selected", isSelected());
+      svg.classList.toggle("is-hovered", !isSelected() &&
+        (element.matches(":hover") || element.matches(":focus-visible")));
+      if (reducedMotion.matches) {
+        svg.classList.remove("is-hovered", "is-selected");
+        path.style.strokeDasharray = "1000 1000";
+        path.style.strokeDashoffset = "0";
+      } else {
+        path.style.strokeDasharray = svg.classList.contains("is-selected")
+          ? "1000 1000"
+          : "190 1000";
+        path.style.strokeDashoffset = svg.classList.contains("is-selected")
+          ? "1000"
+          : "0";
+      }
+    };
+
+    element.addEventListener("mouseenter", syncState);
+    element.addEventListener("mouseleave", syncState);
+    element.addEventListener("focusin", syncState);
+    element.addEventListener("focusout", syncState);
+
+    const observer = new MutationObserver(syncState);
+    observer.observe(element, { attributes: true, attributeFilter: ["class", "aria-pressed"] });
+    const container = element.closest("#Website-Container");
+    if (container) observer.observe(container, { attributes: true, attributeFilter: ["class"] });
+    reducedMotion.addEventListener?.("change", syncState);
+    syncState();
+  }
+
+  function initialize() {
+    if (!desktopPointer.matches || reducedMotion.matches) return;
+    document.querySelectorAll(selectors).forEach(attachWorm);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  } else {
+    initialize();
+  }
+  desktopPointer.addEventListener?.("change", initialize);
+})();
