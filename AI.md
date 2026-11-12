@@ -328,3 +328,4 @@ Formato obrigatório:
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Impede que a seleção do SVG de Extensões acione o recolhimento de `#options`; o painel mantém seu estado e o modo Extensões gerencia sua própria apresentação. O segundo clique em Extensões também não força `hidden`. | branch `animacao/material-you`; PR #59 |
 
 | 2026-11-12 15:56:18 (UTC-03:00) | ChatGPT — GPT-6 | Mantém a tela de Extensões aberta ao clicar novamente no SVG, sem restaurar o painel Options vazio. | branch `animacao/material-you` |
+| 2026-11-12 16:23 (UTC-03:00) | ChatGPT — GPT-6 | Mantém Extensões como visualização ativa no segundo clique para que a próxima seleção de Arquivos/Depurador reconheça a origem e restaure o editor normalmente. | branch `animacao/material-you` |
