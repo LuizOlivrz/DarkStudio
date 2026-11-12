@@ -296,7 +296,7 @@
   const nowPlayingArtwork = nowPlaying.querySelector(".ds-now-playing-artwork");
   const nowPlayingTitle = nowPlaying.querySelector(".ds-now-playing-title");
   const nowPlayingArtist = nowPlaying.querySelector(".ds-now-playing-artist");
-  const unsubscribeNowPlaying = window.darkStudioDesktop.onNowPlaying((snapshot) => {
+  const renderNowPlaying = (snapshot) => {
     const hasTrack = snapshot && typeof snapshot.title === "string" && snapshot.title.trim();
     nowPlaying.hidden = !hasTrack;
     if (!hasTrack) {
@@ -313,7 +313,9 @@
       nowPlayingArtwork.hidden = true;
     }
     nowPlaying.title = [snapshot.title, snapshot.artist, snapshot.album].filter(Boolean).join(" — ");
-  });
+  };
+  const unsubscribeNowPlaying = window.darkStudioDesktop.onNowPlaying(renderNowPlaying);
+  window.darkStudioDesktop.getNowPlaying().then(renderNowPlaying).catch(() => {});
   window.addEventListener("beforeunload", unsubscribeNowPlaying, { once: true });
 
   // Terminal integrado com sessões CMD/PowerShell, abas personalizáveis e tela cheia.
