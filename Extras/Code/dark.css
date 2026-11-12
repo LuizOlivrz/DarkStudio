@@ -4828,3 +4828,89 @@ body {
     transition: none !important;
   }
 }
+
+
+/* Correção de camada: o seletor genérico de SVG dos botões sobrescrevia
+   position:absolute e z-index da cobrinha, deixando-a atrás do ícone/pseudo-elementos. */
+@media (hover: hover) and (pointer: fine) {
+  #workspace-launcher-rail .workspace-launcher > svg.material-you-worm,
+  #workspace-footer #config-toggle > svg.material-you-worm {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    z-index: 20 !important;
+    overflow: visible !important;
+    pointer-events: none !important;
+    opacity: 0;
+  }
+
+  #workspace-launcher-rail .workspace-launcher > svg.material-you-worm.is-hovered,
+  #workspace-launcher-rail .workspace-launcher > svg.material-you-worm.is-selected,
+  #workspace-footer #config-toggle > svg.material-you-worm.is-hovered,
+  #workspace-footer #config-toggle > svg.material-you-worm.is-selected {
+    opacity: 1 !important;
+  }
+}
+
+/* Diagnóstico temporário: abrir a URL com ?material-you-debug=1.
+   Mostra o SVG mesmo sem hover/seleção, o contorno do botão e os dados de camada. */
+#material-you-debug-panel {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: min(390px, calc(100vw - 16px)) !important;
+  max-height: min(55vh, 520px) !important;
+  overflow: auto !important;
+  margin: 0 !important;
+  padding: 12px !important;
+  border: 2px solid #ff2bd6 !important;
+  border-radius: 8px !important;
+  background: rgba(10, 10, 16, .96) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, .65) !important;
+  font: 11px/1.45 Consolas, monospace !important;
+  white-space: pre-wrap !important;
+  pointer-events: auto !important;
+}
+
+.material-you-debug-target {
+  outline: 2px dashed #00e5ff !important;
+  outline-offset: 3px !important;
+}
+
+.material-you-debug-missing {
+  outline: 3px solid #ff3b30 !important;
+  outline-offset: 3px !important;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg.material-you-worm.is-debug-visible,
+#workspace-footer #config-toggle > svg.material-you-worm.is-debug-visible {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+}
+
+#workspace-launcher-rail .workspace-launcher > svg.material-you-worm.is-debug-visible path,
+#workspace-footer #config-toggle > svg.material-you-worm.is-debug-visible path {
+  stroke: #ff2bd6 !important;
+  stroke-width: 5 !important;
+  stroke-dasharray: 240 1000 !important;
+  filter: drop-shadow(0 0 3px #fff) !important;
+  animation: material-you-debug-travel 2s linear infinite !important;
+}
+
+@keyframes material-you-debug-travel {
+  to { stroke-dashoffset: -1000; }
+}
