@@ -326,3 +326,5 @@ Formato obrigatório:
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Remove animação SVG da cobrinha e os estilos de diagnóstico; mantém somente o preenchimento orgânico com rotação contínua no estado ativo. | branch `animacao/material-you`; PR #59 |
 | 2026-11-12 15:42 (UTC-03:00) | ChatGPT — GPT-6 | Ao ocultar/recolher `#options`, recolhe a coluna correspondente e expande `#main-content` para ocupar o espaço liberado, preservando a rail e a coluna independente do chat em desktop e mobile. | branch `animacao/material-you`; PR #59 |
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Impede que a seleção do SVG de Extensões acione o recolhimento de `#options`; o painel mantém seu estado e o modo Extensões gerencia sua própria apresentação. O segundo clique em Extensões também não força `hidden`. | branch `animacao/material-you`; PR #59 |
+
+| 2026-11-12 15:56:18 (UTC-03:00) | ChatGPT — GPT-6 | Mantém a tela de Extensões aberta ao clicar novamente no SVG, sem restaurar o painel Options vazio. | branch `animacao/material-you` |
