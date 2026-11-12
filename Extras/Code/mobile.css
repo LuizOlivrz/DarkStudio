@@ -3115,3 +3115,32 @@ body {
     z-index: 1;
   }
 }
+
+
+/* Material You mobile: seis pontas e preenchimento curto após a seleção.
+   O rótulo permanece no ::after; por isso não há cobrinha de hover em toque. */
+@media (max-width: 700px) and (hover: none) and (pointer: coarse) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-footer #config-toggle::before {
+    clip-path: polygon(50% 2%, 60% 8%, 69% 4%, 76% 13%, 88% 18%, 88% 31%, 98% 40%, 92% 50%, 98% 60%, 88% 69%, 88% 82%, 76% 87%, 69% 96%, 60% 92%, 50% 98%, 40% 92%, 31% 96%, 24% 87%, 12% 82%, 12% 69%, 2% 60%, 8% 50%, 2% 40%, 12% 31%, 12% 18%, 24% 13%, 31% 4%, 40% 8%);
+    opacity: 0;
+    scale: .96;
+    transition: opacity .2s ease .22s, scale .2s ease .22s;
+    animation: none !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active::before,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+  #Website-Container.settings-active #workspace-footer #config-toggle::before {
+    opacity: 1 !important;
+    scale: 1;
+    transition-delay: .22s;
+  }
+
+  #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"])::before,
+  #Website-Container:not(.settings-active) #workspace-footer #config-toggle::before {
+    opacity: 0;
+    scale: .96;
+    transition-delay: 0s;
+  }
+}
