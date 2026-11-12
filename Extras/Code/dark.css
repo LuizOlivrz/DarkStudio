@@ -4657,3 +4657,24 @@ body {
     opacity: 0;
   }
 }
+
+
+/* Corrige a máscara da cobrinha: o anel anterior ficava fora da silhueta
+   porque os percentuais radiais eram calculados até os cantos do quadrado. */
+@media (hover: hover) and (pointer: fine) {
+  #workspace-launcher-rail .workspace-launcher::after,
+  #workspace-footer #config-toggle::after {
+    -webkit-mask: radial-gradient(
+      circle,
+      transparent 0 61%,
+      #000 64% 71%,
+      transparent 74%
+    ) !important;
+    mask: radial-gradient(
+      circle,
+      transparent 0 61%,
+      #000 64% 71%,
+      transparent 74%
+    ) !important;
+  }
+}
