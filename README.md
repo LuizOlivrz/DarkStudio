@@ -214,3 +214,13 @@ Desenvolvido por **Luiz.Olivrz**.
 <p align="center">
   <em>DarkStudio — As melhores coisas acontecem no escuro...</em>
 </p>
+
+### Now Playing — mídia do sistema
+
+No aplicativo desktop Electron, o DarkStudio pode exibir no canto inferior esquerdo a capa disponível, o título e o artista da mídia em reprodução em outros aplicativos. A leitura acontece no processo principal do Electron e usa as sessões de mídia publicadas pelo sistema operacional; não depende de uma extensão de navegador nem de uma integração específica com um serviço de streaming.
+
+- **Windows 10 (build 17763+) e Windows 11:** usa as sessões GSMTC/SMTC do Windows e recebe título, artista e miniatura quando o aplicativo publica esses metadados. A dependência de leitura é opcional e exclusiva do Windows.
+- **Linux:** consulta players que exponham MPRIS via `playerctl`; o utilitário precisa estar instalado. A capa depende de o player publicar uma URL de arte acessível.
+- **macOS:** consulta Spotify e Música por AppleScript; o suporte inicial recupera título/artista/álbum, mas não obtém a capa do álbum.
+
+A funcionalidade fica restrita ao aplicativo desktop. Aplicativos que não publicam metadados na interface de mídia do sistema não podem ser detectados por esse recurso.
