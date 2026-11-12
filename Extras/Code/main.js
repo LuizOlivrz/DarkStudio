@@ -2312,7 +2312,7 @@ ${code}
     return panel;
   }
 
-  const panel = makeDebugPanel();
+  let panel = null;
 
   function refreshDebug() {
     if (!panel) return;
@@ -2411,6 +2411,7 @@ ${code}
   }
 
   function initialize() {
+    if (debug && !panel && document.body) panel = makeDebugPanel();
     if (!debug && (!desktopPointer.matches || reducedMotion.matches)) return;
     document.querySelectorAll(selectors).forEach(attachWorm);
     refreshDebug();
