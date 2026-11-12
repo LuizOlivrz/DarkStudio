@@ -4621,3 +4621,39 @@ body {
   }
 }
 
+
+
+/* Na seleção, a ponta avança e o traço cresce até fechar o círculo no próprio início. */
+@property --material-you-progress {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 30deg;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #workspace-launcher-rail .workspace-launcher.is-active::after,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle::after {
+    background: conic-gradient(
+      from -90deg,
+      var(--primary-color, #6750a4) 0deg var(--material-you-progress),
+      transparent var(--material-you-progress) 360deg
+    ) !important;
+    animation: material-you-close-worm .82s linear 1 both !important;
+  }
+}
+
+@keyframes material-you-close-worm {
+  0% {
+    --material-you-progress: 30deg;
+    opacity: 1;
+  }
+  96% {
+    --material-you-progress: 360deg;
+    opacity: 1;
+  }
+  100% {
+    --material-you-progress: 360deg;
+    opacity: 0;
+  }
+}
