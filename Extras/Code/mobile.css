@@ -3032,41 +3032,50 @@ body {
 }
 
 
-/* Material You mobile: contorno completo e revelação de fora para dentro. */
+/* Material You mobile: primeiro a cobrinha, depois o preenchimento. */
 @media (max-width: 700px) and (hover: none) and (pointer: coarse) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-footer #config-toggle::before {
+    opacity: 0;
+    scale: .96;
+    transition: opacity .28s ease 1s, scale .32s cubic-bezier(.2,.75,.25,1) 1s;
+    animation-delay: 1s !important;
+  }
+
   #workspace-launcher-rail .workspace-launcher::after,
   #workspace-footer #config-toggle::after {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: 2;
     inset: 0;
     pointer-events: none;
     border-radius: inherit;
-    background: var(--bg, #080808);
-    clip-path: circle(150% at 50% 50%);
-    transition: clip-path .72s cubic-bezier(.4,0,.2,1);
-  }
-
-  #workspace-launcher-rail .workspace-launcher::before,
-  #workspace-footer #config-toggle::before {
-    transition:
-      opacity .72s cubic-bezier(.4,0,.2,1),
-      scale .72s cubic-bezier(.4,0,.2,1);
-    scale: .96;
+    clip-path: polygon(
+      50% 0%, 59% 5%, 68% 2%, 75% 10%, 85% 12%, 89% 22%,
+      98% 29%, 95% 40%, 100% 50%, 95% 60%, 98% 71%, 89% 78%,
+      85% 88%, 75% 90%, 68% 98%, 59% 95%, 50% 100%, 41% 95%,
+      32% 98%, 25% 90%, 15% 88%, 11% 78%, 2% 71%, 5% 60%,
+      0% 50%, 5% 40%, 2% 29%, 11% 22%, 15% 12%, 25% 10%,
+      32% 2%, 41% 5%
+    );
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg 286deg,
+      var(--primary-color, #5d00ff) 292deg 350deg,
+      transparent 356deg 360deg
+    );
+    -webkit-mask: radial-gradient(circle, transparent 0 76%, #000 80% 100%);
+    mask: radial-gradient(circle, transparent 0 76%, #000 80% 100%);
     opacity: 0;
+    transform-origin: center;
+    transition: opacity .12s ease;
   }
 
-  #workspace-launcher-rail .workspace-launcher > svg,
-  #workspace-footer #config-toggle > svg {
-    position: relative;
-    z-index: 1;
+  #workspace-launcher-rail .workspace-launcher.is-active::after,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle::after {
     opacity: 1;
-    transition: color .58s cubic-bezier(.2,.75,.25,1);
-  }
-
-  @keyframes material-you-svg-reveal {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    animation: material-you-contour-run 1s linear 1 both;
   }
 
   #workspace-launcher-rail .workspace-launcher.is-active::before,
@@ -3074,49 +3083,34 @@ body {
   #Website-Container.settings-active #workspace-footer #config-toggle::before {
     opacity: 1 !important;
     scale: 1;
-    transition-duration: .58s;
-  }
-
-  #workspace-launcher-rail .workspace-launcher.is-active::after,
-  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::after,
-  #Website-Container.settings-active #workspace-footer #config-toggle::after {
-    clip-path: circle(0% at 50% 50%);
-    transition-duration: .58s;
+    transition-delay: 1s;
+    animation-delay: 1s !important;
   }
 
   #workspace-launcher-rail .workspace-launcher.is-active > svg,
   #workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg,
   #Website-Container.settings-active #workspace-footer #config-toggle > svg {
-    animation: material-you-svg-reveal .18s ease .42s both;
+    color: oklch(from var(--secondary-color, #a855f7) calc(1 - l) c h);
+    transition: color .42s ease 1s;
   }
 
-  /* A saída é mais lenta e reversível; uma nova seleção interrompe a transição atual. */
   #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"])::before,
   #Website-Container:not(.settings-active) #workspace-footer #config-toggle::before {
     opacity: 0;
     scale: .96;
-    transition-duration: .72s;
+    transition-delay: .12s;
+    animation: none !important;
   }
 
   #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"])::after,
   #Website-Container:not(.settings-active) #workspace-footer #config-toggle::after {
-    clip-path: circle(150% at 50% 50%);
-    transition-duration: .72s;
-  }
-
-  #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"]) > svg,
-  #Website-Container:not(.settings-active) #workspace-footer #config-toggle > svg {
-    opacity: 1;
-    animation: none;
-  }
-
-  #workspace-launcher-rail .workspace-launcher::after,
-  #workspace-footer #config-toggle::after {
-    z-index: 0;
+    opacity: 0;
+    animation: none !important;
   }
 
   #workspace-launcher-rail .workspace-launcher > svg,
   #workspace-footer #config-toggle > svg {
+    position: relative;
     z-index: 1;
   }
 }
