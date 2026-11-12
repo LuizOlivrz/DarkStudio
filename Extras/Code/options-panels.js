@@ -132,7 +132,7 @@ function setActiveView(view) {
     mapLauncher?.setAttribute("aria-pressed", "false");
     debuggerLauncher?.classList.remove("is-active");
     debuggerLauncher?.setAttribute("aria-pressed", "false");
-    if (wasMapActive) window.darkStudioShowWorkspaceEditor?.();
+    // Não retorne ao editor ao desmarcar o atalho: Extensões continua sendo a tela ativa.
     clearUnsupportedState();
     syncMobileOptionsSpace();
     return;
