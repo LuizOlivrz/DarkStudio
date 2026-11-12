@@ -123,7 +123,7 @@ function setActiveView(view) {
     // Um segundo clique no seletor ativo recolhe o painel atual.
     const wasMapActive = activeView === "map";
     activeView = null;
-    if (optionsPanel) optionsPanel.hidden = true;
+    if (optionsPanel && !wasMapActive) optionsPanel.hidden = true;
     if (fileView) fileView.hidden = true;
     if (debuggerView) debuggerView.hidden = true;
     fileLauncher?.classList.remove("is-active");
@@ -141,7 +141,8 @@ function setActiveView(view) {
   const showMap = view === "map";
   const showDebugger = view === "debugger";
 
-  if (optionsPanel) optionsPanel.hidden = showMap;
+  // Extensões controla a própria área de conteúdo; não aciona o recolhimento de Options.
+  if (optionsPanel) optionsPanel.hidden = false;
   if (fileView) fileView.hidden = view !== "files";
   if (debuggerView) debuggerView.hidden = !showDebugger;
 
