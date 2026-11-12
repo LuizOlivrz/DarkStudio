@@ -308,4 +308,4 @@ Formato obrigatório:
 | 2026-11-11 19:26 (UTC-03:00) | ChatGPT — GPT-6 | Consolida os rótulos de navegação e a ocultação mobile de Extensões; padroniza border-radius global em 10px e elimina espaçamento/borda entre o editor e #main-content, com margem lateral mobile de 3px. | branch `ajustes-interface-global-mobile` |
 
 
-| 2026-11-11 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Cria a animação Material You com linha acelerada no desktop e construção/reversão suave no mobile, preservando a forma orgânica e os SVGs existentes. | branch `animacao-material-you-mobile` |
+| 2026-11-11 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Cria a animação Material You com linha acelerada no desktop e construção/reversão suave no mobile, preservando a forma orgânica e os SVGs existentes. | branch `animacao/material-you` |
