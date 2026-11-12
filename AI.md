@@ -319,3 +319,6 @@ Formato obrigatório:
 | 2026-11-12 | ChatGPT — GPT-6 | Corrige exclusivamente a máscara radial da cobrinha Material You: o anel estava posicionado fora da silhueta por usar percentuais relativos aos cantos do quadrado. | branch `animacao/material-you` |
 
 | 2026-11-12 | ChatGPT — GPT-6 | Eleva o seletor em hover/ativo e a pseudo-camada da cobrinha acima das demais camadas visuais, sem alterar geometria ou sequência da animação. | branch `animacao/material-you` |
+
+
+| 2026-11-12 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Substitui a cobrinha baseada em gradiente radial por um traço SVG contínuo calculado a partir do clip-path orgânico do seletor; acelera o fechamento no clique e revela o preenchimento após o traço completar o percurso. Preserva o wallpaper e os estilos de toque mobile. | branch `animacao/material-you` |
