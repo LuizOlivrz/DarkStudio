@@ -2421,6 +2421,10 @@ ${code}
   } else {
     initialize();
   }
+  const domObserver = new MutationObserver(initialize);
+  if (document.documentElement) {
+    domObserver.observe(document.documentElement, { childList: true, subtree: true });
+  }
   desktopPointer.addEventListener?.("change", initialize);
   window.addEventListener("resize", refreshDebug, { passive: true });
 })();
