@@ -4549,3 +4549,23 @@ body {
   90% { opacity: 1; }
   100% { transform: rotate(360deg); opacity: 0; }
 }
+
+
+/* O clique sempre dispara a volta acelerada, mesmo se o ponteiro sair do botão. */
+@media (hover: hover) and (pointer: fine) {
+  #workspace-launcher-rail .workspace-launcher.is-active::after,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle::after {
+    opacity: 1;
+    animation: material-you-selected-worm .78s linear 1 both;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active:hover::after,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]:hover::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle:hover::after,
+  #workspace-launcher-rail .workspace-launcher.is-active:focus-visible::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle:focus-visible::after {
+    opacity: 1;
+    animation: material-you-selected-worm .78s linear 1 both;
+  }
+}
