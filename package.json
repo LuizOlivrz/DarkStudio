@@ -95,10 +95,16 @@
       "runAfterFinish": true,
       "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
     },
-    "msiProjectCreated": "./scripts/corrigir-msi-sem-icone.js"
+    "msiProjectCreated": "./scripts/corrigir-msi-sem-icone.js",
+    "asarUnpack": [
+      "node_modules/windows-media-sessions/**/*"
+    ]
   },
   "dependencies": {
     "monaco-editor": "0.52.2",
     "extract-zip": "^2.0.1"
+  },
+  "optionalDependencies": {
+    "windows-media-sessions": "^1.0.3"
   }
 }
