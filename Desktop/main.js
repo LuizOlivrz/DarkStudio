@@ -393,6 +393,12 @@ ipcMain.handle("darkstudio:check-for-updates", async (event) => {
 
 const WINDOW_STATE_FILE = () => path.join(app.getPath("userData"), "window-state.json");
 const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
+let latestMediaSessionSnapshot = null;
+
+ipcMain.handle("darkstudio:media-session:get", (event) => {
+  if (!isTrustedTerminalEvent(event)) return null;
+  return latestMediaSessionSnapshot;
+});
 
 function readWindowState() {
   try {
@@ -547,6 +553,7 @@ app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
   createWindow();
   void startMediaSessionMonitor((snapshot) => {
+    latestMediaSessionSnapshot = snapshot;
     for (const window of BrowserWindow.getAllWindows()) {
       if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
         window.webContents.send("darkstudio:media-session", snapshot);
