@@ -285,6 +285,39 @@
   });
   waitForEditorAndRestore();
 
+  // Now Playing: existe somente no renderer Electron, nunca no navegador.
+  const nowPlaying = document.createElement("aside");
+  nowPlaying.id = "ds-now-playing";
+  nowPlaying.hidden = true;
+  nowPlaying.setAttribute("aria-label", "Mídia em reprodução");
+  nowPlaying.innerHTML = '<img class="ds-now-playing-artwork" alt="" /><div class="ds-now-playing-copy"><span class="ds-now-playing-title"></span><span class="ds-now-playing-artist"></span></div>';
+  document.body.appendChild(nowPlaying);
+
+  const nowPlayingArtwork = nowPlaying.querySelector(".ds-now-playing-artwork");
+  const nowPlayingTitle = nowPlaying.querySelector(".ds-now-playing-title");
+  const nowPlayingArtist = nowPlaying.querySelector(".ds-now-playing-artist");
+  const renderNowPlaying = (snapshot) => {
+    const hasTrack = snapshot && typeof snapshot.title === "string" && snapshot.title.trim();
+    nowPlaying.hidden = !hasTrack;
+    if (!hasTrack) {
+      nowPlayingArtwork.removeAttribute("src");
+      return;
+    }
+    nowPlayingTitle.textContent = snapshot.title;
+    nowPlayingArtist.textContent = snapshot.artist || "Artista desconhecido";
+    if (snapshot.artwork && snapshot.artwork !== nowPlayingArtwork.src) {
+      nowPlayingArtwork.src = snapshot.artwork;
+      nowPlayingArtwork.hidden = false;
+    } else if (!snapshot.artwork) {
+      nowPlayingArtwork.removeAttribute("src");
+      nowPlayingArtwork.hidden = true;
+    }
+    nowPlaying.title = [snapshot.title, snapshot.artist, snapshot.album].filter(Boolean).join(" — ");
+  };
+  const unsubscribeNowPlaying = window.darkStudioDesktop.onNowPlaying(renderNowPlaying);
+  window.darkStudioDesktop.getNowPlaying().then(renderNowPlaying).catch(() => {});
+  window.addEventListener("beforeunload", unsubscribeNowPlaying, { once: true });
+
   // Terminal integrado com sessões CMD/PowerShell, abas personalizáveis e tela cheia.
   if (document.getElementById("desktop-terminal")) return;
 

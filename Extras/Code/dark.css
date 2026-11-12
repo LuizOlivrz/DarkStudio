@@ -4446,3 +4446,66 @@ body {
   grid-column: 3 !important;
   min-width: 0;
 }
+
+
+/* Cartão Now Playing: criado exclusivamente pelo bridge do Electron. */
+#ds-now-playing {
+  position: fixed;
+  z-index: 9990;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: min(320px, calc(100vw - 32px));
+  min-height: 64px;
+  padding: 9px 12px 9px 9px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-color, #555) 55%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg, #111) 88%, transparent);
+  color: var(--text-color, #f5f5f5);
+  box-shadow: 0 5px 22px rgba(0, 0, 0, .22);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  pointer-events: none;
+  font-family: inherit;
+}
+#ds-now-playing[hidden] { display: none !important; }
+#ds-now-playing .ds-now-playing-artwork {
+  display: block;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  border-radius: 7px;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--text-color, #fff) 9%, transparent);
+}
+#ds-now-playing .ds-now-playing-artwork[hidden] { display: none !important; }
+#ds-now-playing .ds-now-playing-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 4px;
+}
+#ds-now-playing .ds-now-playing-title,
+#ds-now-playing .ds-now-playing-artist {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#ds-now-playing .ds-now-playing-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+#ds-now-playing .ds-now-playing-artist {
+  color: var(--secondary-text-color, var(--text-color, #aaa));
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: .78;
+}

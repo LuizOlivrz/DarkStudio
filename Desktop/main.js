@@ -6,6 +6,7 @@ const { pathToFileURL } = require("node:url");
 const extract = require("extract-zip");
 const { spawn } = require("node:child_process");
 const os = require("node:os");
+const { startMediaSessionMonitor, stopMediaSessionMonitor } = require("./media-session");
 
 app.setName("DarkStudio");
 
@@ -392,6 +393,12 @@ ipcMain.handle("darkstudio:check-for-updates", async (event) => {
 
 const WINDOW_STATE_FILE = () => path.join(app.getPath("userData"), "window-state.json");
 const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
+let latestMediaSessionSnapshot = null;
+
+ipcMain.handle("darkstudio:media-session:get", (event) => {
+  if (!isTrustedTerminalEvent(event)) return null;
+  return latestMediaSessionSnapshot;
+});
 
 function readWindowState() {
   try {
@@ -545,6 +552,14 @@ app.whenReady().then(async () => {
   app.setAppUserModelId("dev.darkstudio.desktop");
   Menu.setApplicationMenu(null);
   createWindow();
+  void startMediaSessionMonitor((snapshot) => {
+    latestMediaSessionSnapshot = snapshot;
+    for (const window of BrowserWindow.getAllWindows()) {
+      if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
+        window.webContents.send("darkstudio:media-session", snapshot);
+      }
+    }
+  }).catch((error) => console.warn("DarkStudio: monitor de mídia não inicializado.", error));
   // Atualizações automáticas são exclusivas do executável desktop Windows empacotado.
   if (process.platform === "win32" && app.isPackaged) {
     void checkForUpdates();
@@ -643,3 +658,6 @@ ipcMain.handle("darkstudio:terminal:stop", async (event, options = {}) => {
   session.child.kill();
   return { ok: true };
 });
+
+
+app.on("before-quit", () => { void stopMediaSessionMonitor(); });

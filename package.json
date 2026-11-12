@@ -12,7 +12,7 @@
     "dist:win": "npm run version:sync && electron-builder --win nsis msi portable",
     "dist:linux": "electron-builder --linux",
     "dist:mac": "electron-builder --mac",
-    "check:desktop": "node --check Desktop/main.js && node --check Desktop/preload.js && node --check Desktop/desktop-bridge.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\"",
+    "check:desktop": "node --check Desktop/main.js && node --check Desktop/preload.js && node --check Desktop/desktop-bridge.js && node --check Desktop/media-session.js && node -e \"JSON.parse(require('fs').readFileSync('package.json', 'utf8'))\"",
     "dist:msi": "npm run version:sync && node scripts/gerenciar-dist-msi.js preparar && electron-builder --win msi --x64 && node scripts/gerenciar-dist-msi.js finalizar",
     "version:sync": "node scripts/sincronizar-versao.js"
   },
@@ -95,10 +95,16 @@
       "runAfterFinish": true,
       "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
     },
-    "msiProjectCreated": "./scripts/corrigir-msi-sem-icone.js"
+    "msiProjectCreated": "./scripts/corrigir-msi-sem-icone.js",
+    "asarUnpack": [
+      "node_modules/windows-media-sessions/**/*"
+    ]
   },
   "dependencies": {
     "monaco-editor": "0.52.2",
     "extract-zip": "^2.0.1"
+  },
+  "optionalDependencies": {
+    "windows-media-sessions": "^1.0.3"
   }
 }
