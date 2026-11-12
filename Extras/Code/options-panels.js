@@ -120,10 +120,16 @@ function clearUnsupportedState() {
 
 function setActiveView(view) {
   if (view === activeView) {
-    // Um segundo clique no seletor ativo recolhe o painel atual.
-    const wasMapActive = activeView === "map";
+    // Extensões permanece como tela ativa mesmo quando o SVG é clicado novamente.
+    // Manter activeView como "map" permite que o próximo atalho restaure o editor.
+    if (activeView === "map") {
+      syncMobileOptionsSpace();
+      return;
+    }
+
+    // Um segundo clique nos demais seletores recolhe o painel atual.
     activeView = null;
-    if (optionsPanel && !wasMapActive) optionsPanel.hidden = true;
+    if (optionsPanel) optionsPanel.hidden = true;
     if (fileView) fileView.hidden = true;
     if (debuggerView) debuggerView.hidden = true;
     fileLauncher?.classList.remove("is-active");
@@ -132,7 +138,6 @@ function setActiveView(view) {
     mapLauncher?.setAttribute("aria-pressed", "false");
     debuggerLauncher?.classList.remove("is-active");
     debuggerLauncher?.setAttribute("aria-pressed", "false");
-    // Não retorne ao editor ao desmarcar o atalho: Extensões continua sendo a tela ativa.
     clearUnsupportedState();
     syncMobileOptionsSpace();
     return;
