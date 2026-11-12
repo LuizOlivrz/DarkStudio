@@ -4678,3 +4678,32 @@ body {
     ) !important;
   }
 }
+
+
+/* A cobrinha precisa ficar na camada superior do próprio seletor e da interface. */
+@media (hover: hover) and (pointer: fine) {
+  #workspace-launcher-rail .workspace-launcher:hover,
+  #workspace-launcher-rail .workspace-launcher:focus-visible,
+  #workspace-launcher-rail .workspace-launcher.is-active,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"],
+  #workspace-footer #config-toggle:hover,
+  #workspace-footer #config-toggle:focus-visible,
+  #Website-Container.settings-active #workspace-footer #config-toggle {
+    position: relative;
+    z-index: 9999 !important;
+    isolation: isolate;
+  }
+
+  #workspace-launcher-rail .workspace-launcher:hover::after,
+  #workspace-launcher-rail .workspace-launcher:focus-visible::after,
+  #workspace-launcher-rail .workspace-launcher.is-active::after,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::after,
+  #workspace-footer #config-toggle:hover::after,
+  #workspace-footer #config-toggle:focus-visible::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle::after {
+    z-index: 10000 !important;
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+  }
+}
