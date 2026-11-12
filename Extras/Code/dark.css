@@ -4569,3 +4569,55 @@ body {
     animation: material-you-selected-worm .78s linear 1 both;
   }
 }
+
+
+/* Silhueta orgânica de 12 ondulações arredondadas + traço que fecha o próprio percurso. */
+@media (hover: hover) and (pointer: fine) {
+  #workspace-launcher-rail .workspace-launcher::before,
+  #workspace-launcher-rail .workspace-launcher::after,
+  #workspace-footer #config-toggle::before,
+  #workspace-footer #config-toggle::after {
+    clip-path: polygon(50.00% 3.70%, 52.97% 4.62%, 55.68% 6.87%, 58.10% 9.28%, 60.53% 10.69%, 63.35% 10.68%, 66.65% 9.81%, 70.12% 9.21%, 73.15% 9.90%, 75.27% 12.18%, 76.48% 15.49%, 77.38% 18.78%, 78.78% 21.22%, 81.22% 22.62%, 84.51% 23.52%, 87.82% 24.73%, 90.10% 26.85%, 90.79% 29.88%, 90.19% 33.35%, 89.32% 36.65%, 89.31% 39.47%, 90.72% 41.90%, 93.13% 44.32%, 95.38% 47.03%, 96.30% 50.00%, 95.38% 52.97%, 93.13% 55.68%, 90.72% 58.10%, 89.31% 60.53%, 89.32% 63.35%, 90.19% 66.65%, 90.79% 70.12%, 90.10% 73.15%, 87.82% 75.27%, 84.51% 76.48%, 81.22% 77.38%, 78.78% 78.78%, 77.38% 81.22%, 76.48% 84.51%, 75.27% 87.82%, 73.15% 90.10%, 70.12% 90.79%, 66.65% 90.19%, 63.35% 89.32%, 60.53% 89.31%, 58.10% 90.72%, 55.68% 93.13%, 52.97% 95.38%, 50.00% 96.30%, 47.03% 95.38%, 44.32% 93.13%, 41.90% 90.72%, 39.47% 89.31%, 36.65% 89.32%, 33.35% 90.19%, 29.88% 90.79%, 26.85% 90.10%, 24.73% 87.82%, 23.52% 84.51%, 22.62% 81.22%, 21.22% 78.78%, 18.78% 77.38%, 15.49% 76.48%, 12.18% 75.27%, 9.90% 73.15%, 9.21% 70.12%, 9.81% 66.65%, 10.68% 63.35%, 10.69% 60.53%, 9.28% 58.10%, 6.87% 55.68%, 4.62% 52.97%, 3.70% 50.00%, 4.62% 47.03%, 6.87% 44.32%, 9.28% 41.90%, 10.69% 39.47%, 10.68% 36.65%, 9.81% 33.35%, 9.21% 29.88%, 9.90% 26.85%, 12.18% 24.73%, 15.49% 23.52%, 18.78% 22.62%, 21.22% 21.22%, 22.62% 18.78%, 23.52% 15.49%, 24.73% 12.18%, 26.85% 9.90%, 29.88% 9.21%, 33.35% 9.81%, 36.65% 10.68%, 39.47% 10.69%, 41.90% 9.28%, 44.32% 6.87%, 47.03% 4.62%) !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher::after,
+  #workspace-footer #config-toggle::after {
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg 322deg,
+      var(--primary-color, #6750a4) 326deg 356deg,
+      transparent 360deg
+    ) !important;
+    -webkit-mask: radial-gradient(circle, transparent 0 82%, #000 84% 100%) !important;
+    mask: radial-gradient(circle, transparent 0 82%, #000 84% 100%) !important;
+    border-radius: 0 !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"]):hover::after,
+  #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"]):focus-visible::after,
+  #Website-Container:not(.settings-active) #workspace-footer #config-toggle:hover::after,
+  #Website-Container:not(.settings-active) #workspace-footer #config-toggle:focus-visible::after {
+    opacity: 1;
+    animation: material-you-hover-worm 2.2s linear infinite !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active::after,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::after,
+  #Website-Container.settings-active #workspace-footer #config-toggle::after {
+    opacity: 1 !important;
+    animation: material-you-selected-worm .82s linear 1 both !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher.is-active::before,
+  #workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+  #Website-Container.settings-active #workspace-footer #config-toggle::before {
+    opacity: 1 !important;
+    transition: opacity .24s ease .82s, transform .24s ease .82s !important;
+  }
+
+  #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"])::before,
+  #Website-Container:not(.settings-active) #workspace-footer #config-toggle::before {
+    transition: opacity .18s ease, transform .18s ease !important;
+  }
+}
+
