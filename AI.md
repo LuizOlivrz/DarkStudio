@@ -315,3 +315,5 @@ Formato obrigatório:
 | 2026-11-11 | ChatGPT — GPT-6 | Simplifica Material You para seis pontas: cobrinha contínua no hover desktop, aceleração de seleção e preenchimento posterior; mobile mantém rótulo e aplica preenchimento curto ao toque. | branch `animacao/material-you` |
 
 | 2026-11-11 | ChatGPT — GPT-6 | Refina a silhueta Material You para 12 ondulações arredondadas e ajusta o traço para fechar o percurso antes do fade de preenchimento. | branch `animacao/material-you` |
+
+| 2026-11-12 | ChatGPT — GPT-6 | Corrige exclusivamente a máscara radial da cobrinha Material You: o anel estava posicionado fora da silhueta por usar percentuais relativos aos cantos do quadrado. | branch `animacao/material-you` |
