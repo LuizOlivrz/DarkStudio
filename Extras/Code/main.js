@@ -2354,12 +2354,8 @@ ${code}
         path.style.strokeDasharray = "1000 1000";
         path.style.strokeDashoffset = "0";
       } else {
-        path.style.strokeDasharray = svg.classList.contains("is-selected")
-          ? "1000 1000"
-          : "190 1000";
-        path.style.strokeDashoffset = svg.classList.contains("is-selected")
-          ? "1000"
-          : "0";
+        path.style.strokeDasharray = "190 1000";
+        path.style.strokeDashoffset = "0";
       }
     };
 
