@@ -2275,23 +2275,20 @@ ${code}
 }
 
 
-/* Material You: desenha a cobrinha sobre o caminho orgânico real do seletor. */
+/* Material You: cobrinha SVG + diagnóstico visual ativado por ?material-you-debug=1. */
 (() => {
-  const selectors = [
-    "#workspace-launcher-rail .workspace-launcher",
-    "#workspace-footer #config-toggle",
-  ].join(",");
-
+  const selectors = "#workspace-launcher-rail .workspace-launcher, #workspace-footer #config-toggle";
+  const debug = new URLSearchParams(location.search).get("material-you-debug") === "1";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const desktopPointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const debugTargets = [];
 
   function polygonToPath(clipPath) {
-    const match = clipPath.match(/^polygon\((.*)\)$/i);
+    const match = String(clipPath || "").match(/^polygon\\((.*)\\)$/i);
     if (!match) return null;
-    const points = [...match[1].matchAll(/(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/g)]
+    const points = [...match[1].matchAll(/(-?\\d+(?:\\.\\d+)?)%\\s+(-?\\d+(?:\\.\\d+)?)%/g)]
       .map((item) => [Number(item[1]), Number(item[2])]);
     if (points.length < 8) return null;
-
     const tension = 0.18;
     let d = `M ${points[0][0]} ${points[0][1]}`;
     for (let i = 0; i < points.length; i++) {
@@ -2299,71 +2296,112 @@ ${code}
       const current = points[i];
       const next = points[(i + 1) % points.length];
       const afterNext = points[(i + 2) % points.length];
-      const c1 = [
-        current[0] + (next[0] - previous[0]) * tension,
-        current[1] + (next[1] - previous[1]) * tension,
-      ];
-      const c2 = [
-        next[0] - (afterNext[0] - current[0]) * tension,
-        next[1] - (afterNext[1] - current[1]) * tension,
-      ];
+      const c1 = [current[0] + (next[0] - previous[0]) * tension, current[1] + (next[1] - previous[1]) * tension];
+      const c2 = [next[0] - (afterNext[0] - current[0]) * tension, next[1] - (afterNext[1] - current[1]) * tension];
       d += ` C ${c1[0]} ${c1[1]}, ${c2[0]} ${c2[1]}, ${next[0]} ${next[1]}`;
     }
     return d + " Z";
   }
 
+  function makeDebugPanel() {
+    if (!debug || document.getElementById("material-you-debug-panel")) return null;
+    const panel = document.createElement("pre");
+    panel.id = "material-you-debug-panel";
+    panel.textContent = "Material You — diagnóstico\nProcurando seletores...";
+    document.body.appendChild(panel);
+    return panel;
+  }
+
+  const panel = makeDebugPanel();
+
+  function refreshDebug() {
+    if (!panel) return;
+    const lines = [
+      "MATERIAL YOU / DIAGNÓSTICO",
+      "Modo: " + (desktopPointer.matches ? "desktop pointer" : "touch / sem hover"),
+      "prefers-reduced-motion: " + reducedMotion.matches,
+      "Seletores encontrados: " + document.querySelectorAll(selectors).length,
+      ""
+    ];
+    debugTargets.forEach(({ element, svg, error, shape }) => {
+      const rect = element.getBoundingClientRect();
+      const css = svg ? getComputedStyle(svg) : null;
+      const path = svg?.querySelector("path");
+      const pathRect = path?.getBoundingClientRect();
+      const sampleX = rect.left + rect.width * .5;
+      const sampleY = rect.top + rect.height * .08;
+      const top = document.elementFromPoint(sampleX, sampleY);
+      lines.push(element.id || element.className || element.tagName);
+      lines.push("SVG: " + (svg ? "criado" : "NAO CRIADO") + (error ? " | " + error : ""));
+      lines.push("clip-path: " + shape);
+      lines.push("Botão: " + Math.round(rect.width) + "x" + Math.round(rect.height) + " em " + Math.round(rect.left) + "," + Math.round(rect.top));
+      lines.push("SVG CSS: " + (css ? "display=" + css.display + " / position=" + css.position + " / z-index=" + css.zIndex + " / opacity=" + css.opacity : "—"));
+      lines.push("Path: " + (pathRect ? Math.round(pathRect.width) + "x" + Math.round(pathRect.height) : "ausente"));
+      lines.push("Camada no topo (amostra): " + (top ? top.tagName.toLowerCase() + (top.id ? "#" + top.id : "") + (top.classList?.length ? "." + [...top.classList].slice(0, 2).join(".") : "") : "nenhuma"));
+      lines.push("");
+    });
+    panel.textContent = lines.join("\\n");
+  }
+
   function attachWorm(element) {
     if (!element || element.querySelector(":scope > .material-you-worm")) return;
-
     const shape = getComputedStyle(element, "::before").clipPath;
     const pathData = polygonToPath(shape);
-    if (!pathData) return;
+    let svg = null;
+    let error = "";
+    if (pathData) {
+      const ns = "http://www.w3.org/2000/svg";
+      svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("preserveAspectRatio", "none");
+      svg.setAttribute("aria-hidden", "true");
+      svg.classList.add("material-you-worm");
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", pathData);
+      path.setAttribute("pathLength", "1000");
+      path.setAttribute("vector-effect", "non-scaling-stroke");
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", debug ? "#ff2bd6" : "var(--primary-color, #6750a4)");
+      path.setAttribute("stroke-width", debug ? "5" : "3.2");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      path.style.strokeDasharray = debug ? "240 1000" : "190 1000";
+      path.style.strokeDashoffset = "0";
+      svg.appendChild(path);
+      element.appendChild(svg);
+      if (debug) element.classList.add("material-you-debug-target");
+    } else {
+      error = "clip-path não é polygon percentual reconhecido";
+      if (debug) element.classList.add("material-you-debug-missing");
+    }
 
-    const ns = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(ns, "svg");
-    svg.setAttribute("viewBox", "0 0 100 100");
-    svg.setAttribute("preserveAspectRatio", "none");
-    svg.setAttribute("aria-hidden", "true");
-    svg.classList.add("material-you-worm");
-
-    const path = document.createElementNS(ns, "path");
-    path.setAttribute("d", pathData);
-    path.setAttribute("pathLength", "1000");
-    path.setAttribute("vector-effect", "non-scaling-stroke");
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke", "var(--primary-color, #6750a4)");
-    path.setAttribute("stroke-width", "3.2");
-    path.setAttribute("stroke-linecap", "round");
-    path.setAttribute("stroke-linejoin", "round");
-    path.style.strokeDasharray = "190 1000";
-    path.style.strokeDashoffset = "0";
-    svg.appendChild(path);
-    element.appendChild(svg);
-
+    debugTargets.push({ element, svg, error, shape });
     const isSelected = () =>
       element.matches(".is-active, [aria-pressed='true']") ||
-      element.id === "config-toggle" &&
-        element.closest("#Website-Container")?.classList.contains("settings-active");
+      (element.id === "config-toggle" &&
+        element.closest("#Website-Container")?.classList.contains("settings-active"));
 
     const syncState = () => {
+      if (!svg) { refreshDebug(); return; }
       svg.classList.toggle("is-selected", isSelected());
       svg.classList.toggle("is-hovered", !isSelected() &&
         (element.matches(":hover") || element.matches(":focus-visible")));
-      if (reducedMotion.matches) {
+      if (debug) {
+        svg.classList.add("is-debug-visible");
         svg.classList.remove("is-hovered", "is-selected");
-        path.style.strokeDasharray = "1000 1000";
-        path.style.strokeDashoffset = "0";
+      } else if (reducedMotion.matches) {
+        svg.classList.remove("is-hovered", "is-selected");
+        svg.querySelector("path").style.strokeDasharray = "1000 1000";
+        svg.querySelector("path").style.strokeDashoffset = "0";
       } else {
-        path.style.strokeDasharray = "190 1000";
-        path.style.strokeDashoffset = "0";
+        svg.querySelector("path").style.strokeDasharray = "190 1000";
+        svg.querySelector("path").style.strokeDashoffset = "0";
       }
+      refreshDebug();
     };
 
-    element.addEventListener("mouseenter", syncState);
-    element.addEventListener("mouseleave", syncState);
-    element.addEventListener("focusin", syncState);
-    element.addEventListener("focusout", syncState);
-
+    ["mouseenter", "mouseleave", "focusin", "focusout", "click"].forEach((name) =>
+      element.addEventListener(name, syncState));
     const observer = new MutationObserver(syncState);
     observer.observe(element, { attributes: true, attributeFilter: ["class", "aria-pressed"] });
     const container = element.closest("#Website-Container");
@@ -2373,8 +2411,9 @@ ${code}
   }
 
   function initialize() {
-    if (!desktopPointer.matches || reducedMotion.matches) return;
+    if (!debug && (!desktopPointer.matches || reducedMotion.matches)) return;
     document.querySelectorAll(selectors).forEach(attachWorm);
+    refreshDebug();
   }
 
   if (document.readyState === "loading") {
@@ -2383,4 +2422,5 @@ ${code}
     initialize();
   }
   desktopPointer.addEventListener?.("change", initialize);
+  window.addEventListener("resize", refreshDebug, { passive: true });
 })();
