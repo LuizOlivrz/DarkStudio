@@ -1,9 +1,21 @@
+const path = require("node:path");
+const fsSync = require("node:fs");
+const { app } = require("electron");
 const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const fs = require("node:fs/promises");
 const { fileURLToPath } = require("node:url");
 
 const execFileAsync = promisify(execFile);
+// O backend .NET precisa estar fora do ASAR para que o Windows possa executá-lo.
+if (process.platform === "win32" && !process.env.WINDOWS_MEDIA_SESSIONS_BACKEND) {
+  const backendRelativePath = path.join("node_modules", "windows-media-sessions", "bin", "win-x64", "windows-media-sessions-backend.exe");
+  const backendPath = app.isPackaged
+    ? path.join(process.resourcesPath, "app.asar.unpacked", backendRelativePath)
+    : path.join(__dirname, "..", backendRelativePath);
+  if (fsSync.existsSync(backendPath)) process.env.WINDOWS_MEDIA_SESSIONS_BACKEND = backendPath;
+}
+
 let stopPlatformMonitor = null;
 let stopWindowsListener = null;
 let windowsMediaApi = null;
