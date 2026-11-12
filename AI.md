@@ -323,3 +323,4 @@ Formato obrigatório:
 
 | 2026-11-12 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Substitui a cobrinha baseada em gradiente radial por um traço SVG contínuo calculado a partir do clip-path orgânico do seletor; acelera o fechamento no clique e revela o preenchimento após o traço completar o percurso. Preserva o wallpaper e os estilos de toque mobile. | branch `animacao/material-you` |
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a prioridade de camada do SVG Material You e adiciona diagnóstico visual ativado por `?material-you-debug=1`, com inspeção de geometria, visibilidade e sobreposição. | branch `animacao/material-you`; PR #59 |
+| 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Remove animação SVG da cobrinha e os estilos de diagnóstico; mantém somente o preenchimento orgânico com rotação contínua no estado ativo. | branch `animacao/material-you`; PR #59 |
