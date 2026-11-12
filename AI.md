@@ -309,3 +309,5 @@ Formato obrigatório:
 
 
 | 2026-11-11 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Cria a animação Material You com linha acelerada no desktop e construção/reversão suave no mobile, preservando a forma orgânica e os SVGs existentes. | branch `animacao/material-you` |
+
+| 2026-11-11 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Corrige a sequência Material You para exibir primeiro o estado normal, depois a cobrinha e por fim o preenchimento, com reversão ao desselecionar. | PR #59 |
