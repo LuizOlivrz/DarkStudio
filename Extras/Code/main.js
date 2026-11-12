@@ -2284,9 +2284,9 @@ ${code}
   const debugTargets = [];
 
   function polygonToPath(clipPath) {
-    const match = String(clipPath || "").match(/^polygon\\((.*)\\)$/i);
+    const match = String(clipPath || "").match(/^polygon\((.*)\)$/i);
     if (!match) return null;
-    const points = [...match[1].matchAll(/(-?\\d+(?:\\.\\d+)?)%\\s+(-?\\d+(?:\\.\\d+)?)%/g)]
+    const points = [...match[1].matchAll(/(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/g)]
       .map((item) => [Number(item[1]), Number(item[2])]);
     if (points.length < 8) return null;
     const tension = 0.18;
@@ -2340,7 +2340,7 @@ ${code}
       lines.push("Camada no topo (amostra): " + (top ? top.tagName.toLowerCase() + (top.id ? "#" + top.id : "") + (top.classList?.length ? "." + [...top.classList].slice(0, 2).join(".") : "") : "nenhuma"));
       lines.push("");
     });
-    panel.textContent = lines.join("\\n");
+    panel.textContent = lines.join("\n");
   }
 
   function attachWorm(element) {
