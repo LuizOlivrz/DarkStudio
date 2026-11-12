@@ -2286,9 +2286,9 @@ ${code}
   const desktopPointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 
   function polygonToPath(clipPath) {
-    const match = clipPath.match(/^polygon\\((.*)\\)$/i);
+    const match = clipPath.match(/^polygon\((.*)\)$/i);
     if (!match) return null;
-    const points = [...match[1].matchAll(/(-?\\d+(?:\\.\\d+)?)%\\s+(-?\\d+(?:\\.\\d+)?)%/g)]
+    const points = [...match[1].matchAll(/(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/g)]
       .map((item) => [Number(item[1]), Number(item[2])]);
     if (points.length < 8) return null;
 
