@@ -4410,3 +4410,39 @@ body {
     transition-duration: .01ms !important;
   }
 }
+
+/* Quando #options é recolhido, o conteúdo principal absorve a coluna liberada.
+   A rail permanece fixa e o chat conserva sua própria largura/coluna. */
+#Website-Container:has(> #options[hidden]),
+#Website-Container.extensions-active {
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+}
+
+#Website-Container.with-chat:has(> #options[hidden]),
+#Website-Container.with-chat.extensions-active {
+  grid-template-columns: 44px minmax(0, 1fr) var(--chat-width, 350px) !important;
+}
+
+#Website-Container.with-chat.chat-resize-hidden:has(> #options[hidden]),
+#Website-Container.with-chat.chat-resize-hidden.extensions-active {
+  grid-template-columns: 44px minmax(0, 1fr) 10px !important;
+}
+
+#Website-Container:has(> #options[hidden]) #main-content,
+#Website-Container:has(> #options[hidden]) #config,
+#Website-Container:has(> #options[hidden]) #mindmap-container,
+#Website-Container:has(> #options[hidden]) #extensions-panel,
+#Website-Container.extensions-active #main-content,
+#Website-Container.extensions-active #config,
+#Website-Container.extensions-active #mindmap-container,
+#Website-Container.extensions-active #extensions-panel {
+  grid-column: 2 !important;
+  width: 100%;
+  min-width: 0;
+}
+
+#Website-Container:has(> #options[hidden]) #chat,
+#Website-Container.extensions-active #chat {
+  grid-column: 3 !important;
+  min-width: 0;
+}
