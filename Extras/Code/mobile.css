@@ -3060,10 +3060,13 @@ body {
   #workspace-footer #config-toggle > svg {
     position: relative;
     z-index: 1;
-    opacity: 0;
-    transition:
-      opacity .18s ease,
-      color .58s cubic-bezier(.2,.75,.25,1);
+    opacity: 1;
+    transition: color .58s cubic-bezier(.2,.75,.25,1);
+  }
+
+  @keyframes material-you-svg-reveal {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   #workspace-launcher-rail .workspace-launcher.is-active::before,
@@ -3084,8 +3087,7 @@ body {
   #workspace-launcher-rail .workspace-launcher.is-active > svg,
   #workspace-launcher-rail .workspace-launcher[aria-pressed="true"] > svg,
   #Website-Container.settings-active #workspace-footer #config-toggle > svg {
-    opacity: 1;
-    transition-delay: .42s, 0s;
+    animation: material-you-svg-reveal .18s ease .42s both;
   }
 
   /* A saída é mais lenta e reversível; uma nova seleção interrompe a transição atual. */
@@ -3104,8 +3106,8 @@ body {
 
   #workspace-launcher-rail .workspace-launcher:not(.is-active):not([aria-pressed="true"]) > svg,
   #Website-Container:not(.settings-active) #workspace-footer #config-toggle > svg {
-    opacity: 0;
-    transition-delay: 0s, 0s;
+    opacity: 1;
+    animation: none;
   }
 
   #workspace-launcher-rail .workspace-launcher::after,
