@@ -353,7 +353,20 @@ if (!blockWeb) {
     player.hidden = !enabled || !isEditorSurfaceVisible();
 
     const text = typeof code === "string" ? code.trim() : "";
-    // URLs are also found inside pasted iframe/embed HTML (src="...").
+    // Só cria mini-player para uma URL isolada ou marcação explícita de mídia.
+    // URLs citadas em documentos de texto/código não devem abrir players sozinhas.
+    const isStandaloneLink =
+      currentDetectedLanguage === "Link (URL)" &&
+      /^https?:\/\/\S+$/i.test(text);
+    const hasExplicitMediaEmbed = /<(?:iframe|video|audio|embed)\b/i.test(text);
+    if (!isStandaloneLink && !hasExplicitMediaEmbed) {
+      player.hidden = true;
+      player.classList.remove("visible");
+      list.replaceChildren();
+      return;
+    }
+
+    // URLs também podem estar no src de marcações de mídia coladas no editor.
     const urls = text.match(/https?:\/\/[^\s<>"']+/gi) || [];
     const embeds = [];
     const seen = new Set();
