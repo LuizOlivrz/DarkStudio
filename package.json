@@ -6,6 +6,7 @@
   "main": "Desktop/main.js",
   "author": "LuizOlivrz",
   "scripts": {
+    "postinstall": "install-electron",
     "start": "electron .",
     "start:debug": "electron . --enable-logging",
     "dist": "npm run dist:win",
@@ -16,9 +17,12 @@
     "dist:msi": "npm run version:sync && node scripts/gerenciar-dist-msi.js preparar && electron-builder --win msi --x64 && node scripts/gerenciar-dist-msi.js finalizar",
     "version:sync": "node scripts/sincronizar-versao.js"
   },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
-    "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
   },
   "build": {
     "appId": "dev.darkstudio.desktop",
@@ -102,9 +106,20 @@
   },
   "dependencies": {
     "monaco-editor": "0.52.2",
-    "extract-zip": "^2.0.1"
+    "@electron-internal/extract-zip": "1.0.1"
+  },
+  "overrides": {
+    "@electron/universal": {
+      "minimatch": "^11.0.1"
+    },
+    "app-builder-lib": {
+      "minimatch": "^11.0.1"
+    }
   },
   "optionalDependencies": {
     "windows-media-sessions": "^1.0.3"
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true
   }
 }

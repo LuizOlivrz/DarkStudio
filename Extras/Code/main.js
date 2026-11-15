@@ -1722,31 +1722,72 @@ ${code}
     }
   }
 
-  // Mantém o footer alinhado ao limite real do painel #options, mesmo quando
-  // o usuário redimensiona esse painel ou a janela do navegador.
-  function syncWorkspaceFooterOffset() {
+  // Ajusta a altura do workspace para deixar 3 px antes do rodapé fixo.
+  function syncWorkspacePanelHeight() {
     const options = document.getElementById("options");
     const footer = document.getElementById("workspace-footer");
-    if (!options || !footer) return;
+    const workspaceContainer = document.getElementById("Website-Container");
+    if (document.documentElement.classList.contains("mobile-device") && window.innerWidth <= 700) {
+      workspaceContainer?.style.removeProperty("--workspace-height");
+      document.getElementById("ds-now-playing")?.style.removeProperty("height");
+      return;
+    }
+    const contentPanel = [
+      document.getElementById("main-content"),
+      document.getElementById("config"),
+      document.getElementById("mindmap-container"),
+      document.getElementById("extensions-panel")
+    ].find(panel => {
+      if (!panel || getComputedStyle(panel).display === "none") return false;
+      const rect = panel.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+    if (!options || !footer || !contentPanel) return;
     const containingBlock = footer.offsetParent;
     if (!containingBlock) return;
     const optionsRect = options.getBoundingClientRect();
     const parentRect = containingBlock.getBoundingClientRect();
     footer.style.left = `${Math.max(0, optionsRect.right - parentRect.left + 8)}px`;
+
+    const sizingContainer = workspaceContainer || containingBlock;
+    const minimumHeight = Math.min(260, window.innerHeight);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const currentContainerRect = sizingContainer.getBoundingClientRect();
+      const contentRect = contentPanel.getBoundingClientRect();
+      const footerRect = footer.getBoundingClientRect();
+      const targetContentBottom = footerRect.top - 3;
+      const heightAdjustment = targetContentBottom - contentRect.bottom;
+      if (Math.abs(heightAdjustment) < .5) break;
+      const nextHeight = Math.max(minimumHeight, currentContainerRect.height + heightAdjustment);
+      sizingContainer.style.setProperty("--workspace-height", `${nextHeight}px`);
+    }
+
+    const nowPlaying = document.getElementById("ds-now-playing");
+    if (nowPlaying) {
+      nowPlaying.style.height = `${footer.getBoundingClientRect().height}px`;
+    }
   }
 
   window.addEventListener("load", () => {
     checkScreenWidth();
-    syncWorkspaceFooterOffset();
+    syncWorkspacePanelHeight();
   });
   window.addEventListener("resize", () => {
     checkScreenWidth();
-    syncWorkspaceFooterOffset();
+    syncWorkspacePanelHeight();
   });
-  const optionsResizeObserver = new ResizeObserver(syncWorkspaceFooterOffset);
+  const optionsResizeObserver = new ResizeObserver(syncWorkspacePanelHeight);
   const optionsPanel = document.getElementById("options");
-  if (optionsPanel) optionsResizeObserver.observe(optionsPanel);
-  syncWorkspaceFooterOffset();
+  [
+    optionsPanel,
+    document.getElementById("main-content"),
+    document.getElementById("config"),
+    document.getElementById("mindmap-container"),
+    document.getElementById("extensions-panel"),
+    document.getElementById("workspace-footer"),
+    document.getElementById("Website-Container")
+  ].filter(Boolean).forEach(panel => optionsResizeObserver.observe(panel));
+  syncWorkspacePanelHeight();
 
   // ─────────────────────────────────────────────
   // 🖼 Background image + blur controls

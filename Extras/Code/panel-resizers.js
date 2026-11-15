@@ -1,5 +1,5 @@
 // DarkStudio — Panel Resizers
-// Redimensionamento pelas divisórias invisíveis entre os painéis.
+// Redimensionamento pelas barras entre os painéis.
 
 export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
   const storedNumber = (key, fallback, minimum, maximum) => {
@@ -25,7 +25,74 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     const value = Number.parseFloat(getComputedStyle(WebsiteContainer).getPropertyValue(variable));
     return Number.isFinite(value) ? value : 0;
   };
-  const layout = () => requestAnimationFrame(() => window.editor?.layout());
+  const optionsHandle = document.createElement("div");
+  optionsHandle.className = "panel-resize-bar";
+  optionsHandle.setAttribute("aria-hidden", "true");
+  WebsiteContainer.appendChild(optionsHandle);
+
+  const chatHandle = document.createElement("div");
+  chatHandle.className = "panel-resize-bar";
+  chatHandle.setAttribute("aria-hidden", "true");
+  WebsiteContainer.appendChild(chatHandle);
+
+  const editorPanels = [
+    editor,
+    document.getElementById("config"),
+    document.getElementById("mindmap-container"),
+    document.getElementById("extensions-panel")
+  ];
+  const visibleEditor = () => editorPanels.find(panel => {
+    if (!panel || getComputedStyle(panel).display === "none") return false;
+    const rect = panel.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+
+  const positionHandle = (handle, left, visible, containerRect) => {
+    if (!visible || !Number.isFinite(left)) {
+      handle.hidden = true;
+      return;
+    }
+    handle.hidden = false;
+    handle.style.left = `${left - containerRect.left - WebsiteContainer.clientLeft - 2}px`;
+  };
+
+  const updateHandles = () => {
+    const containerRect = WebsiteContainer.getBoundingClientRect();
+    const editorPanel = visibleEditor();
+    const optionsRect = options.getBoundingClientRect();
+    const editorRect = editorPanel?.getBoundingClientRect();
+    const optionsGap = editorRect ? editorRect.left - optionsRect.right : 0;
+    const optionsIsVisible = !options.hidden &&
+      getComputedStyle(options).display !== "none" &&
+      optionsRect.width > 0 &&
+      optionsRect.height > 0;
+    positionHandle(
+      optionsHandle,
+      optionsRect.right + optionsGap / 2,
+      optionsIsVisible && optionsGap > 0,
+      containerRect
+    );
+
+    const chatIsVisible = WebsiteContainer.classList.contains("with-chat") &&
+      getComputedStyle(chat).display !== "none";
+    const chatRect = chat.getBoundingClientRect();
+    const chatGap = chatIsVisible && editorRect ? chatRect.left - editorRect.right : 0;
+    const paddingRight = Number.parseFloat(getComputedStyle(WebsiteContainer).paddingRight || "0");
+    const chatHandleCenter = chatIsVisible && editorRect
+      ? editorRect.right + chatGap / 2
+      : containerRect.left + WebsiteContainer.clientLeft + WebsiteContainer.clientWidth - paddingRight / 2;
+    positionHandle(
+      chatHandle,
+      chatHandleCenter,
+      Boolean(editorRect) && (chatIsVisible ? chatGap > 0 : true),
+      containerRect
+    );
+  };
+
+  const layout = () => requestAnimationFrame(() => {
+    window.editor?.layout();
+    updateHandles();
+  });
 
   const setOptionsWidth = value => {
     const clamped = Math.max(optionMin, Math.min(optionsMax(), value));
@@ -104,13 +171,15 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     window.addEventListener("pointercancel", stop, { once: true });
   };
 
-  // As pseudo-áreas transparentes ficam sobre as divisórias, sem alças visíveis.
-  options.addEventListener("pointerdown", event => {
-    if (event.clientX >= options.getBoundingClientRect().right - 8) beginResize(event, "options");
-  });
-  editor.addEventListener("pointerdown", event => {
-    if (event.clientX >= editor.getBoundingClientRect().right - 8) beginResize(event, "chat");
-  });
+  optionsHandle.addEventListener("pointerdown", event => beginResize(event, "options"));
+  chatHandle.addEventListener("pointerdown", event => beginResize(event, "chat"));
+
+  const panelResizeObserver = new ResizeObserver(updateHandles);
+  [WebsiteContainer, options, ...editorPanels, chat]
+    .filter(Boolean)
+    .forEach(panel => panelResizeObserver.observe(panel));
+  requestAnimationFrame(updateHandles);
+
   window.addEventListener("resize", () => {
     setOptionsWidth(current("--options-width"));
 
@@ -119,5 +188,6 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     if (WebsiteContainer.classList.contains("with-chat")) {
       setChatWidth(current("--chat-width"));
     }
+    updateHandles();
   });
 }

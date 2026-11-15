@@ -3,7 +3,8 @@ const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
 const { app, BrowserWindow, shell, dialog, ipcMain, protocol, net, Menu, screen } = require("electron");
 const { pathToFileURL } = require("node:url");
-const extract = require("extract-zip");
+const extract = (archive, options) => import("@electron-internal/extract-zip")
+  .then(({ default: extractZip }) => extractZip(archive, options));
 const { spawn } = require("node:child_process");
 const os = require("node:os");
 const { startMediaSessionMonitor, stopMediaSessionMonitor } = require("./media-session");

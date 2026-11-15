@@ -4,7 +4,7 @@ O aplicativo desktop é construído com Electron e reutiliza a interface web loc
 
 ## Desenvolvimento
 
-Na raiz do repositório, execute:
+Use Node.js 22.12.0 ou mais recente. Na raiz do repositório, execute:
 
 ```powershell
 npm install
