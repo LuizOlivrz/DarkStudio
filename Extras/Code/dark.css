@@ -4819,3 +4819,11 @@ html.ds-boot-building body #signature {
   -webkit-backdrop-filter: blur(var(--bg-blur, 10px));
   backdrop-filter: blur(var(--bg-blur, 10px));
 }
+
+
+/* Apply the blur to the real status surface; later responsive rules hide ::before. */
+#workspace-footer #code-language {
+  background: rgba(9, 9, 9, 0.35) !important;
+  -webkit-backdrop-filter: blur(var(--bg-blur, 10px)) !important;
+  backdrop-filter: blur(var(--bg-blur, 10px)) !important;
+}
