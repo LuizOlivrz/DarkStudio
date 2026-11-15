@@ -1,3 +1,5 @@
+@import url("./index.css");
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -3028,6 +3030,18 @@ body {
 @media (max-width: 700px) {
   #workspace-launcher-rail #file-gutter-icon::after {
     content: "Arquivos" !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #main-content #workspace-empty-state img {
+    width: 56px;
+    max-height: 56px;
+  }
+
+  #main-content #workspace-empty-state p {
+    width: 100%;
+    text-align: center;
   }
 }
 
