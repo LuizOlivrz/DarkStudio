@@ -1589,7 +1589,7 @@ body {
   box-shadow: none;
   animation: none;
   pointer-events: none;
-  z-index: 2;
+  z-index:  10 !important;
 }
 
 #workspace-footer #code-language::before {
