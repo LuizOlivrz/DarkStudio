@@ -211,7 +211,12 @@ const WORKSPACES_KEY = "darkstudio_workspaces_v1";
 const ACTIVE_WORKSPACE_KEY = "darkstudio_active_workspace_id";
 const ACTIVE_WORKSPACE_FILE_PREFIX = "darkstudio_active_file_id:";
 let workspaceAutosaveInstalled = false;
-const EMPTY_FILE_DELETE_DELAY = 15 * 60 * 1000;
+const EMPTY_FILE_DELETE_ENABLED_KEY = "darkstudio_empty_file_auto_delete_enabled";
+const EMPTY_FILE_DELETE_MINUTES_KEY = "darkstudio_empty_file_auto_delete_minutes";
+const DEFAULT_EMPTY_FILE_DELETE_MINUTES = 15;
+const MIN_EMPTY_FILE_DELETE_MINUTES = 3.1;
+let emptyFileDeletionEnabled = false;
+let emptyFileDeletionMinutes = DEFAULT_EMPTY_FILE_DELETE_MINUTES;
 const emptyFileDeletionTimers = new Map();
 let highestNodeZIndex = 10;
 let indexedDbPromise = null;
@@ -2672,6 +2677,10 @@ function showAutomaticWorkspaceEmptyState() {
 }
 
 function updateEmptyFileDeletionTimer(node) {
+  if (!emptyFileDeletionEnabled) {
+    if (node?.id) clearEmptyFileDeletionTimer(node.id);
+    return;
+  }
   if (!node || node.type === "folder" || node.type === "image" || node.type === "binary") {
     if (node?.id) clearEmptyFileDeletionTimer(node.id);
     return;
@@ -2708,9 +2717,65 @@ function updateEmptyFileDeletionTimer(node) {
         showAutomaticWorkspaceEmptyState();
       }
     }
-  }, EMPTY_FILE_DELETE_DELAY);
+  }, emptyFileDeletionMinutes * 60 * 1000);
 
   emptyFileDeletionTimers.set(node.id, timer);
+}
+
+function configureEmptyFileAutoDeletion() {
+  const enabledInput = document.getElementById("empty-file-auto-delete-checkbox");
+  const minutesInput = document.getElementById("empty-file-auto-delete-minutes");
+  if (!enabledInput || !minutesInput) return;
+
+  try {
+    emptyFileDeletionEnabled = localStorage.getItem(EMPTY_FILE_DELETE_ENABLED_KEY) === "true";
+    const savedMinutes = Number(localStorage.getItem(EMPTY_FILE_DELETE_MINUTES_KEY));
+    emptyFileDeletionMinutes = Number.isFinite(savedMinutes) && savedMinutes > 3
+      ? savedMinutes
+      : DEFAULT_EMPTY_FILE_DELETE_MINUTES;
+  } catch {
+    emptyFileDeletionEnabled = false;
+    emptyFileDeletionMinutes = DEFAULT_EMPTY_FILE_DELETE_MINUTES;
+  }
+
+  enabledInput.checked = emptyFileDeletionEnabled;
+  minutesInput.value = String(emptyFileDeletionMinutes);
+  minutesInput.min = String(MIN_EMPTY_FILE_DELETE_MINUTES);
+
+  enabledInput.addEventListener("change", () => {
+    emptyFileDeletionEnabled = enabledInput.checked;
+    try {
+      localStorage.setItem(EMPTY_FILE_DELETE_ENABLED_KEY, String(emptyFileDeletionEnabled));
+    } catch {}
+    if (emptyFileDeletionEnabled) {
+      nodes.forEach(updateEmptyFileDeletionTimer);
+    } else {
+      for (const id of emptyFileDeletionTimers.keys()) clearEmptyFileDeletionTimer(id);
+    }
+    minutesInput.disabled = !emptyFileDeletionEnabled;
+  });
+
+  minutesInput.disabled = !emptyFileDeletionEnabled;
+  minutesInput.addEventListener("change", () => {
+    const requestedMinutes = Number(minutesInput.value);
+    if (!Number.isFinite(requestedMinutes) || requestedMinutes <= 3) {
+      minutesInput.setCustomValidity(tr("emptyFileAutoDeleteMinError"));
+      minutesInput.reportValidity();
+      minutesInput.value = String(emptyFileDeletionMinutes);
+      return;
+    }
+
+    minutesInput.setCustomValidity("");
+    emptyFileDeletionMinutes = requestedMinutes;
+    minutesInput.value = String(emptyFileDeletionMinutes);
+    try {
+      localStorage.setItem(EMPTY_FILE_DELETE_MINUTES_KEY, String(emptyFileDeletionMinutes));
+    } catch {}
+    for (const id of emptyFileDeletionTimers.keys()) clearEmptyFileDeletionTimer(id);
+    if (emptyFileDeletionEnabled) nodes.forEach(updateEmptyFileDeletionTimer);
+  });
+
+  nodes.forEach(updateEmptyFileDeletionTimer);
 }
 
 function openNodeInEditor(node) {
@@ -3346,6 +3411,7 @@ async function initMindmap() {
   await restoreStateFromIndexedDB();
   applyWorkspacePan();
   setupFileInputs();
+  configureEmptyFileAutoDeletion();
   wireUI();
   renderNodes();
   updateWorkspaceNameUI();
