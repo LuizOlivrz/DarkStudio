@@ -538,6 +538,7 @@
   }
 
   function createTerminal(type) {
+    window.dispatchEvent(new Event("darkstudio:terminal-opening"));
     const normalizedType = type === "PowerShell" ? "PowerShell" : "CMD";
     const item = {
       id: "terminal-" + nextTerminalId++,
@@ -659,6 +660,7 @@
       return;
     }
     if (!terminals.length) createTerminal("CMD");
+    else window.dispatchEvent(new Event("darkstudio:terminal-opening"));
     terminalPanel.hidden = false;
     workspace.classList.add("desktop-terminal-open");
     requestAnimationFrame(() => {
