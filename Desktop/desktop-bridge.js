@@ -757,6 +757,20 @@
   document.addEventListener("click", (event) => {
     if (!contextMenu.contains(event.target)) closeTerminalContext();
   });
+  function closeTerminalForChat() {
+    if (terminalPanel.hidden) return;
+    terminalPanel.hidden = true;
+    workspace.classList.remove("desktop-terminal-open");
+    if (fullscreen) {
+      fullscreen = false;
+      workspace.classList.remove("desktop-terminal-fullscreen");
+      terminalPanel.classList.remove("ds-terminal-fullscreen");
+    }
+    closeTerminalContext();
+    requestAnimationFrame(() => window.editor?.layout());
+  }
+
+  window.addEventListener("darkstudio:chat-opening", closeTerminalForChat);
   window.addEventListener("darkstudio:toggle-terminal", toggleTerminal);
   window.addEventListener("beforeunload", () => {
     unsubscribeTerminalData();
