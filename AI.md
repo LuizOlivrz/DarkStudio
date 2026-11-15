@@ -336,3 +336,5 @@ Formato obrigatório:
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona configuração para ativar/desativar a exclusão automática de arquivos vazios, definir prazo acima de 3 minutos e manter a opção desativada por padrão, com traduções nos oito idiomas. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
 
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Substitui a entrada abrupta por uma construção coreografada de 2,4 s, com movimentos sequenciais e fade posterior para status de rede, mini-players e chat inline. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
+
+| 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Torna as exceções da animação condicionais ao estado real dos recursos e unifica o chat inline/integrado no mesmo painel exclusivo do terminal desktop. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
