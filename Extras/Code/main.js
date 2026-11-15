@@ -135,6 +135,7 @@ if (!blockWeb) {
   // O terminal desktop e os dois modos do NightCoder compartilham a mesma
   // coluna lateral: abrir o terminal encerra qualquer modo de chat ativo.
   window.addEventListener("darkstudio:terminal-opening", closeChatPanel);
+  closeChatPanel();
 
   // A execução ocupa o próprio espaço de #main-content; #options permanece independente.
   if (editor && executorPanel && executorPanel.parentElement !== editor) {
