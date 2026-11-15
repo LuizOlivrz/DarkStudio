@@ -70,7 +70,7 @@ if (!blockWeb) {
       inlineChat.style.pointerEvents = "none";
       inlineChat.setAttribute("aria-hidden", "true");
     }
-    chat?.classList.remove("inline-mode");
+    chat?.classList.remove("inline-mode", "is-open");
     if (chat) {
       chat.style.display = "none";
       chat.style.pointerEvents = "none";
@@ -92,6 +92,7 @@ if (!blockWeb) {
     }
     chat?.classList.remove("inline-mode");
     if (chat) {
+      chat.classList.add("is-open");
       chat.style.display = "flex";
       chat.style.pointerEvents = "auto";
       chat.setAttribute("aria-hidden", "false");
@@ -106,7 +107,7 @@ if (!blockWeb) {
   window.darkStudioOpenInlineChat = () => {
     if (!chat || !inlineChat) return false;
     document.getElementById("input")?.blur();
-    chat.classList.add("inline-mode");
+    chat.classList.add("inline-mode", "is-open");
     chat.style.display = "flex";
     chat.style.pointerEvents = "auto";
     chat.setAttribute("aria-hidden", "false");
