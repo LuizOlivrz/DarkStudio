@@ -1,4 +1,12 @@
 (() => {
+  // Android mantém o carregamento atual, sem tela de entrada nem animação.
+  const isAndroidDevice = /Android/i.test(navigator.userAgent || "");
+  if (!isAndroidDevice) {
+    document.documentElement.classList.add("ds-boot-pending");
+    const bootStyle = document.createElement("style");
+    bootStyle.textContent = "html.ds-boot-pending,html.ds-boot-pending body{background:#000!important}html.ds-boot-pending body #Website-Container{opacity:0!important}";
+    document.head.appendChild(bootStyle);
+  }
   const supportedLanguages = ["en-US", "pt-BR", "ru", "ja", "ko", "zh-CN", "de", "es"];
   let savedLanguage = null;
   try {
