@@ -191,12 +191,17 @@ debuggerLauncher?.addEventListener("click", () => {
   syncMobileOptionsSpace();
 });
 chatLauncher?.addEventListener("click", () => {
-  document.dispatchEvent(new KeyboardEvent("keydown", {
-    key: "i", ctrlKey: true, bubbles: true, cancelable: true
-  }));
+  const chatPanel = document.getElementById("chat");
+  if (chatPanel?.classList.contains("inline-mode")) {
+    window.darkStudioOpenNightCoder?.();
+  } else {
+    document.dispatchEvent(new KeyboardEvent("keydown", {
+      key: "i", ctrlKey: true, bubbles: true, cancelable: true
+    }));
+  }
   const isOpen = container?.classList.contains("with-chat") ?? false;
-  chatLauncher.classList.toggle("is-active", isOpen);
-  chatLauncher.setAttribute("aria-pressed", String(isOpen));
+  chatLauncher.classList.toggle("is-active", isOpen && !chatPanel?.classList.contains("inline-mode"));
+  chatLauncher.setAttribute("aria-pressed", String(isOpen && !chatPanel?.classList.contains("inline-mode")));
 });
 
 // Regra genérica: qualquer ferramenta da barra, atual ou futura, fecha o NightCoder
