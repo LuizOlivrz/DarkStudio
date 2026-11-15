@@ -344,3 +344,5 @@ Formato obrigatório:
 | 2026-11-15 16:53 (UTC-03:00) | ChatGPT — GPT-6 | Faz o wallpaper cobrir a viewport sem distorção e aplica desfoque translúcido no fundo do Code Language, inclusive no mobile. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
 
 | 2026-11-15 17:02 (UTC-03:00) | ChatGPT — GPT-6 | Corrige o blur do Code Language aplicando backdrop-filter na superfície efetiva do componente e no rótulo mobile, sobrepondo fundos opacos responsivos. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
+
+| 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Usa PNG como favicon do site em todos os temas e reserva o ICO para o ícone do aplicativo desktop e dos atalhos/instalador Windows. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
