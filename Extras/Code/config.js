@@ -17,7 +17,7 @@ const OFFICIAL_ORIGINS = new Set([
   "https://dscode.dev",
 ]);
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const faviconLight = "Extras/Assets/White Favicon.png";
+const faviconLight = "Extras/Assets/White Favicon.ico";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
 export const version = "27.11.26"; // Current version / versão atual
@@ -545,6 +545,11 @@ if (!block) {
     mediaQuery.addEventListener("change", applyFavicon);
 
     flushBootLogs();
+    // Só revela a interface depois que os módulos centrais e o CSS terminaram de carregar.
+    if (document.documentElement.classList.contains("ds-boot-pending")) {
+      document.documentElement.classList.remove("ds-boot-pending");
+      document.documentElement.classList.add("ds-boot-complete");
+    }
   })();
 }
 
