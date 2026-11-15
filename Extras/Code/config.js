@@ -17,7 +17,7 @@ const OFFICIAL_ORIGINS = new Set([
   "https://dscode.dev",
 ]);
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const faviconLight = "Extras/Assets/White Favicon.ico";
+const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
 export const version = "27.11.26"; // Current version / versão atual
