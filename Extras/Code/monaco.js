@@ -569,22 +569,9 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
   }
 
   function showInlineChat(message = "") {
-    if (ChatVerification() === true) {
-      chat.style.opacity = "0";
-      chat.style.pointerEvents = "none";
-      document.getElementById("Editor-Input").focus();
-    }
-
-    inlineChat.style.display = "block";
-    inlineChat.style.pointerEvents = "auto";
+    window.darkStudioOpenInlineChat?.();
     chatOpen = true;
-
-    requestAnimationFrame(() => {
-      inlineChat.style.opacity = "1";
-    });
-
     if (message) showInlineMessage(message);
-
     inlineInput.value = "";
     inlineInput.focus();
   }
@@ -605,20 +592,15 @@ Responda SOMENTE com o código corrigido. sem explicações, sem nada além do c
     body.textContent = summary;
     card.append(heading, body);
     inlineMessages.replaceChildren(card);
-    inlineChat.style.display = "block";
-    inlineChat.style.opacity = "1";
-    inlineChat.style.pointerEvents = "auto";
+    window.darkStudioOpenInlineChat?.();
+    chatOpen = true;
   }
 
   function hideInlineChat() {
-    inlineChat.style.opacity = "0";
-    inlineChat.style.pointerEvents = "none";
+    window.darkStudioCloseInlineChat?.();
     chatOpen = false;
-    setTimeout(() => {
-      inlineChat.style.display = "none";
-      inlineMessages.innerHTML = "";
-      inlineInput.value = "";
-    }, 200);
+    inlineMessages.innerHTML = "";
+    inlineInput.value = "";
   }
 
   inlineSend.onclick = async () => {
