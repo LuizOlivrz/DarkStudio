@@ -84,6 +84,7 @@ if (!blockWeb) {
   }
 
   function openIntegratedChat() {
+    window.dispatchEvent(new Event("darkstudio:chat-opening"));
     inlineChat?.classList.remove("is-open");
     if (inlineChat) {
       inlineChat.style.display = "none";
@@ -106,6 +107,7 @@ if (!blockWeb) {
 
   window.darkStudioOpenInlineChat = () => {
     if (!chat || !inlineChat) return false;
+    window.dispatchEvent(new Event("darkstudio:chat-opening"));
     document.getElementById("input")?.blur();
     chat.classList.add("inline-mode", "is-open");
     chat.style.display = "flex";
