@@ -211,6 +211,8 @@ const WORKSPACES_KEY = "darkstudio_workspaces_v1";
 const ACTIVE_WORKSPACE_KEY = "darkstudio_active_workspace_id";
 const ACTIVE_WORKSPACE_FILE_PREFIX = "darkstudio_active_file_id:";
 let workspaceAutosaveInstalled = false;
+const EMPTY_FILE_DELETE_DELAY = 15 * 60 * 1000;
+const emptyFileDeletionTimers = new Map();
 let highestNodeZIndex = 10;
 let indexedDbPromise = null;
 
@@ -1345,6 +1347,7 @@ function renderNodes() {
   for (const node of nodes) {
     highestNodeZIndex = Math.max(highestNodeZIndex, Number(node.zIndex) || 0);
     nodeLayer.appendChild(createNodeElement(node));
+    updateEmptyFileDeletionTimer(node);
   }
 
   updateFolderVisibility();
@@ -2633,8 +2636,81 @@ function syncCurrentEditorToMap() {
   }
 
   currentEditingNode.content = window.editor.getValue();
-
+  updateEmptyFileDeletionTimer(currentEditingNode);
   saveState();
+}
+
+function clearEmptyFileDeletionTimer(nodeId) {
+  const timer = emptyFileDeletionTimers.get(nodeId);
+  if (timer) clearTimeout(timer);
+  emptyFileDeletionTimers.delete(nodeId);
+}
+
+function getNextExplorerFile(nodeId) {
+  const list = document.getElementById("explorer-files");
+  if (!list) return null;
+  const visibleFiles = Array.from(list.querySelectorAll("button.explorer-file[data-node-id]"))
+    .filter((button) => {
+      const node = getNode(button.dataset.nodeId);
+      return node && node.type !== "folder" && getComputedStyle(button).display !== "none";
+    });
+  const currentIndex = visibleFiles.findIndex((button) => button.dataset.nodeId === nodeId);
+  if (currentIndex < 0) return null;
+  for (let index = currentIndex + 1; index < visibleFiles.length; index += 1) {
+    const next = getNode(visibleFiles[index].dataset.nodeId);
+    if (next && next.type !== "folder") return next;
+  }
+  return null;
+}
+
+function showAutomaticWorkspaceEmptyState() {
+  showEditor();
+  const editorInput = document.getElementById("Editor-Input");
+  const emptyState = document.getElementById("workspace-empty-state");
+  if (editorInput) editorInput.hidden = true;
+  if (emptyState) emptyState.hidden = false;
+}
+
+function updateEmptyFileDeletionTimer(node) {
+  if (!node || node.type === "folder" || node.type === "image" || node.type === "binary") {
+    if (node?.id) clearEmptyFileDeletionTimer(node.id);
+    return;
+  }
+
+  const isEmpty = typeof node.content === "string" && node.content.trim().length === 0;
+  if (!isEmpty) {
+    clearEmptyFileDeletionTimer(node.id);
+    return;
+  }
+  if (emptyFileDeletionTimers.has(node.id)) return;
+
+  const timer = setTimeout(() => {
+    emptyFileDeletionTimers.delete(node.id);
+    const target = getNode(node.id);
+    if (!target || target.type === "folder") return;
+
+    const isActive = currentEditingNode?.id === target.id;
+    const latestContent = isActive && window.editor
+      ? window.editor.getValue()
+      : target.content;
+    if (typeof latestContent !== "string" || latestContent.trim().length > 0) {
+      target.content = latestContent;
+      return;
+    }
+
+    const nextFile = isActive ? getNextExplorerFile(target.id) : null;
+    deleteNode(target.id);
+
+    if (isActive) {
+      if (nextFile && getNode(nextFile.id)) {
+        openNodeInEditor(nextFile);
+      } else {
+        showAutomaticWorkspaceEmptyState();
+      }
+    }
+  }, EMPTY_FILE_DELETE_DELAY);
+
+  emptyFileDeletionTimers.set(node.id, timer);
 }
 
 function openNodeInEditor(node) {
@@ -2662,6 +2738,7 @@ function openNodeInEditor(node) {
   if (window.editor && typeof window.editor.setValue === "function") {
     window.editor.setValue(node.content || "");
     setEditorLanguage(node);
+    updateEmptyFileDeletionTimer(node);
   } else {
     console.warn("DarkStudio: o Monaco Editor ainda não está disponível.");
   }
@@ -2847,7 +2924,7 @@ function installWorkspaceAutosave() {
     if (!currentEditingNode) return;
 
     currentEditingNode.content = window.editor.getValue();
-
+    updateEmptyFileDeletionTimer(currentEditingNode);
     saveState();
   });
 }
@@ -2907,6 +2984,8 @@ function deleteNode(nodeId) {
     (connection) =>
       !idsToDelete.has(connection.from) && !idsToDelete.has(connection.to),
   );
+
+  for (const id of idsToDelete) clearEmptyFileDeletionTimer(id);
 
   if (currentEditingNode && idsToDelete.has(currentEditingNode.id)) {
     currentEditingNode = null;
