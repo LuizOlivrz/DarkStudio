@@ -53,25 +53,85 @@ if (!blockWeb) {
   const resetSignatureButton = document.getElementById("reset-signature");
   const signatureElement = document.getElementById("signature");
   const WebsiteContainer = document.getElementById("Website-Container");
-  // Fecha o NightCoder pela API interna, sem simular atalhos de teclado.
-  // Isso também funciona quando o chat inline está aberto.
-  window.darkStudioCloseNightCoder = () => {
-    if (!chatOpen && !WebsiteContainer?.classList.contains("with-chat")) return false;
+  const inlineChat = document.getElementById("inline-chat");
 
+  function syncNightCoderLauncher(isOpen) {
+    const launcher = document.getElementById("nightcoder-launcher");
+    launcher?.classList.toggle("is-active", isOpen);
+    launcher?.setAttribute("aria-pressed", String(isOpen));
+  }
+
+  function closeChatPanel() {
+    const wasOpen = chatOpen || WebsiteContainer?.classList.contains("with-chat");
     document.getElementById("input")?.blur();
-    WebsiteContainer?.classList.remove("with-chat", "chat-resize-hidden");
-    WebsiteContainer?.classList.add("no-chat");
+    inlineChat?.classList.remove("is-open");
+    if (inlineChat) {
+      inlineChat.style.display = "none";
+      inlineChat.style.pointerEvents = "none";
+      inlineChat.setAttribute("aria-hidden", "true");
+    }
+    chat?.classList.remove("inline-mode");
     if (chat) {
       chat.style.display = "none";
       chat.style.pointerEvents = "none";
+      chat.setAttribute("aria-hidden", "true");
     }
+    WebsiteContainer?.classList.remove("with-chat", "chat-resize-hidden");
+    WebsiteContainer?.classList.add("no-chat");
     chatOpen = false;
+    syncNightCoderLauncher(false);
+    return wasOpen;
+  }
 
-    const launcher = document.getElementById("nightcoder-launcher");
-    launcher?.classList.remove("is-active");
-    launcher?.setAttribute("aria-pressed", "false");
+  function openIntegratedChat() {
+    inlineChat?.classList.remove("is-open");
+    if (inlineChat) {
+      inlineChat.style.display = "none";
+      inlineChat.style.pointerEvents = "none";
+      inlineChat.setAttribute("aria-hidden", "true");
+    }
+    chat?.classList.remove("inline-mode");
+    if (chat) {
+      chat.style.display = "flex";
+      chat.style.pointerEvents = "auto";
+      chat.setAttribute("aria-hidden", "false");
+    }
+    WebsiteContainer?.classList.remove("no-chat", "chat-resize-hidden");
+    WebsiteContainer?.classList.add("with-chat");
+    chatOpen = true;
+    syncNightCoderLauncher(true);
+    document.getElementById("input")?.focus();
+  }
+
+  window.darkStudioOpenInlineChat = () => {
+    if (!chat || !inlineChat) return false;
+    document.getElementById("input")?.blur();
+    chat.classList.add("inline-mode");
+    chat.style.display = "flex";
+    chat.style.pointerEvents = "auto";
+    chat.setAttribute("aria-hidden", "false");
+    inlineChat.style.display = "flex";
+    inlineChat.style.pointerEvents = "auto";
+    inlineChat.setAttribute("aria-hidden", "false");
+    inlineChat.classList.add("is-open");
+    WebsiteContainer?.classList.remove("no-chat", "chat-resize-hidden");
+    WebsiteContainer?.classList.add("with-chat");
+    chatOpen = true;
+    syncNightCoderLauncher(false);
     return true;
   };
+
+  window.darkStudioCloseInlineChat = () => {
+    if (!chat?.classList.contains("inline-mode")) return false;
+    return closeChatPanel();
+  };
+
+  window.darkStudioOpenNightCoder = openIntegratedChat;
+  window.darkStudioCloseNightCoder = closeChatPanel;
+
+  // O terminal desktop e os dois modos do NightCoder compartilham a mesma
+  // coluna lateral: abrir o terminal encerra qualquer modo de chat ativo.
+  window.addEventListener("darkstudio:terminal-opening", closeChatPanel);
 
   // A execução ocupa o próprio espaço de #main-content; #options permanece independente.
   if (editor && executorPanel && executorPanel.parentElement !== editor) {
@@ -1593,36 +1653,19 @@ ${code}
     if (e.ctrlKey && e.key.toLowerCase() === "i") {
       e.preventDefault();
 
-      const input = document.getElementById("input");
-      const inlineChat = document.getElementById("inline-chat");
-
-      if (inlineChat.style.opacity === "1") {
-        inlineChat.style.opacity = "0";
+      if (chat?.classList.contains("inline-mode")) {
+        closeChatPanel();
+        document.getElementById("Editor-Input")?.focus();
         return;
       }
 
       if (e.shiftKey) return;
 
       if (chatOpen) {
-        input.blur();
-        document.getElementById("Editor-Input").focus();
-
-        WebsiteContainer.classList.remove("with-chat");
-        WebsiteContainer.classList.add("no-chat");
-
-        chat.style.display = "none";
-
-        chatOpen = false;
+        closeChatPanel();
+        document.getElementById("Editor-Input")?.focus();
       } else {
-        input.focus();
-
-        chat.style.display = "flex";
-        chat.style.pointerEvents = "auto";
-
-        WebsiteContainer.classList.remove("no-chat", "chat-resize-hidden");
-        WebsiteContainer.classList.add("with-chat");
-
-        chatOpen = true;
+        openIntegratedChat();
       }
     }
   });
@@ -1631,38 +1674,46 @@ ${code}
   // 🌐 Network Status / Status da Conexão
   // ─────────────────────────────────────────────
 
-  function handleNetworkChange() {
+  let networkStatusTimer = null;
+  let hadOfflineConnection = !navigator.onLine;
+
+  function handleNetworkChange(isInitialCheck = false) {
     const aviso = document.getElementById("network-status");
     const login = document.getElementById("login");
+    if (networkStatusTimer) clearTimeout(networkStatusTimer);
 
     if (!navigator.onLine && isMobile !== "Mobile") {
+      hadOfflineConnection = true;
       if (getDevMode()) console.warn("🔴 " + t("offline"));
       if (aviso) {
         aviso.textContent = t("noInternet");
-        setTimeout(() => {
-          aviso.style.opacity = "1";
-        }, 300);
+        aviso.classList.add("is-visible");
+        aviso.setAttribute("aria-hidden", "false");
       }
-      if (login) {
-        login.style.opacity = "0";
-      }
-    } else {
-      if (getDevMode()) console.log("🟢 " + t("online"));
-      if (aviso) {
-        aviso.textContent = t("onInternet");
-      }
-      if (login) {
-        login.style.opacity = "1";
-      }
-
-      setTimeout(() => {
-        if (aviso) aviso.style.opacity = "0";
-      }, 1000);
+      if (login) login.style.opacity = "0";
+      return;
     }
+
+    if (login) login.style.opacity = "1";
+    if (!isInitialCheck && hadOfflineConnection && isMobile !== "Mobile" && aviso) {
+      if (getDevMode()) console.log("🟢 " + t("online"));
+      aviso.textContent = t("onInternet");
+      aviso.classList.add("is-visible");
+      aviso.setAttribute("aria-hidden", "false");
+      networkStatusTimer = setTimeout(() => {
+        aviso.classList.remove("is-visible");
+        aviso.setAttribute("aria-hidden", "true");
+      }, 1100);
+    } else {
+      aviso?.classList.remove("is-visible");
+      aviso?.setAttribute("aria-hidden", "true");
+    }
+    hadOfflineConnection = false;
   }
 
-  window.addEventListener("online", handleNetworkChange);
-  window.addEventListener("offline", handleNetworkChange);
+  window.addEventListener("online", () => handleNetworkChange(false));
+  window.addEventListener("offline", () => handleNetworkChange(false));
+  handleNetworkChange(true);
 
   document.querySelectorAll("button").forEach((btn) => {
     btn.addEventListener("click", () => {
