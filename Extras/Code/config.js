@@ -545,10 +545,20 @@ if (!block) {
     mediaQuery.addEventListener("change", applyFavicon);
 
     flushBootLogs();
-    // Só revela a interface depois que os módulos centrais e o CSS terminaram de carregar.
+    // O tempo de construção começa somente após o carregamento do site.
     if (document.documentElement.classList.contains("ds-boot-pending")) {
-      document.documentElement.classList.remove("ds-boot-pending");
-      document.documentElement.classList.add("ds-boot-complete");
+      const root = document.documentElement;
+      root.classList.remove("ds-boot-pending");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        root.classList.add("ds-boot-complete");
+      } else {
+        root.classList.add("ds-boot-building");
+        // Linha do tempo total: 2,4 s (dentro do intervalo solicitado de 1 a 3 s).
+        window.setTimeout(() => {
+          root.classList.remove("ds-boot-building");
+          root.classList.add("ds-boot-complete");
+        }, 2400);
+      }
     }
   })();
 }
