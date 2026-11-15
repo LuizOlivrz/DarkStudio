@@ -2,8 +2,6 @@
 // ✨ Importações / Imports
 // ─────────────────────────────────────────────
 import { getDevMode, blockWeb, t, getCurrentLanguage } from "./config.js";
-import { chatOpenValue, ChatVerification } from "./main.js";
-let chatOpen = chatOpenValue();
 
 // Bloqueia execução se estiver em mobile (definido em config.js)
 if (!blockWeb) {
@@ -20,7 +18,6 @@ if (!blockWeb) {
   const inlineInput = document.getElementById("inline-input");
   const inlineSend = document.getElementById("inline-send");
   const inlineMessages = document.getElementById("inline-messages");
-  const chat = document.getElementById("chat");
 
   // ─────────────────────────────────────────────
   // 🎃 Detecção de Tema por Data / Auto Theme by Date
