@@ -1725,7 +1725,7 @@ body {
 }
 
 #workspace-footer #config-toggle {
-  transform: translateY(-8px);
+  transform: none;
 }
 
 #bg-blur-range {
