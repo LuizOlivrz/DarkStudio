@@ -51,7 +51,8 @@
           ]
         }
       ],
-      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
+      "icon": "Extras/Assets/White Favicon.ico"
     },
     "linux": {
       "target": [
