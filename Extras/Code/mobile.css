@@ -3594,3 +3594,19 @@ html.ds-boot-building body #signature {
   -webkit-backdrop-filter: blur(var(--bg-blur, 10px));
   backdrop-filter: blur(var(--bg-blur, 10px));
 }
+
+
+/* Mobile uses the label itself as the visible surface, so blur it directly. */
+@media (max-width: 700px) {
+  #workspace-footer #code-language {
+    background: rgba(9, 9, 9, 0.35) !important;
+    -webkit-backdrop-filter: blur(var(--bg-blur, 10px)) !important;
+    backdrop-filter: blur(var(--bg-blur, 10px)) !important;
+  }
+
+  #workspace-footer #code-language h4 {
+    background: rgba(9, 9, 9, 0.35) !important;
+    -webkit-backdrop-filter: blur(var(--bg-blur, 10px)) !important;
+    backdrop-filter: blur(var(--bg-blur, 10px)) !important;
+  }
+}
