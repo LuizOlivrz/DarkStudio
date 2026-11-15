@@ -2652,7 +2652,7 @@ function getNextExplorerFile(nodeId) {
   const visibleFiles = Array.from(list.querySelectorAll("button.explorer-file[data-node-id]"))
     .filter((button) => {
       const node = getNode(button.dataset.nodeId);
-      return node && node.type !== "folder" && getComputedStyle(button).display !== "none";
+      return node && node.type !== "folder" && button.getClientRects().length > 0;
     });
   const currentIndex = visibleFiles.findIndex((button) => button.dataset.nodeId === nodeId);
   if (currentIndex < 0) return null;
