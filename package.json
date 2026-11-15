@@ -80,6 +80,7 @@
     },
     "files": [
       "index.html",
+      "robots.txt",
       "help/**/*",
       "Extras/**/*",
       "Desktop/**/*",
