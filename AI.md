@@ -331,4 +331,4 @@ Formato obrigatório:
 | 2026-11-12 16:23 (UTC-03:00) | ChatGPT — GPT-6 | Mantém Extensões como visualização ativa no segundo clique para que a próxima seleção de Arquivos/Depurador reconheça a origem e restaure o editor normalmente. | branch `animacao/material-you` |
 
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Implementa o Now Playing exclusivo do Electron com leitura de sessões de mídia do sistema, capa disponível e metadados; documenta limites por plataforma. | branch `recurso/midia-em-reproducao-desktop` |
-| 2026-11-15 15:36 (UTC-03:00) | ChatGPT — GPT-6 | Sincroniza o favicon ICO com o PNG transparente, adiciona robots.txt e cria entrada progressiva da interface fora do Android. | Branch `feature/carregamento-animado-robots-icone` |
+| 2026-11-15 15:36 (UTC-03:00) | ChatGPT — GPT-6 | Padroniza o uso do favicon ICO entre web e Electron, adiciona robots.txt e cria entrada progressiva da interface fora do Android. | Branch `feature/carregamento-animado-robots-icone` |
