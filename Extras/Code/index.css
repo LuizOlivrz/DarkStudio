@@ -307,7 +307,7 @@
 
 /* Former inline styles from index.html. */
 html body { background-color: black; }
-html body #Website-Container { opacity: 0; }
+html body #Website-Container { opacity: 1; }
 html body #Editor-Input { width: 100%; height: 100%; }
 html body #config .settings-intro {
   margin: 0 0 14px;
