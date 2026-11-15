@@ -340,3 +340,5 @@ Formato obrigatório:
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Torna as exceções da animação condicionais ao estado real dos recursos e unifica o chat inline/integrado no mesmo painel exclusivo do terminal desktop. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
 
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Eleva o z-index de `#code-language` para sobrepor a assinatura no rodapé, em desktop e mobile. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
+
+| 2026-11-15 16:53 (UTC-03:00) | ChatGPT — GPT-6 | Faz o wallpaper cobrir a viewport sem distorção e aplica desfoque translúcido no fundo do Code Language, inclusive no mobile. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
