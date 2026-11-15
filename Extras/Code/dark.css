@@ -4631,7 +4631,7 @@ body {
   min-width: 0;
   min-height: 0;
 }
-#chat.inline-mode > :not(#inline-chat) {
+#chat.inline-mode > :not(#inline-chat):not(#chat-resize-handle) {
   display: none !important;
 }
 #chat #inline-chat {
