@@ -4553,7 +4553,7 @@ body {
     animation: none;
     pointer-events: auto;
     transition: transform 0.3s ease;
-    z-index: 2;
+    z-index: 10 !important;
   }
 
   #workspace-footer #code-language::before {
