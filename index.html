@@ -118,6 +118,14 @@
           <input type="checkbox" id="mini-player-enabled-checkbox" checked />
           <span data-i18n="enableMiniPlayers">Ativar mini-players de mídia</span>
         </label>
+        <h3 data-i18n="workspaceCleanupSettings">Workspace</h3>
+        <label for="empty-file-auto-delete-checkbox">
+          <input type="checkbox" id="empty-file-auto-delete-checkbox" />
+          <span data-i18n="emptyFileAutoDelete">Excluir automaticamente arquivos vazios</span>
+        </label>
+        <label for="empty-file-auto-delete-minutes" data-i18n="emptyFileAutoDeleteTime">Tempo até a exclusão (minutos):</label>
+        <input type="number" id="empty-file-auto-delete-minutes" min="3.1" step="0.1" value="15" disabled />
+        <p data-i18n="emptyFileAutoDeleteHint">O tempo deve ser maior que 3 minutos. A opção vem desativada por padrão.</p>
         <h3 data-i18n="signature">Signature</h3>
         <label for="signature-input" data-i18n="signatureLabel">Your signature (max 22 chars):</label>
         <input type="text" id="signature-input" value="LUIZzz" maxlength="22" />
