@@ -3550,3 +3550,18 @@ html.ds-boot-building body #signature {
     filter: none !important;
   }
 }
+
+
+#chat.inline-mode > :not(#inline-chat):not(#chat-resize-handle) {
+  display: none !important;
+}
+#chat.inline-mode #inline-chat > .inline-chat-heading {
+  display: block;
+  flex: 0 0 auto;
+  margin: 4px 0 12px;
+  padding: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
