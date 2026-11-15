@@ -3381,3 +3381,172 @@ body {
     transform: translateX(-50%);
   }
 }
+
+
+/* Painéis de chat e exceções da animação de inicialização. */
+#network-status {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 220ms ease, visibility 220ms ease;
+}
+#network-status.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+#mini-player:not(.visible) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* O chat inline reutiliza o mesmo painel, dimensões e coluna do NightCoder. */
+#chat.inline-mode {
+  display: flex !important;
+  min-width: 0;
+  min-height: 0;
+}
+#chat.inline-mode > :not(#inline-chat) {
+  display: none !important;
+}
+#chat #inline-chat {
+  display: none;
+}
+#chat.inline-mode #inline-chat,
+#chat.inline-mode #inline-chat.is-open {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100%;
+  max-height: none !important;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  transform: none !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  pointer-events: auto;
+  z-index: auto;
+}
+#inline-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 4px 4px 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+#inline-input-area {
+  position: static !important;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  animation: none !important;
+}
+#inline-input {
+  width: 0;
+  min-width: 0;
+  min-height: 42px;
+  flex: 1 1 auto;
+}
+#inline-send { flex: 0 0 auto; }
+
+/* A visibilidade pós-construção depende do estado funcional de cada recurso. */
+html.ds-boot-building body #network-status,
+html.ds-boot-building body #mini-player,
+html.ds-boot-building body #chat {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  animation: none !important;
+}
+html.ds-boot-complete body #network-status.is-visible,
+html.ds-boot-complete body #mini-player.visible,
+html.ds-boot-complete body #chat.is-open {
+  animation: ds-boot-exception-fade 420ms ease-out 70ms both;
+}
+@keyframes ds-boot-exception-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Construção coreografada: o relógio começa depois do carregamento dos módulos. */
+html.ds-boot-building body #main-content {
+  animation: ds-build-editor 900ms cubic-bezier(.16, 1, .3, 1) 80ms both;
+}
+html.ds-boot-building body #workspace-launcher-rail {
+  animation: ds-build-from-left 720ms cubic-bezier(.16, 1, .3, 1) 480ms both;
+}
+html.ds-boot-building body #workspace-launcher-rail > * {
+  animation: ds-build-icon 520ms cubic-bezier(.2, .8, .2, 1) both;
+}
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(1) { animation-delay: 620ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(2) { animation-delay: 740ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(3) { animation-delay: 860ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(4) { animation-delay: 980ms; }
+html.ds-boot-building body #options {
+  animation: ds-build-from-left 820ms cubic-bezier(.16, 1, .3, 1) 760ms both;
+}
+html.ds-boot-building body #options > * {
+  animation: ds-build-panel 620ms cubic-bezier(.16, 1, .3, 1) both;
+}
+html.ds-boot-building body #options > :nth-child(1) { animation-delay: 900ms; }
+html.ds-boot-building body #options > :nth-child(2) { animation-delay: 1040ms; }
+html.ds-boot-building body #options > :nth-child(3) { animation-delay: 1180ms; }
+html.ds-boot-building body #executor-panel,
+html.ds-boot-building body #mindmap-container {
+  animation: ds-build-rise 680ms cubic-bezier(.16, 1, .3, 1) 980ms both;
+}
+html.ds-boot-building body #workspace-footer {
+  animation: ds-build-from-bottom 680ms cubic-bezier(.16, 1, .3, 1) 1420ms both;
+}
+html.ds-boot-building body #signature {
+  animation: ds-build-signature 560ms cubic-bezier(.16, 1, .3, 1) 1780ms both;
+}
+@keyframes ds-build-editor {
+  from { opacity: 0; transform: translate3d(0, 30px, 0) scale(.985); filter: blur(5px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+}
+@keyframes ds-build-from-left {
+  from { opacity: 0; transform: translate3d(-34px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes ds-build-icon {
+  from { opacity: 0; transform: translate3d(-18px, 12px, 0) scale(.88); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes ds-build-panel {
+  from { opacity: 0; transform: translate3d(18px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes ds-build-rise {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes ds-build-from-bottom {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes ds-build-signature {
+  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(.94); filter: blur(4px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.ds-boot-building body #Website-Container *,
+  html.ds-boot-complete body #network-status.is-visible,
+  html.ds-boot-complete body #mini-player.visible,
+  html.ds-boot-complete body #chat.is-open {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    filter: none !important;
+  }
+}
