@@ -3180,7 +3180,7 @@ function showExplorerContextMenu(node, x, y) {
       const target = document.querySelector("#explorer-toggle .explorer-label");
       if (target) beginWorkspaceRename(target);
     });
-    addAction("↻ " + tr("mindMapClear"), () => clearMap());
+    addAction("↻ " + tr("workspaceReset"), () => clearMap());
   }
 
   document.body.appendChild(menu);
