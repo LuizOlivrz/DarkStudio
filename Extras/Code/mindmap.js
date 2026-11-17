@@ -806,7 +806,8 @@ function injectStyles() {
       background: rgba(15,15,15,.9);
       color: #ccc;
       font-size: 12px;
-      pointer-events: none;
+      cursor: text;
+      pointer-events: auto;
     }
 
     .mm-link {
@@ -866,6 +867,96 @@ function updateWorkspaceNameUI() {
     workspaceDescription,
     workspaceTags.length ? `${tr("workspaceTags")}: ${workspaceTags.join(", ")}` : "",
   ].filter(Boolean).join("\n");
+
+  const explorerLabel = document.querySelector("#explorer-toggle .explorer-label");
+  if (explorerLabel) {
+    explorerLabel.textContent = workspaceName;
+    explorerLabel.title = tr("workspaceRename");
+    explorerLabel.style.cursor = "text";
+    explorerLabel.onclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      beginWorkspaceRename(explorerLabel);
+    };
+  }
+
+  label.onclick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    beginWorkspaceRename(label);
+  };
+  label.oncontextmenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    beginWorkspaceRename(label);
+  };
+}
+
+function beginWorkspaceRename(target) {
+  if (!target || target.dataset.renaming === "true") return;
+  const rect = target.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = workspaceName;
+  input.maxLength = 100;
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  input.setAttribute("aria-label", tr("workspaceRename"));
+  Object.assign(input.style, {
+    position: "fixed",
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
+    width: `${Math.max(110, rect.width)}px`,
+    height: `${Math.max(28, rect.height)}px`,
+    boxSizing: "border-box",
+    zIndex: "1000005",
+    margin: "0",
+    padding: "4px 8px",
+    border: "1px solid var(--secondary-color, #5d00ff)",
+    borderRadius: "6px",
+    outline: "none",
+    background: "#151515",
+    color: "#fff",
+    font: "inherit",
+    fontSize: "13px",
+    pointerEvents: "auto",
+    userSelect: "text",
+  });
+  target.dataset.renaming = "true";
+  target.style.visibility = "hidden";
+  document.body.appendChild(input);
+
+  let finished = false;
+  const finish = (save) => {
+    if (finished) return;
+    finished = true;
+    const nextName = input.value.trim();
+    input.remove();
+    target.style.visibility = "";
+    delete target.dataset.renaming;
+    if (save && nextName && nextName !== workspaceName) {
+      workspaceName = nextName;
+      saveState();
+      updateWorkspaceNameUI();
+    }
+  };
+
+  input.addEventListener("pointerdown", (event) => event.stopPropagation());
+  input.addEventListener("click", (event) => event.stopPropagation());
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      finish(true);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      finish(false);
+    }
+  });
+  input.addEventListener("blur", () => finish(true), { once: true });
+  input.focus();
+  input.select();
 }
 
 function showNameDialog(initialName = "", title = "Nome") {
@@ -2782,6 +2873,7 @@ function openNodeInEditor(node) {
   if (!node || node.type === "folder") return;
 
   if (node.type === "image") {
+    syncCurrentEditorToMap();
     showImageViewer(node);
     return;
   }
@@ -2920,38 +3012,42 @@ function showMap() {
 
 function closeImageViewer() {
   document.getElementById("mindmap-image-viewer")?.remove();
-
   const input = document.getElementById("Editor-Input");
-
-  if (input) input.style.display = "block";
+  if (input) input.style.display = "";
 }
 
 function showImageViewer(node) {
   closeImageViewer();
+  showEditor();
+
+  const mainContent = document.getElementById("main-content");
+  const editorInput = document.getElementById("Editor-Input");
+  if (!mainContent) return;
 
   const viewer = document.createElement("div");
   viewer.id = "mindmap-image-viewer";
-
   Object.assign(viewer.style, {
-    position: "fixed",
+    position: "absolute",
     inset: "0",
-    zIndex: "1000001",
+    zIndex: "20",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     gap: "14px",
+    boxSizing: "border-box",
     padding: "20px",
-    background: "rgba(0,0,0,.92)",
+    overflow: "auto",
+    background: "#090909",
   });
 
   const image = document.createElement("img");
   image.src = node.content;
   image.alt = node.name;
-
   Object.assign(image.style, {
-    maxWidth: "90vw",
-    maxHeight: "80vh",
+    display: "block",
+    maxWidth: "100%",
+    maxHeight: "calc(100% - 54px)",
     objectFit: "contain",
     borderRadius: "8px",
   });
@@ -2962,12 +3058,12 @@ function showImageViewer(node) {
 
   const close = document.createElement("button");
   close.type = "button";
-  close.textContent = tr("closeImage");
-
+  close.textContent = tr("returnToEditor");
   close.addEventListener("click", closeImageViewer);
 
   viewer.append(image, title, close);
-  document.body.appendChild(viewer);
+  if (editorInput) editorInput.style.display = "none";
+  mainContent.appendChild(viewer);
 }
 
 // ============================================================
@@ -3007,6 +3103,12 @@ function waitForEditor() {
     installWorkspaceAutosave();
     setTimeout(() => {
       if (!currentEditingNode) restoreActiveWorkspaceFile();
+      const editor = document.getElementById("main-content");
+      const mapVisible = mind && getComputedStyle(mind).display !== "none";
+      const configVisible = document.getElementById("config")?.hidden === false;
+      if (!mapVisible && !configVisible && editor && getComputedStyle(editor).display !== "none") {
+        requestAnimationFrame(() => window.editor?.focus?.());
+      }
     }, 400);
     return;
   }
@@ -3073,6 +3175,8 @@ function clearMap() {
   currentEditingNode = null;
   window.darkStudioWorkspaceCurrentFile = null;
   rememberActiveWorkspaceFile(null);
+  window.editor?.setValue?.("");
+  closeImageViewer();
   connectSource = null;
   connectMode = false;
   workspacePan = { x: 0, y: 0 };
@@ -3215,6 +3319,12 @@ function showExplorerContextMenu(node, x, y) {
       if (!confirm(`Deseja apagar "${node.name}"${detail}?`)) return;
       deleteNode(node.id);
     });
+  } else {
+    addAction("✎ " + tr("workspaceRename"), () => {
+      const target = document.querySelector("#explorer-toggle .explorer-label");
+      if (target) beginWorkspaceRename(target);
+    });
+    addAction("↻ " + tr("workspaceReset"), () => clearMap());
   }
 
   document.body.appendChild(menu);

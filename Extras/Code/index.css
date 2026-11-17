@@ -346,6 +346,7 @@ html body #chat #chat-welcome {
 }
 
 
+<<<<<<< HEAD
 /* Construção coreografada da interface após o carregamento dos módulos. */
 html.ds-boot-building body #Website-Container {
   opacity: 1;
@@ -454,5 +455,59 @@ html.ds-boot-complete body #inline-chat {
     animation-duration: .01ms !important;
     animation-delay: 0ms !important;
     filter: none !important;
+=======
+/* Inicialização: constrói a interface a partir de uma tela preta em até 2s. */
+@keyframes darkstudio-boot-reveal {
+  0% { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(7px); }
+  65% { opacity: 1; transform: translateY(-2px) scale(1.006); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: none; }
+}
+
+html.ds-boot,
+html.ds-boot body {
+  background: #000 !important;
+}
+
+html.ds-boot #Website-Container {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+html.ds-boot-building #Website-Container {
+  opacity: 1 !important;
+  visibility: visible !important;
+  animation: darkstudio-boot-reveal 1.55s cubic-bezier(.2,.75,.25,1) both !important;
+}
+
+html.ds-boot-building #options,
+html.ds-boot-building #main-content,
+html.ds-boot-building #chat,
+html.ds-boot-building #workspace-footer,
+html.ds-boot-building #signature,
+html.ds-boot-building #network-status,
+html.ds-boot-building #config-icon {
+  animation: darkstudio-boot-reveal 1.15s cubic-bezier(.2,.75,.25,1) both !important;
+}
+
+html.ds-boot-building #options { animation-delay: .08s !important; }
+html.ds-boot-building #main-content { animation-delay: .18s !important; }
+html.ds-boot-building #chat { animation-delay: .28s !important; }
+html.ds-boot-building #workspace-footer { animation-delay: .38s !important; }
+html.ds-boot-building #signature { animation-delay: .48s !important; }
+html.ds-boot-building #network-status,
+html.ds-boot-building #config-icon { animation-delay: .58s !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.ds-boot-building #Website-Container,
+  html.ds-boot-building #options,
+  html.ds-boot-building #main-content,
+  html.ds-boot-building #chat,
+  html.ds-boot-building #workspace-footer,
+  html.ds-boot-building #signature,
+  html.ds-boot-building #network-status,
+  html.ds-boot-building #config-icon {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+>>>>>>> origin/correcao/workspace-imagens-inicializacao
   }
 }

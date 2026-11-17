@@ -119,6 +119,7 @@
   "connectPrompt": "Connecting: select 2 items",
   "connect": "Connect",
   "workspaceCleared": "Clear all workspace items and connections?",
+  "workspaceReset": "워크스페이스 초기화",
   "folderImportError": "The folder could not be imported. Check the files and try again.",
   "fileImportError": "The files could not be imported. Check the files and try again.",
   "fileExists": "An item with this name already exists in this folder.",

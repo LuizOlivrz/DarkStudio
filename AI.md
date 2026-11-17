@@ -331,6 +331,7 @@ Formato obrigatório:
 | 2026-11-12 16:23 (UTC-03:00) | ChatGPT — GPT-6 | Mantém Extensões como visualização ativa no segundo clique para que a próxima seleção de Arquivos/Depurador reconheça a origem e restaure o editor normalmente. | branch `animacao/material-you` |
 
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Implementa o Now Playing exclusivo do Electron com leitura de sessões de mídia do sistema, capa disponível e metadados; documenta limites por plataforma. | branch `recurso/midia-em-reproducao-desktop` |
+
 | 2026-11-15 15:36 (UTC-03:00) | ChatGPT — GPT-6 | Padroniza o uso do favicon ICO entre web e Electron, adiciona robots.txt e cria entrada progressiva da interface fora do Android. | Branch `feature/carregamento-animado-robots-icone` |
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Exclui automaticamente arquivos de texto vazios após 15 minutos, cancela o prazo quando voltam a receber conteúdo e navega para o próximo arquivo disponível. | Branch `feature/carregamento-animado-robots-icone` |
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona configuração para ativar/desativar a exclusão automática de arquivos vazios, definir prazo acima de 3 minutos e manter a opção desativada por padrão, com traduções nos oito idiomas. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
@@ -348,3 +349,6 @@ Formato obrigatório:
 | 2026-11-15 14:00 (UTC-03:00) | ChatGPT — GPT-6 | Usa PNG como favicon do site em todos os temas e reserva o ICO para o ícone do aplicativo desktop e dos atalhos/instalador Windows. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
 
 | 2026-11-15 17:12 (UTC-03:00) | ChatGPT — GPT-6 | Remove o deslocamento vertical negativo do botão de Configurações para centralizar o ícone no rodapé, em desktop e mobile. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
+
+| 2026-11-17 20:32 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona renomeação inline e menu de workspace, visualização de imagens no editor, foco inicial e animação de inicialização de até 2 segundos. | branch `correcao/workspace-imagens-inicializacao` |
+
