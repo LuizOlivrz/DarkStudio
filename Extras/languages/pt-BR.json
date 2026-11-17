@@ -115,8 +115,8 @@
   "save": "Salvar",
   "connectPrompt": "Conectando: selecione 2 itens",
   "connect": "Conectar",
-  "workspaceCleared": "Limpar todos os itens e conexões do workspace?",,
-  "workspaceReset": "Reiniciar workspace"
+  "workspaceCleared": "Limpar todos os itens e conexões do workspace?",
+  "workspaceReset": "Reiniciar workspace",
   "folderImportError": "Não foi possível importar a pasta. Verifique os arquivos e tente novamente.",
   "fileImportError": "Não foi possível importar os arquivos. Verifique-os e tente novamente.",
   "fileExists": "Já existe um item com esse nome nesta pasta.",
