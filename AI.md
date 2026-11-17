@@ -331,3 +331,6 @@ Formato obrigatório:
 | 2026-11-12 16:23 (UTC-03:00) | ChatGPT — GPT-6 | Mantém Extensões como visualização ativa no segundo clique para que a próxima seleção de Arquivos/Depurador reconheça a origem e restaure o editor normalmente. | branch `animacao/material-you` |
 
 | 2026-11-12 17:00 (UTC-03:00) | ChatGPT — GPT-6 | Implementa o Now Playing exclusivo do Electron com leitura de sessões de mídia do sistema, capa disponível e metadados; documenta limites por plataforma. | branch `recurso/midia-em-reproducao-desktop` |
+
+
+| 2026-11-17 20:32 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona renomeação inline e menu de workspace, visualização de imagens no editor, foco inicial e animação de inicialização de até 2 segundos. | branch `correcao/workspace-imagens-inicializacao` |
