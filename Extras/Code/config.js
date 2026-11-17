@@ -544,6 +544,14 @@ if (!block) {
 
     mediaQuery.addEventListener("change", applyFavicon);
 
+    // Libera a interface somente depois que os módulos e estilos essenciais carregarem.
+    document.documentElement.classList.remove("ds-boot");
+    document.documentElement.classList.add("ds-boot-building");
+    window.setTimeout(() => {
+      document.documentElement.classList.remove("ds-boot-building");
+      document.documentElement.classList.add("ds-boot-complete");
+    }, 1700);
+
     flushBootLogs();
   })();
 }
