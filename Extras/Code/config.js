@@ -550,7 +550,7 @@ if (!block) {
     window.setTimeout(() => {
       document.documentElement.classList.remove("ds-boot-building");
       document.documentElement.classList.add("ds-boot-complete");
-    }, 1700);
+    }, 1800);
 
     flushBootLogs();
   })();
