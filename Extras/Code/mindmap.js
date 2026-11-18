@@ -1020,7 +1020,7 @@ function beginExplorerFileRename(node, label, options = {}) {
       finish(false);
     }
   });
-  input.addEventListener("blur", () => finish(true), { once: true });
+  input.addEventListener("blur", () => finish(true));
   input.focus();
   input.select();
 }
