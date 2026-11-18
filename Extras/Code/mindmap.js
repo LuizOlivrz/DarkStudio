@@ -949,7 +949,6 @@ function beginExplorerFileRename(node, label) {
 
     if (save && nextName && nextName !== node.name) {
       renameFileNode(node, nextName);
-      return;
     }
     label.textContent = node.name;
   };
