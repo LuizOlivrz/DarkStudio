@@ -2335,21 +2335,47 @@ function ensureFolderPath(path) {
   return folder;
 }
 
-async function readFileContent(file) {
-  const binaryTypes = /^(?:image|audio|video|font)\//i;
-  const extension = file.name.split(".").pop().toLowerCase();
-  const declaredText = /^text\//i.test(file.type || "");
-  if (binaryTypes.test(file.type || "") || (!TEXT_FILE_EXTENSIONS.has(extension) && !declaredText)) {
+const BINARY_FILE_MIME_TYPES = /^(?:application\/(?:octet-stream|x-msdownload|x-iso9660-image|zip|x-7z-compressed|x-rar-compressed)|audio\/|video\/|font\/)/i;
+const BINARY_FILE_EXTENSIONS = new Set([
+  "iso", "bin", "exe", "dll", "sys", "apk", "zip", "7z", "rar", "tar",
+  "gz", "bz2", "xz", "dmg", "img", "class", "wasm", "dat"
+]);
+
+async function hasBinaryFileContent(file) {
+  if (!file || !file.size) return false;
+  const sampleLength = Math.min(file.size, 8192);
+  const sample = new Uint8Array(await file.slice(0, sampleLength).arrayBuffer());
+  if (!sample.length) return false;
+
+  const hasUtf16Bom = sample.length >= 2 &&
+    ((sample[0] === 0xff && sample[1] === 0xfe) || (sample[0] === 0xfe && sample[1] === 0xff));
+  if (sample.includes(0) && !hasUtf16Bom) return true;
+
+  const usableLength = file.size > sampleLength ? Math.max(2, sample.length - 4) : sample.length;
+  const bytes = sample.subarray(0, usableLength);
+  try {
+    const encoding = hasUtf16Bom ? (sample[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8";
+    new TextDecoder(encoding, { fatal: true }).decode(bytes);
+  } catch {
+    return true;
+  }
+
+  let controls = 0;
+  for (const byte of bytes) {
+    if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
+  }
+  return controls / Math.max(1, bytes.length) > 0.02;
+}
+
+async function readFileContent(file, isImage = false) {
+  if (isImage) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
       reader.onload = () => resolve(String(reader.result || ""));
       reader.onerror = reject;
-
       reader.readAsDataURL(file);
     });
   }
-
   return file.text();
 }
 
@@ -2413,11 +2439,18 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     if (!parts.length) continue;
 
     const filename = parts.pop();
-    if (file.size > MAX_IMPORT_FILE_BYTES) {
+    const extension = filename.includes(".") ? filename.split(".").pop().toLowerCase() : "";
+    const isImage = /^image\//i.test(file.type || "");
+    const isBinary = !isImage && (
+      BINARY_FILE_MIME_TYPES.test(file.type || "") ||
+      BINARY_FILE_EXTENSIONS.has(extension) ||
+      await hasBinaryFileContent(file)
+    );
+    if (!isBinary && file.size > MAX_IMPORT_FILE_BYTES) {
       oversizedFiles++;
       continue;
     }
-    if (totalBytes + file.size > MAX_IMPORT_TOTAL_BYTES) {
+    if (!isBinary && totalBytes + file.size > MAX_IMPORT_TOTAL_BYTES) {
       overBudgetFiles++;
       continue;
     }
@@ -2427,8 +2460,8 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     if (directoryPath) markImportedFolderPath(directoryPath);
     const filePath = [basePath, relativeDirectoryPath, filename].filter(Boolean).join("/");
     if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === filePath)) continue;
-    prepared.push({ file, filename, directoryPath, filePath });
-    totalBytes += file.size;
+    prepared.push({ file, filename, directoryPath, filePath, isImage, isBinary });
+    if (!isBinary) totalBytes += file.size;
   }
 
   const filteredDirectories = directoryPaths.filter((path) => !shouldIgnoreImportedPath(path));
@@ -2469,14 +2502,11 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
 
     const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : targetFolder;
-    const content = await readFileContent(entry.file);
-    const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
-    const extension = entry.filename.split(".").pop().toLowerCase();
-    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(entry.file.type || "");
+    const content = entry.isBinary ? "" : await readFileContent(entry.file, entry.isImage);
     const node = addNode(
       entry.filename,
       content,
-      isImage ? "image" : isText ? "text" : "binary",
+      entry.isImage ? "image" : entry.isBinary ? "binary" : "text",
       centerPosition((nodes.length % 8) * 18),
     );
     node.filePath = entry.filePath;
@@ -2989,14 +3019,16 @@ function configureEmptyFileAutoDeletion() {
 function openNodeInEditor(node) {
   if (!node || node.type === "folder") return;
 
+  const binaryState = document.getElementById("binary-file-state");
+  if (binaryState) binaryState.hidden = true;
+
   if (node.type === "image") {
     syncCurrentEditorToMap();
     showImageViewer(node);
     return;
   }
   if (node.type === "binary") {
-    showMap();
-    updateSelectedNodeUI();
+    showBinaryFileState(node);
     return;
   }
 
@@ -3022,7 +3054,32 @@ function openNodeInEditor(node) {
   showEditor();
 }
 
+function showBinaryFileState(nodeOrName = "") {
+  syncCurrentEditorToMap();
+  currentEditingNode = null;
+  window.darkStudioWorkspaceCurrentFile = null;
+  rememberActiveWorkspaceFile(null);
+  try { localStorage.setItem("darkstudio-editor-session-mode", "workspace"); } catch {}
+  closeImageViewer();
+  showEditor();
+
+  const editorInput = document.getElementById("Editor-Input");
+  const emptyState = document.getElementById("workspace-empty-state");
+  const binaryState = document.getElementById("binary-file-state");
+  if (editorInput) editorInput.hidden = true;
+  if (emptyState) emptyState.hidden = true;
+  if (binaryState) binaryState.hidden = false;
+
+  window.dispatchEvent(new CustomEvent("darkstudio:workspace-file-opened", {
+    detail: { fileName: typeof nodeOrName === "string" ? nodeOrName : nodeOrName?.name || "" }
+  }));
+  updateSelectedNodeUI();
+}
+window.darkStudioShowBinaryFileState = showBinaryFileState;
+
 function showEditor() {
+  const binaryState = document.getElementById("binary-file-state");
+  if (binaryState) binaryState.hidden = true;
   setWorkspaceManagerView(false);
   const details = document.getElementById("workspace-details-button");
   if (details) details.style.display = "none";
