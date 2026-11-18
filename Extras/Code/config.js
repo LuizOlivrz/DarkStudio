@@ -340,6 +340,28 @@ export function getDevice() {
  */
 export const blockWeb = block;
 
+// NightCoder é carregado somente quando Configurações ou Chat são abertos.
+// O import dinâmico é naturalmente deduplicado pelo navegador; a Promise
+// também permite reutilizar e repetir a tentativa caso ocorra uma falha.
+let nightCoderLoadPromise = null;
+export function loadNightCoder() {
+  if (blockWeb) return Promise.resolve(false);
+
+  if (!nightCoderLoadPromise) {
+    nightCoderLoadPromise = import("./AI.js")
+      .then(() => true)
+      .catch((error) => {
+        nightCoderLoadPromise = null;
+        console.error("DarkStudio: não foi possível carregar o NightCoder.", error);
+        return false;
+      });
+  }
+
+  return nightCoderLoadPromise;
+}
+
+window.darkStudioLoadNightCoder = loadNightCoder;
+
 // ─────────────────────────────────────────────
 // 📦 DYNAMIC SCRIPT & STYLE LOADERS
 // Carregadores Dinâmicos de JS e CSS
@@ -535,7 +557,7 @@ if (!block) {
       console.error("Could not load Color Thief:", error);
     });
 
-    await Promise.all([loadJS("monaco"), loadJS("main"), loadJS("AI")]);
+    await Promise.all([loadJS("monaco"), loadJS("main")]);
 
     await loadCSS(device !== "Mobile" ? "dark.css" : "mobile.css");
     await loadJS("extensions");
