@@ -796,11 +796,11 @@ if (!blockWeb) {
       const roomAbove = rect.top - bounds.top >= requiredSpace;
       const roomBelow = bounds.bottom - rect.bottom >= requiredSpace;
 
-      // Keep the toolbar fully outside the video, with a small visual gap.
-      // Prefer above; use below when above does not fit. Never cover the video.
-      const placeAbove = roomAbove;
-      const placeBelow = !roomAbove && roomBelow;
-      const canPlace = placeAbove || placeBelow;
+      // Keep the toolbar outside the video with a small visual gap.
+      // Prefer below; move it above only when the lower space is insufficient.
+      const placeBelow = roomBelow;
+      const placeAbove = !roomBelow && roomAbove;
+      const canPlace = placeBelow || placeAbove;
       player.classList.toggle("mini-player-toolbar-above", placeAbove);
       player.classList.toggle("mini-player-toolbar-below", placeBelow);
       player.classList.toggle("mini-player-toolbar-hidden", !canPlace);
