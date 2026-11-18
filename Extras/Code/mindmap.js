@@ -885,7 +885,7 @@ function updateWorkspaceNameUI() {
         const explorer = document.getElementById("explorer");
         const isOpen = explorer?.classList.toggle("explorer-open") ?? false;
         document.getElementById("explorer-toggle")?.setAttribute("aria-expanded", String(isOpen));
-      }, 400);
+      }, 180);
     };
     explorerLabel.ondblclick = (event) => {
       event.preventDefault();
@@ -905,6 +905,72 @@ function updateWorkspaceNameUI() {
     event.preventDefault();
     event.stopPropagation();
   };
+}
+
+function beginExplorerFileRename(node, label) {
+  if (!node || node.type === "folder" || !label || label.dataset.renaming === "true") return;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = node.name || "";
+  input.maxLength = 255;
+  input.autocomplete = "off";
+  input.autocapitalize = "off";
+  input.spellcheck = false;
+  input.setAttribute("aria-label", tr("renameFile"));
+  Object.assign(input.style, {
+    boxSizing: "border-box",
+    width: "min(100%, 260px)",
+    minWidth: "48px",
+    height: "24px",
+    margin: "0",
+    padding: "1px 5px",
+    border: "1px solid var(--secondary-color, #5d00ff)",
+    borderRadius: "4px",
+    outline: "none",
+    background: "var(--input-bg, #202020)",
+    color: "inherit",
+    font: "inherit",
+    fontSize: "14px",
+    lineHeight: "normal",
+    pointerEvents: "auto",
+    userSelect: "text",
+  });
+
+  label.dataset.renaming = "true";
+  label.replaceChildren(input);
+
+  let finished = false;
+  const finish = (save) => {
+    if (finished) return;
+    finished = true;
+    const nextName = input.value.trim();
+    delete label.dataset.renaming;
+
+    if (save && nextName && nextName !== node.name) {
+      renameFileNode(node, nextName);
+      return;
+    }
+    label.textContent = node.name;
+  };
+
+  input.addEventListener("pointerdown", (event) => event.stopPropagation());
+  input.addEventListener("click", (event) => event.stopPropagation());
+  input.addEventListener("dblclick", (event) => event.stopPropagation());
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      finish(true);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      finish(false);
+    }
+  });
+  input.addEventListener("blur", () => finish(true), { once: true });
+  input.focus();
+  input.select();
 }
 
 function beginWorkspaceRename(target) {
@@ -3398,8 +3464,8 @@ function wireUI() {
       const actionNode = getNode(actionButton.dataset.nodeId);
       if (!actionNode || actionNode.type === "folder") return;
       if (actionButton.dataset.explorerAction === "rename") {
-        const name = (await showNameDialog(actionNode.name, tr("renameFile")) || "").trim();
-        if (name && name !== actionNode.name) renameFileNode(actionNode, name);
+        const label = actionButton.closest(".explorer-file")?.querySelector(".explorer-file-name");
+        beginExplorerFileRename(actionNode, label);
       } else if (actionButton.dataset.explorerAction === "delete") {
         if (!confirm(tr("deleteFileConfirm").replace("{name}", actionNode.name || ""))) return;
         deleteNode(actionNode.id);
@@ -3433,10 +3499,10 @@ function wireUI() {
       if (currentNode.type !== "image" && currentNode.type !== "binary") {
         requestAnimationFrame(() => window.editor?.focus?.());
       }
-    }, 400);
+    }, 180);
   });
 
-  explorerFiles?.addEventListener("dblclick", async (event) => {
+  explorerFiles?.addEventListener("dblclick", (event) => {
     if (event.button !== 0) return;
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
     if (target?.closest("[data-explorer-action]")) return;
@@ -3451,8 +3517,8 @@ function wireUI() {
     explorerFileClickTimer = null;
     explorerFileClickNodeId = null;
 
-    const name = (await showNameDialog(node.name, tr("renameFile")) || "").trim();
-    if (name && name !== node.name) renameFileNode(node, name);
+    const label = button.querySelector(".explorer-file-name");
+    beginExplorerFileRename(node, label);
   });
 
   explorerFiles?.addEventListener("dragstart", (event) => {
