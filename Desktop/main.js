@@ -33,12 +33,43 @@ async function rememberLastOpenedFile(filePath) {
   await fs.writeFile(LAST_OPEN_FILE_FILE(), JSON.stringify({ filePath }, null, 2), "utf8");
 }
 
+async function isBinaryFilePath(filePath) {
+  let handle;
+  try {
+    handle = await fs.open(filePath, "r");
+    const sample = Buffer.alloc(8192);
+    const { bytesRead } = await handle.read(sample, 0, sample.length, 0);
+    if (!bytesRead) return false;
+    const bytes = sample.subarray(0, bytesRead);
+    const hasUtf16Bom = bytes.length >= 2 &&
+      ((bytes[0] === 0xff && bytes[1] === 0xfe) || (bytes[0] === 0xfe && bytes[1] === 0xff));
+    if (bytes.includes(0) && !hasUtf16Bom) return true;
+    try {
+      const encoding = hasUtf16Bom ? (bytes[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8";
+      new TextDecoder(encoding, { fatal: true }).decode(bytes.subarray(0, bytes.length > 4 ? bytes.length - 4 : bytes.length));
+    } catch {
+      return true;
+    }
+    let controls = 0;
+    for (const byte of bytes) {
+      if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
+    }
+    return controls / bytes.length > 0.02;
+  } finally {
+    await handle?.close().catch(() => {});
+  }
+}
+
 ipcMain.handle("darkstudio:restore-last-file", async () => {
   try {
     const saved = JSON.parse(await fs.readFile(LAST_OPEN_FILE_FILE(), "utf8"));
     if (typeof saved.filePath !== "string" || !path.isAbsolute(saved.filePath)) return null;
+    const fileName = path.basename(saved.filePath);
+    if (await isBinaryFilePath(saved.filePath)) {
+      return { filePath: saved.filePath, fileName, isBinary: true };
+    }
     const content = await fs.readFile(saved.filePath, "utf8");
-    return { filePath: saved.filePath, fileName: path.basename(saved.filePath), content };
+    return { filePath: saved.filePath, fileName, content };
   } catch {
     return null;
   }
@@ -64,9 +95,11 @@ ipcMain.handle("darkstudio:open-file", async () => {
   });
   if (result.canceled || !result.filePaths[0]) return null;
   const filePath = result.filePaths[0];
+  const fileName = path.basename(filePath);
+  if (await isBinaryFilePath(filePath)) return { filePath, fileName, isBinary: true };
   const content = await fs.readFile(filePath, "utf8");
   await rememberLastOpenedFile(filePath);
-  return { filePath, fileName: path.basename(filePath), content };
+  return { filePath, fileName, content };
 });
 
 ipcMain.handle("darkstudio:save-file", async (_event, options = {}) => {
