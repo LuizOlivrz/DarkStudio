@@ -355,3 +355,5 @@ Formato obrigatório:
 | 2026-11-17 21:15 (UTC-03:00) | ChatGPT — GPT-6 | Remove o deslocamento vertical de #options no hover em desktop e mobile, mantendo os demais efeitos e interações do painel. | branch `correcao/renomeacao-por-duplo-clique` |
 
 | 2026-11-17 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Reduz o atraso de abertura do Explorer e substitui a renomeação de arquivos por janela por edição inline diretamente no nome. | branch `correcao/renomeacao-por-duplo-clique` |
+
+| 2026-11-17 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a prévia do ícone SVG durante a renomeação inline: ignora alterações no nome base e consulta a extensão assim que o usuário digita o ponto. | branch `correcao/renomeacao-por-duplo-clique` |
