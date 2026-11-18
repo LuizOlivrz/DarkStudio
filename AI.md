@@ -362,3 +362,5 @@ Formato obrigatório:
 | 2026-11-17 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ícones SVG específicos para arquivos `.mp4` e `.sys` no Explorer e na prévia de renomeação. | branch `correcao/renomeacao-por-duplo-clique` |
 | 2026-11-18 12:26 (UTC-03:00) | ChatGPT — GPT-6 | Adia o carregamento de AI.js até a primeira abertura das Configurações ou do Chat, reutilizando a importação. | Branch `melhoria/carregamento-sob-demanda-nightcoder` |
 | 2026-11-18 12:29 (UTC-03:00) | ChatGPT — GPT-6 | Mantém o painel Options estável ao passar o ponteiro, sem deslocamento vertical, no desktop e mobile. | Branch `melhoria/carregamento-sob-demanda-nightcoder` |
+
+| 2026-11-18 19:39 (UTC-03:00) | ChatGPT — GPT-6 | Padroniza as barras de rolagem com trilho transparente, indicador discreto e dimensões vinculadas ao próprio elemento rolável em desktop e mobile. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #64 |
