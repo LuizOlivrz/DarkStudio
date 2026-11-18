@@ -907,7 +907,7 @@ function updateWorkspaceNameUI() {
   };
 }
 
-function beginExplorerFileRename(node, label) {
+function beginExplorerFileRename(node, label, options = {}) {
   if (!node || node.type === "folder" || !label || label.dataset.renaming === "true") return;
 
   const input = document.createElement("input");
@@ -974,15 +974,36 @@ function beginExplorerFileRename(node, label) {
   let finished = false;
   const finish = (save) => {
     if (finished) return;
-    finished = true;
     const nextName = input.value.trim();
+
+    if (save && nextName && nextName !== node.name) {
+      if (/[\\/]/.test(nextName)) {
+        alert(tr("invalidName"));
+        input.focus();
+        return;
+      }
+      const parent = getParentFolder(node);
+      const parentPath = parent?.filePath || "";
+      const nextPath = parentPath ? parentPath + "/" + nextName : nextName;
+      if (nodes.some((item) => item.id !== node.id && item.filePath === nextPath)) {
+        alert(tr("fileExists"));
+        input.focus();
+        return;
+      }
+    }
+
+    finished = true;
     delete label.dataset.renaming;
 
     if (save && nextName && nextName !== node.name) {
       renameFileNode(node, nextName);
+    } else if (!save || !nextName) {
+      options.onCancel?.(node);
     }
+
     label.textContent = node.name;
     restoreIcon();
+    if (save && nextName) options.onCommit?.(node);
   };
 
   input.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -1376,9 +1397,43 @@ function addNode(name, content = "", type = "text", position = null) {
 }
 
 function addBlankNode() {
-  addNode(`${tr("newFile")}.txt`, "", "text");
+  createFileInline();
 }
 
+function createFileInline(parentFolder = null) {
+  if (parentFolder && parentFolder.isOpen === false) parentFolder.isOpen = true;
+
+  const parentPath = parentFolder?.filePath || "";
+  const baseName = tr("newFile") + ".txt";
+  const extensionIndex = baseName.lastIndexOf(".");
+  const stem = extensionIndex > 0 ? baseName.slice(0, extensionIndex) : baseName;
+  const extension = extensionIndex > 0 ? baseName.slice(extensionIndex) : "";
+  let name = baseName;
+  let suffix = 2;
+  const pathExists = (candidate) => {
+    const candidatePath = parentPath ? parentPath + "/" + candidate : candidate;
+    return nodes.some((item) => item.filePath === candidatePath);
+  };
+  while (pathExists(name)) {
+    name = stem + " (" + suffix + ")" + extension;
+    suffix++;
+  }
+
+  const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
+  file.filePath = parentPath ? parentPath + "/" + name : name;
+  if (parentFolder) attachNodeToFolder(file, parentFolder);
+  saveState();
+  renderNodes();
+
+  const label = document.querySelector('#explorer-files [data-node-id="' + file.id + '"] .explorer-file-name');
+  if (!label) return file;
+
+  beginExplorerFileRename(file, label, {
+    onCancel: () => deleteNode(file.id),
+    onCommit: (createdFile) => openNodeInEditor(createdFile),
+  });
+  return file;
+}
 async function addFolder() {
   const name = await showNameDialog("", tr("createFolder"));
 
@@ -3479,19 +3534,7 @@ function showExplorerContextMenu(node, x, y) {
   };
 
   const parentFolder = node?.type === "folder" ? node : getParentFolder(node);
-  addAction("＋ " + tr("newFile"), async () => {
-    const name = (await showNameDialog("", tr("newFile")) || "").trim();
-    if (!name) return;
-    if (/[\\/]/.test(name)) { alert(tr("invalidName")); return; }
-    const parentPath = parentFolder?.filePath || "";
-    const filePath = parentPath ? `${parentPath}/${name}` : name;
-    if (nodes.some((item) => item.filePath === filePath)) { alert(tr("fileExists")); return; }
-    const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
-    file.filePath = filePath;
-    if (parentFolder) attachNodeToFolder(file, parentFolder);
-    saveState(); renderNodes();
-    openNodeInEditor(file);
-  });
+  addAction("＋ " + tr("newFile"), () => createFileInline(parentFolder));
   addAction("📁 " + tr("newFolder"), async () => {
     const name = (await showNameDialog("", tr("createFolder")) || "").trim();
     if (!name) return;
