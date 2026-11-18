@@ -352,3 +352,4 @@ Formato obrigatório:
 
 | 2026-11-17 20:32 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona renomeação inline e menu de workspace, visualização de imagens no editor, foco inicial e animação de inicialização de até 2 segundos. | branch `correcao/workspace-imagens-inicializacao` |
 | 2026-11-17 21:03 (UTC-03:00) | ChatGPT — GPT-6 | Faz a renomeação rápida de arquivos e do Workspace por duplo clique esquerdo; clique simples mantém abertura de arquivos e alternância do Explorer. | branch `correcao/renomeacao-por-duplo-clique` |
+| 2026-11-17 21:15 (UTC-03:00) | ChatGPT — GPT-6 | Remove o deslocamento vertical de #options no hover em desktop e mobile, mantendo os demais efeitos e interações do painel. | branch `correcao/renomeacao-por-duplo-clique` |
