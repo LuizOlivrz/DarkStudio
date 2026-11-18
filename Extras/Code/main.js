@@ -83,7 +83,8 @@ if (!blockWeb) {
     return wasOpen;
   }
 
-  function openIntegratedChat() {
+  async function openIntegratedChat() {
+    await window.darkStudioLoadNightCoder?.();
     window.dispatchEvent(new Event("darkstudio:chat-opening"));
     inlineChat?.classList.remove("is-open");
     if (inlineChat) {
@@ -105,8 +106,9 @@ if (!blockWeb) {
     document.getElementById("input")?.focus();
   }
 
-  window.darkStudioOpenInlineChat = () => {
+  window.darkStudioOpenInlineChat = async () => {
     if (!chat || !inlineChat) return false;
+    await window.darkStudioLoadNightCoder?.();
     window.dispatchEvent(new Event("darkstudio:chat-opening"));
     document.getElementById("input")?.blur();
     chat.classList.add("inline-mode", "is-open");
@@ -1596,6 +1598,8 @@ ${code}
 
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
+      // As Configurações incluem preferências do NightCoder; carregue-o sob demanda.
+      window.darkStudioLoadNightCoder?.();
       const fileLauncher = document.getElementById("file-gutter-icon");
       const fileView = document.getElementById("file-manager-view");
       const fileAlreadySelected = fileLauncher?.getAttribute("aria-pressed") === "true";
