@@ -2353,18 +2353,24 @@ async function hasBinaryFileContent(file) {
 
   const usableLength = file.size > sampleLength ? Math.max(2, sample.length - 4) : sample.length;
   const bytes = sample.subarray(0, usableLength);
+  let invalidUtf8 = false;
   try {
     const encoding = hasUtf16Bom ? (sample[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8";
     new TextDecoder(encoding, { fatal: true }).decode(bytes);
   } catch {
-    return true;
+    if (hasUtf16Bom) return true;
+    invalidUtf8 = true;
   }
+  if (hasUtf16Bom) return false;
 
   let controls = 0;
+  let highBytes = 0;
   for (const byte of bytes) {
+    if (byte >= 0x80) highBytes++;
     if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
   }
-  return controls / Math.max(1, bytes.length) > 0.02;
+  return controls / Math.max(1, bytes.length) > 0.02 ||
+    (invalidUtf8 && highBytes / Math.max(1, bytes.length) > 0.25);
 }
 
 async function readFileContent(file, isImage = false) {
