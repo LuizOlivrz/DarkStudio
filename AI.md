@@ -358,3 +358,4 @@ Formato obrigatório:
 
 | 2026-11-17 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a prévia do ícone SVG durante a renomeação inline: ignora alterações no nome base e consulta a extensão assim que o usuário digita o ponto. | branch `correcao/renomeacao-por-duplo-clique` |
 | 2026-11-17 20:45 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ícones SVG específicos para arquivos `.md` e `.apk` no Explorer e na prévia de renomeação. | branch `correcao/renomeacao-por-duplo-clique` |
+| 2026-11-17 20:50 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ícone SVG específico para arquivos `.mp3` no Explorer e na prévia de renomeação. | branch `correcao/renomeacao-por-duplo-clique` |
