@@ -1,5 +1,27 @@
 // Desktop-only bridge injected into the renderer. It never exposes filesystem paths or arbitrary file access.
 (() => {
+async function hasBinaryContent(file) {
+  if (!file || !file.size) return false;
+  const sampleLength = Math.min(file.size, 8192);
+  const sample = new Uint8Array(await file.slice(0, sampleLength).arrayBuffer());
+  if (!sample.length) return false;
+  const hasUtf16Bom = sample.length >= 2 &&
+    ((sample[0] === 0xff && sample[1] === 0xfe) || (sample[0] === 0xfe && sample[1] === 0xff));
+  if (sample.includes(0) && !hasUtf16Bom) return true;
+  const usableLength = file.size > sampleLength ? Math.max(2, sample.length - 4) : sample.length;
+  const bytes = sample.subarray(0, usableLength);
+  try {
+    new TextDecoder(hasUtf16Bom ? (sample[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return true;
+  }
+  let controls = 0;
+  for (const byte of bytes) {
+    if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
+  }
+  return controls / Math.max(1, bytes.length) > 0.02;
+}
+
   if (!window.darkStudioDesktop?.isDesktop) {
     // Navegadores compatíveis: persistir o FileSystemFileHandle no IndexedDB
     // permite restaurar o mesmo arquivo e gravar nele após recarregar a página.
@@ -74,6 +96,12 @@
           if (localStorage.getItem(WEB_MODE_KEY) !== "external-file") return;
           const session = await readWebFileSession();
           if (!session?.handle || typeof session.content !== "string" || !window.editor?.setValue) return;
+          const restoredFile = await session.handle.getFile();
+          if (await hasBinaryContent(restoredFile)) {
+            try { localStorage.setItem(WEB_MODE_KEY, "workspace"); } catch {}
+            window.darkStudioShowBinaryFileState?.(session.fileName || restoredFile.name);
+            return;
+          }
           markWebFileActive(session.handle, session.fileName);
           window.editor.setValue(session.content);
           window.editor.focus?.();
@@ -108,6 +136,10 @@
             const [handle] = await window.showOpenFilePicker({ multiple: false });
             if (!handle) return;
             const file = await handle.getFile();
+            if (await hasBinaryContent(file)) {
+              window.darkStudioShowBinaryFileState?.(file.name);
+              return;
+            }
             const content = await file.text();
             markWebFileActive(handle, file.name);
             await writeWebFileSession({ handle, fileName: file.name, content, savedAt: Date.now() });
@@ -198,6 +230,11 @@
       if (localStorage.getItem(EDITOR_SESSION_MODE_KEY) !== "external-file") return;
       const file = await window.darkStudioDesktop.restoreLastFile();
       if (!file || !window.editor?.setValue) return;
+      if (file.isBinary) {
+        setExternalFile(null);
+        window.darkStudioShowBinaryFileState?.(file.fileName);
+        return;
+      }
       let content = file.content;
       try {
         const draft = JSON.parse(localStorage.getItem(EXTERNAL_FILE_DRAFT_KEY) || "null");
@@ -243,6 +280,11 @@
       if (loadButton) {
         const file = await window.darkStudioDesktop.openFile();
         if (!file) return;
+        if (file.isBinary) {
+          setExternalFile(null);
+          window.darkStudioShowBinaryFileState?.(file.fileName);
+          return;
+        }
         if (window.editor?.setValue) {
           setExternalFile(file);
           window.editor.setValue(file.content);
