@@ -793,35 +793,58 @@ input[type="text"] {
   font-size: 32px;
 }
 
-/* ===== SCROLLBAR MINIMALISTA ===== */
+/* ===== SCROLLBARS DISCRETAS E RESPONSIVAS ===== */
 
-/* Chrome, Edge, Opera */
+/* A barra nativa acompanha automaticamente a altura/largura do próprio
+   elemento rolável, inclusive quando o painel é redimensionado. */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar-track,
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary-color);
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .18);
+  border: 1px solid transparent;
   border-radius: 999px;
+  background-clip: padding-box;
+  transition: background-color .18s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .38);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .52);
+  background-clip: padding-box;
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--secondary-color) transparent;
+  scrollbar-color: rgba(var(--secondary-rgb, 93, 0, 255), .2) transparent;
+}
+
+/* Cada painel mantém sua própria área de rolagem: Options ocupa a altura
+   integral do painel; mensagens ocupam somente a área acima do compositor. */
+#options,
+#messages,
+#inline-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--secondary-rgb, 93, 0, 255), .2) transparent;
+}
+
+#options::-webkit-scrollbar,
+#messages::-webkit-scrollbar,
+#inline-messages::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
 }
 
 #social-medias {
