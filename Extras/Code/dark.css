@@ -3840,8 +3840,9 @@ body {
 }
 
 
-/* Empty workspace presentation. */
-#main-content #workspace-empty-state {
+/* Empty workspace and binary-file states share the same visual composition. */
+#main-content #workspace-empty-state,
+#main-content #binary-file-state {
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -3854,15 +3855,19 @@ body {
   text-align: center;
   pointer-events: none;
 }
-#main-content #workspace-empty-state[hidden] {
+#main-content #workspace-empty-state[hidden],
+#main-content #binary-file-state[hidden] {
   display: none !important;
 }
-/* O estado vazio pertence ao editor e não deve cobrir Configurações ou Extensões. */
+/* Esses estados pertencem ao editor e não devem cobrir Configurações ou Extensões. */
 #Website-Container.settings-active #main-content #workspace-empty-state,
-#Website-Container.extensions-active #main-content #workspace-empty-state {
+#Website-Container.extensions-active #main-content #workspace-empty-state,
+#Website-Container.settings-active #main-content #binary-file-state,
+#Website-Container.extensions-active #main-content #binary-file-state {
   display: none !important;
 }
-#workspace-empty-state img {
+#workspace-empty-state img,
+#binary-file-state svg {
   display: block;
   width: clamp(76px, 11vw, 132px);
   height: auto;
@@ -3870,7 +3875,8 @@ body {
   object-fit: contain;
   opacity: .92;
 }
-#workspace-empty-state p {
+#workspace-empty-state p,
+#binary-file-state p {
   margin: 0;
   color: var(--secondary-color, #fff);
   font-size: clamp(16px, 2vw, 22px);
