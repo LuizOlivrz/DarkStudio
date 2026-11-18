@@ -44,17 +44,22 @@ async function isBinaryFilePath(filePath) {
     const hasUtf16Bom = bytes.length >= 2 &&
       ((bytes[0] === 0xff && bytes[1] === 0xfe) || (bytes[0] === 0xfe && bytes[1] === 0xff));
     if (bytes.includes(0) && !hasUtf16Bom) return true;
+    let invalidUtf8 = false;
     try {
       const encoding = hasUtf16Bom ? (bytes[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8";
       new TextDecoder(encoding, { fatal: true }).decode(bytes.subarray(0, bytes.length > 4 ? bytes.length - 4 : bytes.length));
     } catch {
-      return true;
+      if (hasUtf16Bom) return true;
+      invalidUtf8 = true;
     }
+    if (hasUtf16Bom) return false;
     let controls = 0;
+    let highBytes = 0;
     for (const byte of bytes) {
+      if (byte >= 0x80) highBytes++;
       if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
     }
-    return controls / bytes.length > 0.02;
+    return controls / bytes.length > 0.02 || (invalidUtf8 && highBytes / bytes.length > 0.25);
   } finally {
     await handle?.close().catch(() => {});
   }
