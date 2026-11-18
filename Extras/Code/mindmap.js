@@ -199,6 +199,9 @@ function snapToGrid(value) {
 }
 let workspacePan = { x: 0, y: 0 };
 let folderClickTimer = null;
+let workspaceLabelClickTimer = null;
+let explorerFileClickTimer = null;
+let explorerFileClickNodeId = null;
 let previousDisplays = {};
 
 let workspaceName = "workspace 1";
@@ -876,11 +879,24 @@ function updateWorkspaceNameUI() {
     explorerLabel.onclick = (event) => {
       event.preventDefault();
       event.stopPropagation();
+      if (workspaceLabelClickTimer) clearTimeout(workspaceLabelClickTimer);
+      workspaceLabelClickTimer = setTimeout(() => {
+        workspaceLabelClickTimer = null;
+        const explorer = document.getElementById("explorer");
+        const isOpen = explorer?.classList.toggle("explorer-open") ?? false;
+        document.getElementById("explorer-toggle")?.setAttribute("aria-expanded", String(isOpen));
+      }, 400);
+    };
+    explorerLabel.ondblclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (workspaceLabelClickTimer) clearTimeout(workspaceLabelClickTimer);
+      workspaceLabelClickTimer = null;
       beginWorkspaceRename(explorerLabel);
     };
   }
 
-  label.onclick = (event) => {
+  label.ondblclick = (event) => {
     event.preventDefault();
     event.stopPropagation();
     beginWorkspaceRename(label);
@@ -888,7 +904,6 @@ function updateWorkspaceNameUI() {
   label.oncontextmenu = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    beginWorkspaceRename(label);
   };
 }
 
@@ -3400,11 +3415,46 @@ function wireUI() {
       refreshExplorerList();
       return;
     }
-    openNodeInEditor(node);
-    if (node.type !== "image" && node.type !== "binary") {
-      requestAnimationFrame(() => window.editor?.focus?.());
+    if (explorerFileClickTimer && explorerFileClickNodeId === node.id) {
+      clearTimeout(explorerFileClickTimer);
+      explorerFileClickTimer = null;
+      explorerFileClickNodeId = null;
+      return;
     }
+
+    if (explorerFileClickTimer) clearTimeout(explorerFileClickTimer);
+    explorerFileClickNodeId = node.id;
+    explorerFileClickTimer = setTimeout(() => {
+      explorerFileClickTimer = null;
+      explorerFileClickNodeId = null;
+      const currentNode = getNode(node.id);
+      if (!currentNode) return;
+      openNodeInEditor(currentNode);
+      if (currentNode.type !== "image" && currentNode.type !== "binary") {
+        requestAnimationFrame(() => window.editor?.focus?.());
+      }
+    }, 400);
   });
+
+  explorerFiles?.addEventListener("dblclick", async (event) => {
+    if (event.button !== 0) return;
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    if (target?.closest("[data-explorer-action]")) return;
+    const button = target?.closest("button.explorer-file[data-node-id]");
+    if (!button) return;
+    const node = getNode(button.dataset.nodeId);
+    if (!node || node.type === "folder") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (explorerFileClickTimer) clearTimeout(explorerFileClickTimer);
+    explorerFileClickTimer = null;
+    explorerFileClickNodeId = null;
+
+    const name = (await showNameDialog(node.name, tr("renameFile")) || "").trim();
+    if (name && name !== node.name) renameFileNode(node, name);
+  });
+
   explorerFiles?.addEventListener("dragstart", (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
     const button = target?.closest("button.explorer-file[data-node-id]");
