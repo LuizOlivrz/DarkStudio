@@ -3606,3 +3606,8 @@ html.ds-boot-building body #signature {
     backdrop-filter: blur(var(--bg-blur, 10px)) !important;
   }
 }
+
+/* O painel Options permanece estável ao passar o ponteiro. */
+#options:hover {
+  transform: none !important;
+}
