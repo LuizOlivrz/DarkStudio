@@ -119,10 +119,6 @@ body {
   animation: pulse 8s ease-in-out infinite;
 }
 
-#options:hover {
-  transform: translateY(-2px);
-}
-
 #login {
   position: absolute;
   bottom: 4px;
