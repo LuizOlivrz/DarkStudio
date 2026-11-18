@@ -3499,7 +3499,7 @@ function wireUI() {
       if (currentNode.type !== "image" && currentNode.type !== "binary") {
         requestAnimationFrame(() => window.editor?.focus?.());
       }
-    }, 180);
+    }, 400);
   });
 
   explorerFiles?.addEventListener("dblclick", (event) => {
