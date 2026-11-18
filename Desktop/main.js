@@ -10,6 +10,8 @@ const os = require("node:os");
 const { startMediaSessionMonitor, stopMediaSessionMonitor } = require("./media-session");
 
 app.setName("DarkStudio");
+if (process.platform === "win32") {
+}
 
 protocol.registerSchemesAsPrivileged([{
   scheme: "app",
