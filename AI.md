@@ -366,3 +366,4 @@ Formato obrigatório:
 | 2026-11-18 19:39 (UTC-03:00) | ChatGPT — GPT-6 | Padroniza as barras de rolagem com trilho transparente, indicador discreto e dimensões vinculadas ao próprio elemento rolável em desktop e mobile. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #64 |
 
 | 2026-11-18 19:45 (UTC-03:00) | ChatGPT — GPT-6 | Oculta integralmente as barras nativas em desktop e mobile sem desativar a rolagem; o scroll container continua determinando a área rolável e acompanha o redimensionamento. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #64 |
+| 2026-11-18 20:21 (UTC-03:00) | ChatGPT — GPT-6 | Detecta conteúdo binário por amostra de bytes, bloqueia a abertura de arquivos binários e apresenta um estado de aviso isolado, sem alterar o Workspace vazio. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #64 |
