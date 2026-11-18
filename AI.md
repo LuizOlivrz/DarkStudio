@@ -351,4 +351,12 @@ Formato obrigatório:
 | 2026-11-15 17:12 (UTC-03:00) | ChatGPT — GPT-6 | Remove o deslocamento vertical negativo do botão de Configurações para centralizar o ícone no rodapé, em desktop e mobile. | Branch `feature/carregamento-animado-robots-icone`; PR #61 |
 
 | 2026-11-17 20:32 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona renomeação inline e menu de workspace, visualização de imagens no editor, foco inicial e animação de inicialização de até 2 segundos. | branch `correcao/workspace-imagens-inicializacao` |
+| 2026-11-17 21:03 (UTC-03:00) | ChatGPT — GPT-6 | Faz a renomeação rápida de arquivos e do Workspace por duplo clique esquerdo; clique simples mantém abertura de arquivos e alternância do Explorer. | branch `correcao/renomeacao-por-duplo-clique` |
+| 2026-11-17 21:15 (UTC-03:00) | ChatGPT — GPT-6 | Remove o deslocamento vertical de #options no hover em desktop e mobile, mantendo os demais efeitos e interações do painel. | branch `correcao/renomeacao-por-duplo-clique` |
 
+| 2026-11-17 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Reduz o atraso de abertura do Explorer e substitui a renomeação de arquivos por janela por edição inline diretamente no nome. | branch `correcao/renomeacao-por-duplo-clique` |
+
+| 2026-11-17 20:00 (UTC-03:00) | ChatGPT — GPT-6 | Atualiza a prévia do ícone SVG durante a renomeação inline: ignora alterações no nome base e consulta a extensão assim que o usuário digita o ponto. | branch `correcao/renomeacao-por-duplo-clique` |
+| 2026-11-17 20:45 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ícones SVG específicos para arquivos `.md` e `.apk` no Explorer e na prévia de renomeação. | branch `correcao/renomeacao-por-duplo-clique` |
+| 2026-11-17 20:50 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ícone SVG específico para arquivos `.mp3` no Explorer e na prévia de renomeação. | branch `correcao/renomeacao-por-duplo-clique` |
+| 2026-11-17 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Adiciona ícones SVG específicos para arquivos `.mp4` e `.sys` no Explorer e na prévia de renomeação. | branch `correcao/renomeacao-por-duplo-clique` |
