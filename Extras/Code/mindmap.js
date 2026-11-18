@@ -940,6 +940,33 @@ function beginExplorerFileRename(node, label) {
   label.dataset.renaming = "true";
   label.replaceChildren(input);
 
+  const iconElement = label.closest(".explorer-file")?.querySelector(".explorer-file-icon");
+  const originalIconMarkup = iconElement?.innerHTML || "";
+  const originalIconText = iconElement?.textContent || "";
+  const updateIconPreview = () => {
+    if (!iconElement) return;
+
+    const typedName = input.value;
+    // O nome base não altera o ícone; a prévia começa somente após o ponto.
+    if (!typedName.includes(".")) {
+      iconElement.innerHTML = originalIconMarkup;
+      iconElement.textContent = originalIconText;
+      return;
+    }
+
+    const previewNode = { ...node, name: typedName };
+    const svgIcon = getNodeIconSvg(previewNode);
+    if (svgIcon) {
+      iconElement.innerHTML = svgIcon;
+      const svg = iconElement.querySelector("svg");
+      if (svg) Object.assign(svg.style, { width: "100%", height: "100%", display: "block" });
+    } else {
+      iconElement.textContent = getNodeIcon(previewNode);
+    }
+  };
+
+  input.addEventListener("input", updateIconPreview);
+
   let finished = false;
   const finish = (save) => {
     if (finished) return;
@@ -951,6 +978,10 @@ function beginExplorerFileRename(node, label) {
       renameFileNode(node, nextName);
     }
     label.textContent = node.name;
+    if (iconElement) {
+      iconElement.innerHTML = originalIconMarkup;
+      iconElement.textContent = originalIconText;
+    }
   };
 
   input.addEventListener("pointerdown", (event) => event.stopPropagation());
