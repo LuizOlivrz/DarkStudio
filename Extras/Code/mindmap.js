@@ -3549,10 +3549,13 @@ function showExplorerContextMenu(node, x, y) {
   });
   if (node) {
     addAction("✎ " + tr(node.type === "folder" ? "renameFolder" : "renameFile"), async () => {
-      const name = (await showNameDialog(node.name, tr(node.type === "folder" ? "renameFolder" : "renameFile")) || "").trim();
-      if (!name || name === node.name) return;
-      if (node.type === "folder") renameFolderNode(node, name);
-      else renameFileNode(node, name);
+      if (node.type === "folder") {
+        const name = (await showNameDialog(node.name, tr("renameFolder")) || "").trim();
+        if (name && name !== node.name) renameFolderNode(node, name);
+        return;
+      }
+      const label = document.querySelector('#explorer-files [data-node-id="' + node.id + '"] .explorer-file-name');
+      if (label) beginExplorerFileRename(node, label);
     });
     addAction("🗑 Apagar", () => {
       const detail = node.type === "folder" ? " e todo o conteúdo dela" : "";
