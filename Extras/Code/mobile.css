@@ -3652,3 +3652,23 @@ html.ds-boot-building body #signature {
   width: 5px;
   height: 5px;
 }
+
+
+/* Oculta visualmente as barras nativas sem desativar a rolagem.
+   Como a barra pertence ao próprio scroll container, sua área acompanha
+   automaticamente toda alteração de altura/largura do elemento. */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
