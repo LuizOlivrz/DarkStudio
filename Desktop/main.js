@@ -10,8 +10,7 @@ const os = require("node:os");
 const { startMediaSessionMonitor, stopMediaSessionMonitor } = require("./media-session");
 
 app.setName("DarkStudio");
-if (process.platform === "win32") {
-}
+if (process.platform === "win32") app.setAppUserModelId("dev.darkstudio.desktop");
 
 protocol.registerSchemesAsPrivileged([{
   scheme: "app",
@@ -590,7 +589,6 @@ app.whenReady().then(async () => {
     }
     return net.fetch(pathToFileURL(bundledPath).toString());
   });
-  app.setAppUserModelId("dev.darkstudio.desktop");
   Menu.setApplicationMenu(null);
   createWindow();
   void startMediaSessionMonitor((snapshot) => {
