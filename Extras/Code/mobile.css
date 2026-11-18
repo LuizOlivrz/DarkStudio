@@ -3014,13 +3014,15 @@ body {
 }
 
 @media (max-width: 700px) {
-  #main-content #workspace-empty-state img {
+  #main-content #workspace-empty-state img,
+  #main-content #binary-file-state svg {
     width: 64px;
     max-height: 64px;
     align-self: center;
   }
 
-  #main-content #workspace-empty-state p {
+  #main-content #workspace-empty-state p,
+  #main-content #binary-file-state p {
     width: 100%;
     text-align: center;
   }
