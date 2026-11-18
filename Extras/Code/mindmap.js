@@ -943,14 +943,18 @@ function beginExplorerFileRename(node, label) {
   const iconElement = label.closest(".explorer-file")?.querySelector(".explorer-file-icon");
   const originalIconMarkup = iconElement?.innerHTML || "";
   const originalIconText = iconElement?.textContent || "";
+  const restoreIcon = () => {
+    if (!iconElement) return;
+    if (originalIconMarkup) iconElement.innerHTML = originalIconMarkup;
+    else iconElement.textContent = originalIconText;
+  };
   const updateIconPreview = () => {
     if (!iconElement) return;
 
     const typedName = input.value;
     // O nome base não altera o ícone; a prévia começa somente após o ponto.
     if (!typedName.includes(".")) {
-      iconElement.innerHTML = originalIconMarkup;
-      iconElement.textContent = originalIconText;
+      restoreIcon();
       return;
     }
 
@@ -978,10 +982,7 @@ function beginExplorerFileRename(node, label) {
       renameFileNode(node, nextName);
     }
     label.textContent = node.name;
-    if (iconElement) {
-      iconElement.innerHTML = originalIconMarkup;
-      iconElement.textContent = originalIconText;
-    }
+    restoreIcon();
   };
 
   input.addEventListener("pointerdown", (event) => event.stopPropagation());
