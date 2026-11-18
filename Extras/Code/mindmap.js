@@ -3373,9 +3373,26 @@ window.darkStudioHandleDroppedFiles = async (fileList) => {
   };
   const file = files.find(isTextFile);
   if (!file) {
+    const candidate = files[0];
+    const extension = candidate?.name?.split(".").pop().toLowerCase();
+    const isBinary = candidate && (
+      BINARY_FILE_MIME_TYPES.test(candidate.type || "") ||
+      BINARY_FILE_EXTENSIONS.has(extension) ||
+      await hasBinaryFileContent(candidate)
+    );
+    if (isBinary) {
+      showBinaryFileState(candidate.name);
+      return;
+    }
     alert(tr("editorDropTextOnly"));
     return;
   }
+  if (await hasBinaryFileContent(file)) {
+    showBinaryFileState(file.name);
+    return;
+  }
+  const binaryState = document.getElementById("binary-file-state");
+  if (binaryState) binaryState.hidden = true;
   window.editor.setValue(await file.text());
   const language = getWorkspaceLanguageForFile(file.name);
   const label = document.querySelector("#code-language h4");
