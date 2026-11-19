@@ -163,7 +163,7 @@ function setActiveView(view) {
     const loading = window.darkStudioLoadExtensions?.();
     if (loading?.then) {
       void loading.then(() => {
-        if (activeView === "map" && !container?.classList.contains("settings-active")) {
+        if (activeView === "map") {
           window.darkStudioShowExtensions?.();
         }
       }).catch((error) => console.error("DarkStudio: não foi possível carregar Extensões.", error));
@@ -175,7 +175,8 @@ function setActiveView(view) {
   }
 
   activeView = view;
-  if (!showMap && !container?.classList.contains("settings-active") &&
+  if (!showMap && !window.darkStudioSettingsTransition &&
+      !container?.classList.contains("settings-active") &&
       !container?.classList.contains("extensions-active")) {
     window.dispatchEvent(new Event("darkstudio:editor-requested"));
   }
