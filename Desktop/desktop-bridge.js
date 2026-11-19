@@ -290,11 +290,20 @@ async function hasBinaryContent(file) {
           window.darkStudioShowBinaryFileState?.(file.fileName);
           return;
         }
-        if (window.editor?.setValue) {
+        const applyOpenedFile = () => {
+          if (!window.editor?.setValue) return;
           setExternalFile(file);
           window.editor.setValue(file.content);
           window.editor.focus?.();
+          window.darkStudioRefreshEditorUI?.();
           try { localStorage.setItem(EXTERNAL_FILE_DRAFT_KEY, JSON.stringify({ filePath: file.filePath, content: file.content, savedAt: Date.now() })); } catch {}
+        };
+        if (window.editor?.setValue) {
+          applyOpenedFile();
+        } else {
+          setExternalFile(file);
+          window.addEventListener("darkstudio:editor-ready", applyOpenedFile, { once: true });
+          window.dispatchEvent(new Event("darkstudio:editor-requested"));
         }
         return;
       }
