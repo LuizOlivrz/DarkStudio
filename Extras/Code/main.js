@@ -774,6 +774,14 @@ if (!blockWeb) {
         localStorage.setItem(sizeKey, JSON.stringify(sizes));
       } catch {}
     };
+    let captionRotationTimer = null;
+    let captionChangeTimer = null;
+    const stopCaptionRotation = () => {
+      if (captionRotationTimer !== null) window.clearInterval(captionRotationTimer);
+      if (captionChangeTimer !== null) window.clearTimeout(captionChangeTimer);
+      captionRotationTimer = null;
+      captionChangeTimer = null;
+    };
     const addCaption = (portrait) => {
       let caption = player.querySelector(".mini-player-orientation-caption");
       if (!caption) {
@@ -788,16 +796,20 @@ if (!blockWeb) {
       const messages = portrait
         ? ["DARKSTUDIO • MINI-PLAYER", "FOQUE NO CÓDIGO • VÍDEO ATIVO", "ARRASTE PARA MOVER • CANTO PARA REDIMENSIONAR"]
         : ["DARKSTUDIO • MINI-PLAYER", "VÍDEO ATIVO • EDITOR INDEPENDENTE", "ARRASTE PARA MOVER • CANTO PARA REDIMENSIONAR"];
-      if (!caption.dataset.rotating) {
-        caption.dataset.rotating = "true";
+      if (captionRotationTimer === null) {
         let index = 0;
         caption.textContent = messages[index];
-        window.setInterval(() => {
-          if (!caption.isConnected || !isExpanded()) return;
+        // O timer existe somente enquanto o mini-player expandido exibe a legenda.
+        captionRotationTimer = window.setInterval(() => {
+          if (!caption.isConnected || !isExpanded()) {
+            stopCaptionRotation();
+            return;
+          }
           index = (index + 1) % messages.length;
           caption.classList.add("is-changing");
-          window.setTimeout(() => {
-            if (!caption.isConnected) return;
+          captionChangeTimer = window.setTimeout(() => {
+            captionChangeTimer = null;
+            if (!caption.isConnected || !isExpanded()) return;
             caption.textContent = messages[index];
             caption.classList.remove("is-changing");
           }, 140);
@@ -805,6 +817,7 @@ if (!blockWeb) {
       }
     };
     const clearExpandedState = () => {
+      stopCaptionRotation();
       editorSurface.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
       editorSurface.style.removeProperty("--mini-player-fit-width");
       editorSurface.style.removeProperty("--mini-player-fit-height");
