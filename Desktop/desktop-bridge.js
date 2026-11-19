@@ -116,18 +116,19 @@ async function hasBinaryContent(file) {
         }
       };
 
-      const waitForWebEditor = () => {
-        let attempts = 0;
-        const timer = setInterval(async () => {
-          attempts += 1;
-          if (window.editor?.setValue) {
-            clearInterval(timer);
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            await restoreWebFile();
-            installWebEditorAutosave();
-          } else if (attempts >= 120) clearInterval(timer);
-        }, 100);
+      const initializeWebEditorFeatures = () => {
+        if (!window.editor?.setValue) return;
+        // O Workspace restaura seu arquivo no primeiro frame do evento;
+        // o segundo frame deixa a restauração de arquivo externo ter prioridade.
+        requestAnimationFrame(() => requestAnimationFrame(async () => {
+          if (!window.editor?.setValue) return;
+          await restoreWebFile();
+          installWebEditorAutosave();
+        }));
       };
+
+      if (window.editor?.setValue) initializeWebEditorFeatures();
+      else window.addEventListener("darkstudio:editor-ready", initializeWebEditorFeatures, { once: true });
 
       document.addEventListener("click", async (event) => {
         const loadButton = event.target.closest?.("#load-button");
@@ -254,17 +255,15 @@ async function hasBinaryContent(file) {
     }
   };
 
-  const waitForEditorAndRestore = () => {
-    let attempts = 0;
-    const timer = setInterval(async () => {
-      attempts += 1;
-      if (window.editor?.setValue) {
-        clearInterval(timer);
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        await restoreExternalFileIfNeeded();
-        window.editor.onDidChangeModelContent?.(persistExternalDraft);
-      } else if (attempts >= 120) clearInterval(timer);
-    }, 100);
+  const initializeDesktopEditorFeatures = () => {
+    if (!window.editor?.setValue) return;
+    // Aguarda a restauração do arquivo ativo do Workspace antes de aplicar
+    // uma sessão externa previamente aberta.
+    requestAnimationFrame(() => requestAnimationFrame(async () => {
+      if (!window.editor?.setValue) return;
+      await restoreExternalFileIfNeeded();
+      window.editor.onDidChangeModelContent?.(persistExternalDraft);
+    }));
   };
 
   const extensionForCurrentEditor = () => {
@@ -331,7 +330,8 @@ async function hasBinaryContent(file) {
     currentExternalFile = null;
     try { localStorage.setItem(EDITOR_SESSION_MODE_KEY, "workspace"); } catch {}
   });
-  waitForEditorAndRestore();
+  if (window.editor?.setValue) initializeDesktopEditorFeatures();
+  else window.addEventListener("darkstudio:editor-ready", initializeDesktopEditorFeatures, { once: true });
 
   // Now Playing: existe somente no renderer Electron, nunca no navegador.
   const nowPlaying = document.createElement("aside");
@@ -363,7 +363,6 @@ async function hasBinaryContent(file) {
     nowPlaying.title = [snapshot.title, snapshot.artist, snapshot.album].filter(Boolean).join(" — ");
   };
   const unsubscribeNowPlaying = window.darkStudioDesktop.onNowPlaying(renderNowPlaying);
-  window.darkStudioDesktop.getNowPlaying().then(renderNowPlaying).catch(() => {});
   window.addEventListener("beforeunload", unsubscribeNowPlaying, { once: true });
 
   // Terminal integrado com sessões CMD/PowerShell, abas personalizáveis e tela cheia.
