@@ -220,10 +220,7 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
 
   function initEditorEvents() {
-    if (!window.editor) {
-      setTimeout(initEditorEvents, 500);
-      return;
-    }
+    if (!window.editor) return;
 
     // 1️⃣ Carrega código salvo do localStorage
     const savedCode = localStorage.getItem("codigoSalvo");
@@ -301,7 +298,11 @@ if (!blockWeb) {
   // é aberto, sem depender apenas do debounce da análise de conteúdo.
   window.darkStudioRefreshEditorUI = () => updateUI();
 
-  initEditorEvents();
+  if (window.editor) {
+    initEditorEvents();
+  } else {
+    window.addEventListener("darkstudio:editor-ready", initEditorEvents, { once: true });
+  }
 
   function getLinkSiteName(rawUrl) {
     let host = "";
