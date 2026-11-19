@@ -163,7 +163,9 @@ function setActiveView(view) {
     const loading = window.darkStudioLoadExtensions?.();
     if (loading?.then) {
       void loading.then(() => {
-        if (activeView === "map") window.darkStudioShowExtensions?.();
+        if (activeView === "map" && !container?.classList.contains("settings-active")) {
+          window.darkStudioShowExtensions?.();
+        }
       }).catch((error) => console.error("DarkStudio: não foi possível carregar Extensões.", error));
     } else {
       window.darkStudioShowExtensions?.();
