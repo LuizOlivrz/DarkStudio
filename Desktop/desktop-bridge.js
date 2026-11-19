@@ -205,7 +205,8 @@ async function hasBinaryContent(file) {
         webFileName = "";
         try { localStorage.setItem(WEB_MODE_KEY, "workspace"); } catch {}
       });
-      waitForWebEditor();
+      if (window.editor?.setValue) initializeWebEditorFeatures();
+      else window.addEventListener("darkstudio:editor-ready", initializeWebEditorFeatures, { once: true });
     }
     return;
   }
