@@ -3808,6 +3808,8 @@ async function initMindmap() {
   waitForEditor();
   processPendingSharedTexts();
 
+  window.darkStudioWorkspaceReady = true;
+  window.dispatchEvent(new Event("darkstudio:workspace-ready"));
   devLog("DarkStudio Workspace inicializado.");
 }
 
