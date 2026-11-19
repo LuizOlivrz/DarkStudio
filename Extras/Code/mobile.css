@@ -3675,25 +3675,8 @@ html.ds-boot-building body #signature {
   border: 0 !important;
 }
 
-/* Evita animações decorativas infinitas em dispositivos móveis; mantém transições de interação. */
-#options,
-#code-language,
-#input-area,
-#inline-input-area,
-#workspace-footer #code-language,
-#workspace-footer #config-toggle,
-#workspace-launcher-rail .workspace-launcher::before,
-#workspace-footer #config-toggle::before {
-  animation: none !important;
-}
 
 html:not(.desktop-app) #system-now-playing-option {
   display: none !important;
 }
 
-/* Também interrompe os giros infinitos dos seletores ativos. */
-#workspace-launcher-rail .workspace-launcher.is-active::before,
-#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
-#Website-Container.settings-active #workspace-footer #config-toggle::before {
-  animation: none !important;
-}
