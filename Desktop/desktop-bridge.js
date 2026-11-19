@@ -380,8 +380,31 @@ async function hasBinaryContent(file) {
     }
     nowPlaying.title = [snapshot.title, snapshot.artist, snapshot.album].filter(Boolean).join(" — ");
   };
-  const unsubscribeNowPlaying = window.darkStudioDesktop.onNowPlaying(renderNowPlaying);
-  window.addEventListener("beforeunload", unsubscribeNowPlaying, { once: true });
+  const nowPlayingPreference = document.getElementById("system-now-playing-checkbox");
+  const NOW_PLAYING_PREFERENCE_KEY = "darkstudio-system-now-playing-enabled";
+  let unsubscribeNowPlaying = null;
+
+  const stopNowPlaying = () => {
+    if (unsubscribeNowPlaying) unsubscribeNowPlaying();
+    unsubscribeNowPlaying = null;
+    renderNowPlaying(null);
+  };
+  const syncNowPlayingPreference = () => {
+    const enabled = Boolean(nowPlayingPreference?.checked);
+    try { localStorage.setItem(NOW_PLAYING_PREFERENCE_KEY, String(enabled)); } catch {}
+    if (enabled && !unsubscribeNowPlaying) {
+      unsubscribeNowPlaying = window.darkStudioDesktop.onNowPlaying(renderNowPlaying);
+    } else if (!enabled) {
+      stopNowPlaying();
+    }
+  };
+
+  if (nowPlayingPreference) {
+    nowPlayingPreference.checked = localStorage.getItem(NOW_PLAYING_PREFERENCE_KEY) === "true";
+    nowPlayingPreference.addEventListener("change", syncNowPlayingPreference);
+    if (nowPlayingPreference.checked) syncNowPlayingPreference();
+  }
+  window.addEventListener("beforeunload", stopNowPlaying, { once: true });
 
   // Terminal integrado com sessões CMD/PowerShell, abas personalizáveis e tela cheia.
   if (document.getElementById("desktop-terminal")) return;
