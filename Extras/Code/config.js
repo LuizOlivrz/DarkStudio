@@ -374,9 +374,6 @@ window.darkStudioLoadNightCoder = loadNightCoder;
  */
 async function js(name) {
   const path = `Extras/Code/${name}.js`;
-  const ok = await checkFile(path, `${name}.js`);
-
-  if (!ok) return false;
 
   return new Promise((resolve) => {
     const script = document.createElement("script");
@@ -458,25 +455,13 @@ export async function loadCSS(name) {
     return true;
   }
 
-  const ok = await checkFile(path, name);
-
-  if (!ok) return false;
-
   return new Promise((resolve) => {
     const link = document.createElement("link");
 
     link.rel = "stylesheet";
     link.href = path;
 
-    link.onload = () => {
-      const container = document.getElementById("Website-Container");
-
-      if (container) {
-        container.style.opacity = "1";
-      }
-
-      resolve(true);
-    };
+    link.onload = () => resolve(true);
 
     link.onerror = () => {
       bootLogs.push(`❌ ${name}`);
@@ -488,23 +473,6 @@ export async function loadCSS(name) {
 }
 
 const bootLogs = [];
-
-async function checkFile(path, label) {
-  try {
-    const res = await fetch(path, { method: "HEAD" });
-
-    if (res.ok) {
-      bootLogs.push(`✅ ${label}`);
-      return true;
-    }
-
-    bootLogs.push(`❌ ${label}`);
-    return false;
-  } catch {
-    bootLogs.push(`❌ ${label}`);
-    return false;
-  }
-}
 
 function flushBootLogs() {
   if (!getDevMode()) return;
@@ -566,30 +534,27 @@ if (!block) {
 
     mediaQuery.addEventListener("change", applyFavicon);
 
-    // Libera a interface somente depois que os módulos e estilos essenciais carregarem.
-    document.documentElement.classList.remove("ds-boot");
-    document.documentElement.classList.add("ds-boot-building");
-    window.setTimeout(() => {
-      document.documentElement.classList.remove("ds-boot-building");
-      document.documentElement.classList.add("ds-boot-complete");
-    }, 1800);
-
-    flushBootLogs();
-    // O tempo de construção começa somente após o carregamento do site.
-    if (document.documentElement.classList.contains("ds-boot-pending")) {
-      const root = document.documentElement;
-      root.classList.remove("ds-boot-pending");
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        root.classList.add("ds-boot-complete");
-      } else {
-        root.classList.add("ds-boot-building");
-        // Linha do tempo total: 2,4 s (dentro do intervalo solicitado de 1 a 3 s).
-        window.setTimeout(() => {
-          root.classList.remove("ds-boot-building");
-          root.classList.add("ds-boot-complete");
-        }, 2400);
+    // Aguarda a restauração do Workspace antes de revelar a interface.
+    // O limite evita manter a janela preta caso um módulo opcional falhe.
+    await new Promise((resolve) => {
+      if (window.darkStudioWorkspaceReady) {
+        resolve();
+        return;
       }
-    }
+      let timeoutId;
+      const finish = () => {
+        window.removeEventListener("darkstudio:workspace-ready", finish);
+        window.clearTimeout(timeoutId);
+        resolve();
+      };
+      window.addEventListener("darkstudio:workspace-ready", finish, { once: true });
+      timeoutId = window.setTimeout(finish, 5000);
+    });
+
+    const root = document.documentElement;
+    root.classList.remove("ds-boot", "ds-boot-building", "ds-boot-pending");
+    root.classList.add("ds-boot-complete");
+    flushBootLogs();
   })();
 }
 
