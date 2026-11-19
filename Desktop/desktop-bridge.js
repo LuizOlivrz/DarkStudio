@@ -97,7 +97,7 @@ async function hasBinaryContent(file) {
         window.editor.onDidChangeModelContent(saveWebDraft);
       };
 
-      const applyWebFileToEditor = (handle, name, content) => {
+      const applyWebFileToEditor = (content) => {
         if (!window.editor?.setValue) return false;
         window.editor.setValue(content);
         window.editor.focus?.();
@@ -155,7 +155,7 @@ async function hasBinaryContent(file) {
             const content = await file.text();
             markWebFileActive(handle, file.name);
             await writeWebFileSession({ handle, fileName: file.name, content, savedAt: Date.now() });
-            if (!applyWebFileToEditor(handle, file.name, content)) {
+            if (!applyWebFileToEditor(content)) {
               window.addEventListener("darkstudio:editor-ready", () => {
                 applyWebFileToEditor(handle, file.name, content);
               }, { once: true });
