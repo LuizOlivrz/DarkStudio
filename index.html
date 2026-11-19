@@ -11,6 +11,7 @@
     html.ds-boot, html.ds-boot body { background: #000 !important; }
     html.ds-boot #Website-Container { opacity: 0 !important; visibility: hidden !important; }
     html #Website-Container { transition: opacity .42s ease !important; }
+    @media (prefers-reduced-motion: reduce) { html #Website-Container { transition: none !important; } }
   </style>
   <script src="Extras/Code/language-init.js"></script>
   <!-- ====== BASIC META / METADADOS BÁSICOS ====== -->
