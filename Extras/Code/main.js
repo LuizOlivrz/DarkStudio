@@ -394,6 +394,7 @@ if (!blockWeb) {
           const isShort = /^\/shorts\//.test(url.pathname);
           embed = {
             type: "youtube",
+            profile: isShort ? "youtube:shorts" : "youtube:video",
             src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin) + "",
             ratio: isShort ? "9 / 16" : "16 / 9",
             width: isShort ? 300 : 480,
@@ -407,6 +408,7 @@ if (!blockWeb) {
           const spotify = getSpotifyInfo(cleanedUrl);
           if (spotify) embed = {
             type: "spotify",
+            profile: "spotify:" + spotify.type,
             src: "https://open.spotify.com/embed/" + spotify.type + "/" + spotify.id + "?utm_source=generator",
             height: 352,
             title: "Spotify Embed: " + spotify.type,
@@ -419,6 +421,7 @@ if (!blockWeb) {
           const match = url.pathname.match(/\/video\/(\d+)/);
           if (match) embed = {
             type: "tiktok",
+            profile: "tiktok:video",
             src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&volume_control=1&music_info=1&description=1",
             ratio: "9 / 16",
             width: 338,
@@ -430,21 +433,21 @@ if (!blockWeb) {
         // Other platforms with documented iframe players.
         if (!embed && ["vimeo.com", "player.vimeo.com"].includes(host)) {
           const match = url.pathname.match(/(?:video\/)?(\d+)/);
-          if (match) embed = { type: "vimeo", src: "https://player.vimeo.com/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Vimeo video player" };
+          if (match) embed = { type: "vimeo", profile: "vimeo:video", src: "https://player.vimeo.com/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Vimeo video player" };
         }
         if (!embed && host === "dailymotion.com") {
           const match = url.pathname.match(/\/(?:video|embed\/video)\/([a-zA-Z0-9]+)/);
-          if (match) embed = { type: "dailymotion", src: "https://www.dailymotion.com/embed/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Dailymotion video player" };
+          if (match) embed = { type: "dailymotion", profile: "dailymotion:video", src: "https://www.dailymotion.com/embed/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Dailymotion video player" };
         }
         if (!embed && host === "twitch.tv") {
           const clip = url.pathname.match(/^\/(?:[^/]+\/clip|clip)\/([A-Za-z0-9_-]+)/);
           const video = url.pathname.match(/^\/videos\/(\d+)/);
           if (clip) {
             const parent = encodeURIComponent(location.hostname || "localhost");
-            embed = { type: "twitch", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch clip player" };
+            embed = { type: "twitch", profile: "twitch:clip", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch clip player" };
           } else if (video) {
             const parent = encodeURIComponent(location.hostname || "localhost");
-            embed = { type: "twitch", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch video player" };
+            embed = { type: "twitch", profile: "twitch:video", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch video player" };
           }
         }
         if (embed) {
@@ -464,6 +467,7 @@ if (!blockWeb) {
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
+      item.dataset.mediaProfile = embed.profile || (embed.type + ":default");
       if (embed.ratio) item.style.aspectRatio = embed.ratio;
       // The player controls the item size. Do not freeze each media card to its
       // provider's default dimensions, otherwise resizing only changes the shell.
@@ -614,9 +618,31 @@ if (!blockWeb) {
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     const getMedia = () => list.querySelector(".mini-player-item");
+    // Each provider/content subtype owns an independent size preference.
+    // A mixed feed gets its own profile, so it cannot overwrite a single-media size.
+    const getMediaProfile = (item = getMedia()) => {
+      const profiles = [...list.querySelectorAll(".mini-player-item")]
+        .map(media => media.dataset.mediaProfile || "generic:default");
+      if (profiles.length > 1) return "stack:" + profiles.join("+");
+      return item?.dataset.mediaProfile || "generic:default";
+    };
+    const readSavedSizes = () => {
+      try {
+        const value = JSON.parse(localStorage.getItem(sizeKey) || "{}");
+        return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+      } catch { return {}; }
+    };
+    const getSavedSize = (item = getMedia()) => {
+      const saved = readSavedSizes()[getMediaProfile(item)];
+      if (!saved || !Number.isFinite(saved.width) || !Number.isFinite(saved.height) || saved.width <= 0 || saved.height <= 0) return null;
+      return { width: saved.width, height: saved.height };
+    };
     const getDefaultSize = () => {
       const item = getMedia();
-      if (item?.classList.contains("spotify")) return { width: 340, height: 80 };
+      if (item?.classList.contains("spotify")) {
+        const spotifyType = getMediaProfile(item).slice("spotify:".length);
+        return { width: 340, height: spotifyType === "track" ? 80 : 352 };
+      }
       if (item?.classList.contains("tiktok") || getRatio(item) < 1) {
         return { width: 119.25, height: 212 };
       }
@@ -722,9 +748,10 @@ if (!blockWeb) {
           return;
         }
 
-        // Every newly detected media type starts at its minimum practical size.
+        // Restore the last dimensions used for this exact provider/content profile.
+        // A new profile receives its own platform default instead of inheriting another player's size.
         const bounds = getEditorBounds();
-        const size = getDefaultSize();
+        const size = getSavedSize() || getDefaultSize();
         const minWidth = isSpotify() ? Math.min(340, bounds.width) : 1;
         const minHeight = isSpotify() ? Math.min(80, bounds.height) : 1;
         const width = clamp(size.width, minWidth, Math.max(minWidth, bounds.width));
@@ -741,7 +768,9 @@ if (!blockWeb) {
       const r = player.getBoundingClientRect();
       try {
         localStorage.setItem(positionKey, JSON.stringify({ left: r.left, top: r.top }));
-        localStorage.setItem(sizeKey, JSON.stringify({ width: r.width, height: r.height }));
+        const sizes = readSavedSizes();
+        sizes[getMediaProfile()] = { width: r.width, height: r.height };
+        localStorage.setItem(sizeKey, JSON.stringify(sizes));
       } catch {}
     };
     const addCaption = (portrait) => {
