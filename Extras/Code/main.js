@@ -222,17 +222,12 @@ if (!blockWeb) {
   function initEditorEvents() {
     if (!window.editor) return;
 
-    // 1️⃣ Carrega código salvo do localStorage
-    const savedCode = localStorage.getItem("codigoSalvo");
-
-    if (savedCode) {
-      window.editor.setValue(savedCode);
-    }
-
-    // 2️⃣ Detecta linguagem inicial e configura interface
+    // Monaco já restaura o rascunho global; o Workspace restaura o arquivo ativo
+    // no evento editor-ready, evitando aplicar o mesmo conteúdo duas vezes.
+    // Detecta a linguagem inicial e configura a interface.
     updateUI();
 
-    // 3️⃣ Atualiza a interface quando o usuário digitar
+    // Atualiza a interface quando o usuário digitar
     window.editor.onDidChangeModelContent(() => {
       scheduleCodeAnalysis();
     });
