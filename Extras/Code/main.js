@@ -1626,6 +1626,9 @@ ${code}
     WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
 
+    // Atualiza o estado da tela antes de alternar os painéis internos.
+    WebsiteContainer.classList.toggle("settings-active", opening);
+
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
       // As Configurações incluem preferências do NightCoder; carregue-o sob demanda.
@@ -1643,13 +1646,16 @@ ${code}
     }
 
     configValue = opening;
-    WebsiteContainer.classList.toggle("settings-active", opening);
     configMenu.hidden = !opening;
     // Ao fechar Configurações, respeita o estado vazio do Explorer em vez de exibir Monaco sem arquivos.
     if (editorInput) editorInput.hidden = opening || Boolean(emptyState && !emptyState.hidden);
 
     configMenu.scrollTop = 0;
-    requestAnimationFrame(() => window.editor?.layout());
+    // Não solicita layout nem inicialização do Monaco enquanto Configurações está aberta.
+    if (!opening) {
+      window.dispatchEvent(new Event("darkstudio:editor-requested"));
+      requestAnimationFrame(() => window.editor?.layout());
+    }
   }
 
   window.config = config;
