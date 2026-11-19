@@ -4893,3 +4893,7 @@ html.ds-boot-building body #signature {
 html.desktop-app #config-icon {
   animation: up .5s ease-in-out forwards;
 }
+
+html:not(.desktop-app) #system-now-playing-option {
+  display: none !important;
+}
