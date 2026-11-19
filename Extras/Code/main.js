@@ -1631,8 +1631,6 @@ ${code}
 
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
-      // As Configurações incluem preferências do NightCoder; carregue-o sob demanda.
-      window.darkStudioLoadNightCoder?.();
       const fileLauncher = document.getElementById("file-gutter-icon");
       const fileView = document.getElementById("file-manager-view");
       const fileAlreadySelected = fileLauncher?.getAttribute("aria-pressed") === "true";
@@ -1659,6 +1657,13 @@ ${code}
   }
 
   window.config = config;
+
+  // O editor de prompt só precisa do módulo NightCoder quando sua seção é expandida.
+  const aiSettingsDetails = [...document.querySelectorAll("#config details.settings-tree")]
+    .find((details) => details.querySelector('summary[data-i18n="aiHeading"]'));
+  aiSettingsDetails?.addEventListener("toggle", () => {
+    if (aiSettingsDetails.open) void window.darkStudioLoadNightCoder?.();
+  });
 
   setupPanelResizers(WebsiteContainer, () => { chatOpen = true; });
 
@@ -1939,7 +1944,7 @@ ${code}
       .join("")}`;
   }
 
-  function applyWallpaperColors() {
+  async function applyWallpaperColors() {
     const wallpaperColorsInput = document.getElementById("wallpaper-colors-checkbox");
     if (!wallpaperColorsInput?.checked) return;
 
@@ -1962,13 +1967,9 @@ ${code}
       return;
     }
 
-    if (typeof window.ColorThief !== "function") {
-      console.error("Dynamic wallpaper colors require Color Thief, but it is unavailable.");
-      setWallpaperColorStatus("wallpaperColorsUnavailable");
-      return;
-    }
-
     try {
+      await window.darkStudioLoadColorThief?.();
+      if (!wallpaperColorsInput.checked || typeof window.ColorThief !== "function") return;
       const palette = new window.ColorThief().getPalette(image, 2);
       if (!Array.isArray(palette) || !Array.isArray(palette[0]) || palette[0].length < 3) {
         throw new Error("Color Thief returned an invalid wallpaper palette.");
@@ -2014,7 +2015,7 @@ ${code}
       }
     });
     checkbox.checked = savedEnabled;
-    if (savedImg && pageBgImg) pageBgImg.src = savedImg;
+    if (savedEnabled && savedImg && pageBgImg) pageBgImg.src = savedImg;
     if (range) {
       range.value = savedBlur;
       if (valueSpan) valueSpan.textContent = String(savedBlur);
@@ -2027,6 +2028,9 @@ ${code}
     checkbox.addEventListener("change", (e) => {
       const v = e.target.checked;
       localStorage.setItem("bgEnabled", String(v));
+      if (v && savedImg && pageBgImg && !pageBgImg.getAttribute("src")) {
+        pageBgImg.src = savedImg;
+      }
       toggleBg(v);
     });
 
@@ -2375,6 +2379,11 @@ ${code}
   }
 
   async function applyThemeFromImage(url) {
+    try {
+      await window.darkStudioLoadColorThief?.();
+    } catch {
+      return false;
+    }
     return new Promise((resolve) => {
       const img = new Image();
 
