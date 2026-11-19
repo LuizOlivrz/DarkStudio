@@ -469,12 +469,8 @@ export async function loadCSS(name) {
     link.href = path;
 
     link.onload = () => {
-      const container = document.getElementById("Website-Container");
-
-      if (container) {
-        container.style.opacity = "1";
-      }
-
+      // O container permanece oculto até que todos os módulos essenciais
+      // (incluindo extensões) terminem de carregar no carregador principal.
       resolve(true);
     };
 
