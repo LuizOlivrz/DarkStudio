@@ -97,6 +97,14 @@ async function hasBinaryContent(file) {
         window.editor.onDidChangeModelContent(saveWebDraft);
       };
 
+      const applyWebFileToEditor = (handle, name, content) => {
+        if (!window.editor?.setValue) return false;
+        window.editor.setValue(content);
+        window.editor.focus?.();
+        installWebEditorAutosave();
+        return true;
+      };
+
       const restoreWebFile = async () => {
         try {
           if (localStorage.getItem(WEB_MODE_KEY) !== "external-file") return;
@@ -150,11 +158,12 @@ async function hasBinaryContent(file) {
             const content = await file.text();
             markWebFileActive(handle, file.name);
             await writeWebFileSession({ handle, fileName: file.name, content, savedAt: Date.now() });
-            if (window.editor?.setValue) {
-              window.editor.setValue(content);
-              window.editor.focus?.();
+            if (!applyWebFileToEditor(handle, file.name, content)) {
+              window.addEventListener("darkstudio:editor-ready", () => {
+                applyWebFileToEditor(handle, file.name, content);
+              }, { once: true });
+              window.dispatchEvent(new Event("darkstudio:editor-requested"));
             }
-            installWebEditorAutosave();
             return;
           }
 
@@ -290,9 +299,9 @@ async function hasBinaryContent(file) {
           window.darkStudioShowBinaryFileState?.(file.fileName);
           return;
         }
-        const applyOpenedFile = () => {
+        const applyOpenedFile = (markExternal = true) => {
           if (!window.editor?.setValue) return;
-          setExternalFile(file);
+          if (markExternal) setExternalFile(file);
           window.editor.setValue(file.content);
           window.editor.focus?.();
           window.darkStudioRefreshEditorUI?.();
@@ -302,7 +311,7 @@ async function hasBinaryContent(file) {
           applyOpenedFile();
         } else {
           setExternalFile(file);
-          window.addEventListener("darkstudio:editor-ready", applyOpenedFile, { once: true });
+          window.addEventListener("darkstudio:editor-ready", () => applyOpenedFile(false), { once: true });
           window.dispatchEvent(new Event("darkstudio:editor-requested"));
         }
         return;
