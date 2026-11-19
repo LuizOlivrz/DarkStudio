@@ -135,9 +135,6 @@ async function hasBinaryContent(file) {
         }));
       };
 
-      if (window.editor?.setValue) initializeWebEditorFeatures();
-      else window.addEventListener("darkstudio:editor-ready", initializeWebEditorFeatures, { once: true });
-
       document.addEventListener("click", async (event) => {
         const loadButton = event.target.closest?.("#load-button");
         const saveButton = event.target.closest?.("#save-button");
