@@ -2028,7 +2028,8 @@ ${code}
       }
     });
     checkbox.checked = savedEnabled;
-    if (savedEnabled && savedImg && pageBgImg) pageBgImg.src = savedImg;
+    const needsWallpaperPalette = localStorage.getItem("wallpaperColorsEnabled") === "true";
+    if ((savedEnabled || needsWallpaperPalette) && savedImg && pageBgImg) pageBgImg.src = savedImg;
     if (range) {
       range.value = savedBlur;
       if (valueSpan) valueSpan.textContent = String(savedBlur);
@@ -2299,8 +2300,12 @@ ${code}
       seasonalThemeInput.dispatchEvent(new Event("change", { bubbles: true }));
     }
     updateAppearanceOptions();
-    if (wallpaperColorsInput.checked) applyWallpaperColors();
-    else {
+    if (wallpaperColorsInput.checked) {
+      const image = document.getElementById("page-bg-img");
+      const savedBackground = localStorage.getItem("bgImageData") || "";
+      if (savedBackground && image && !image.getAttribute("src")) image.src = savedBackground;
+      if (image?.complete && image.naturalWidth) void applyWallpaperColors();
+    } else {
       setWallpaperColorStatus("");
       applySavedCustomColors();
     }
