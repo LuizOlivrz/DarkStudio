@@ -434,10 +434,62 @@ ipcMain.handle("darkstudio:check-for-updates", async (event) => {
 const WINDOW_STATE_FILE = () => path.join(app.getPath("userData"), "window-state.json");
 const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
 let latestMediaSessionSnapshot = null;
+let mediaSessionMonitorStop = null;
+let mediaSessionMonitorPromise = null;
+const mediaSessionSubscribers = new Set();
 
-ipcMain.handle("darkstudio:media-session:get", (event) => {
+async function ensureMediaSessionMonitor() {
+  if (mediaSessionMonitorStop) return mediaSessionMonitorStop;
+  if (mediaSessionMonitorPromise) return mediaSessionMonitorPromise;
+
+  mediaSessionMonitorPromise = startMediaSessionMonitor((snapshot) => {
+    latestMediaSessionSnapshot = snapshot;
+    for (const window of BrowserWindow.getAllWindows()) {
+      if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
+        window.webContents.send("darkstudio:media-session", snapshot);
+      }
+    }
+  }).then((stop) => {
+    mediaSessionMonitorStop = stop;
+    return stop;
+  }).catch((error) => {
+    console.warn("DarkStudio: monitor de mídia não inicializado.", error);
+    return null;
+  }).finally(() => {
+    mediaSessionMonitorPromise = null;
+  });
+
+  return mediaSessionMonitorPromise;
+}
+
+async function stopMediaSessionMonitorWhenUnused() {
+  if (mediaSessionSubscribers.size || mediaSessionMonitorPromise) return;
+  const stop = mediaSessionMonitorStop;
+  mediaSessionMonitorStop = null;
+  if (typeof stop === "function") await stop();
+  else await stopMediaSessionMonitor();
+}
+
+ipcMain.handle("darkstudio:media-session:start", async (event) => {
   if (!isTrustedTerminalEvent(event)) return null;
+  mediaSessionSubscribers.add(event.sender.id);
+  await ensureMediaSessionMonitor();
   return latestMediaSessionSnapshot;
+});
+
+ipcMain.handle("darkstudio:media-session:stop", async (event) => {
+  if (!isTrustedTerminalEvent(event)) return false;
+  mediaSessionSubscribers.delete(event.sender.id);
+  await stopMediaSessionMonitorWhenUnused();
+  return true;
+});
+
+ipcMain.handle("darkstudio:media-session:get", async (event) => {
+  if (!isTrustedTerminalEvent(event)) return null;
+  await ensureMediaSessionMonitor();
+  const snapshot = latestMediaSessionSnapshot;
+  await stopMediaSessionMonitorWhenUnused();
+  return snapshot;
 });
 
 function readWindowState() {
@@ -556,6 +608,8 @@ function createWindow() {
         session.child.kill();
       }
     }
+    mediaSessionSubscribers.delete(terminalOwnerId);
+    void stopMediaSessionMonitorWhenUnused();
   });
 
   win.loadURL("app://darkstudio/index.html");
@@ -591,14 +645,7 @@ app.whenReady().then(async () => {
   });
   Menu.setApplicationMenu(null);
   createWindow();
-  void startMediaSessionMonitor((snapshot) => {
-    latestMediaSessionSnapshot = snapshot;
-    for (const window of BrowserWindow.getAllWindows()) {
-      if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
-        window.webContents.send("darkstudio:media-session", snapshot);
-      }
-    }
-  }).catch((error) => console.warn("DarkStudio: monitor de mídia não inicializado.", error));
+  // O monitor de mídia só inicia quando um renderer solicita leitura/assinatura.
   // Atualizações automáticas são exclusivas do executável desktop Windows empacotado.
   if (process.platform === "win32" && app.isPackaged) {
     void checkForUpdates();
