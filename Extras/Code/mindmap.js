@@ -1864,8 +1864,12 @@ function renameFileNode(file, newName) {
   if (currentEditingNode?.id === file.id) {
     window.darkStudioWorkspaceCurrentFile = file;
     if (nextType === "text" && file.languageOverride) setEditorLanguage(file);
-    else if (nextType === "binary") showBinaryFileState(file);
-    else if (nextType === "image") showImageViewer(file);
+    else if (nextType !== "text") {
+      currentEditingNode = null;
+      window.darkStudioWorkspaceCurrentFile = null;
+      if (nextType === "binary") showBinaryFileState(file);
+      else showImageViewer(file);
+    }
   }
 
   saveState();
