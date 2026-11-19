@@ -480,7 +480,7 @@ function createWindow() {
     minHeight: 620,
     title: "DarkStudio",
     icon: path.join(PROJECT_ROOT, "Extras", "Assets", "White Favicon.ico"),
-    backgroundColor: "#111111",
+    backgroundColor: "#000000",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
