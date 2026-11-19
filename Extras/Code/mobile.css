@@ -3674,3 +3674,15 @@ html.ds-boot-building body #signature {
   background: transparent !important;
   border: 0 !important;
 }
+
+/* Evita animações decorativas infinitas em dispositivos móveis; mantém transições de interação. */
+#options,
+#code-language,
+#input-area,
+#inline-input-area,
+#workspace-footer #code-language,
+#workspace-footer #config-toggle,
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
+  animation: none !important;
+}
