@@ -1634,8 +1634,9 @@ ${code}
     WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
 
-    // Atualiza o estado da tela antes de alternar os painéis internos.
-    WebsiteContainer.classList.toggle("settings-active", opening);
+    // Evita que a troca automática para a Estação de Arquivos solicite o Monaco
+    // durante a transição para Configurações.
+    window.darkStudioSettingsTransition = opening;
 
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
@@ -1652,7 +1653,9 @@ ${code}
     }
 
     configValue = opening;
+    WebsiteContainer.classList.toggle("settings-active", opening);
     configMenu.hidden = !opening;
+    window.darkStudioSettingsTransition = false;
     // Ao fechar Configurações, respeita o estado vazio do Explorer em vez de exibir Monaco sem arquivos.
     if (editorInput) editorInput.hidden = opening || Boolean(emptyState && !emptyState.hidden);
 
