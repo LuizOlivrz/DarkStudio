@@ -436,7 +436,7 @@ const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
 let latestMediaSessionSnapshot = null;
 let mediaSessionMonitorStop = null;
 let mediaSessionMonitorPromise = null;
-const mediaSessionSubscribers = new Set();
+const mediaSessionSubscribers = new Map();
 
 async function ensureMediaSessionMonitor() {
   if (mediaSessionMonitorStop) return mediaSessionMonitorStop;
@@ -444,8 +444,9 @@ async function ensureMediaSessionMonitor() {
 
   mediaSessionMonitorPromise = startMediaSessionMonitor((snapshot) => {
     latestMediaSessionSnapshot = snapshot;
-    for (const window of BrowserWindow.getAllWindows()) {
-      if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
+    for (const senderId of mediaSessionSubscribers.keys()) {
+      const window = BrowserWindow.getAllWindows().find((candidate) => candidate.webContents.id === senderId);
+      if (window && !window.isDestroyed() && !window.webContents.isDestroyed()) {
         window.webContents.send("darkstudio:media-session", snapshot);
       }
     }
@@ -463,7 +464,9 @@ async function ensureMediaSessionMonitor() {
 }
 
 async function stopMediaSessionMonitorWhenUnused() {
-  if (mediaSessionSubscribers.size || mediaSessionMonitorPromise) return;
+  if (mediaSessionSubscribers.size) return;
+  if (mediaSessionMonitorPromise) await mediaSessionMonitorPromise;
+  if (mediaSessionSubscribers.size) return;
   const stop = mediaSessionMonitorStop;
   mediaSessionMonitorStop = null;
   if (typeof stop === "function") await stop();
@@ -472,14 +475,18 @@ async function stopMediaSessionMonitorWhenUnused() {
 
 ipcMain.handle("darkstudio:media-session:start", async (event) => {
   if (!isTrustedTerminalEvent(event)) return null;
-  mediaSessionSubscribers.add(event.sender.id);
+  const senderId = event.sender.id;
+  mediaSessionSubscribers.set(senderId, (mediaSessionSubscribers.get(senderId) || 0) + 1);
   await ensureMediaSessionMonitor();
   return latestMediaSessionSnapshot;
 });
 
 ipcMain.handle("darkstudio:media-session:stop", async (event) => {
   if (!isTrustedTerminalEvent(event)) return false;
-  mediaSessionSubscribers.delete(event.sender.id);
+  const senderId = event.sender.id;
+  const count = mediaSessionSubscribers.get(senderId) || 0;
+  if (count <= 1) mediaSessionSubscribers.delete(senderId);
+  else mediaSessionSubscribers.set(senderId, count - 1);
   await stopMediaSessionMonitorWhenUnused();
   return true;
 });
