@@ -372,7 +372,7 @@ window.darkStudioLoadNightCoder = loadNightCoder;
  * Carrega um script JS interno
  * @param {string} name - file name without .js
  */
-async const internalScriptPromises = new Map();
+const internalScriptPromises = new Map();
 
 function js(name) {
   if (internalScriptPromises.has(name)) return internalScriptPromises.get(name);
