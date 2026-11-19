@@ -3686,3 +3686,7 @@ html.ds-boot-building body #signature {
 #workspace-footer #config-toggle::before {
   animation: none !important;
 }
+
+html:not(.desktop-app) #system-now-playing-option {
+  display: none !important;
+}
