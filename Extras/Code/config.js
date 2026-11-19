@@ -340,9 +340,8 @@ export function getDevice() {
  */
 export const blockWeb = block;
 
-// NightCoder é carregado somente quando Configurações ou Chat são abertos.
-// O import dinâmico é naturalmente deduplicado pelo navegador; a Promise
-// também permite reutilizar e repetir a tentativa caso ocorra uma falha.
+// NightCoder é carregado ao abrir o Chat ou expandir as configurações de IA.
+// O import dinâmico é deduplicado e pode ser tentado novamente após uma falha.
 let nightCoderLoadPromise = null;
 export function loadNightCoder() {
   if (blockWeb) return Promise.resolve(false);
