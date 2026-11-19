@@ -4897,3 +4897,10 @@ html.desktop-app #config-icon {
 html:not(.desktop-app) #system-now-playing-option {
   display: none !important;
 }
+
+/* Também interrompe os giros infinitos dos seletores ativos. */
+#workspace-launcher-rail .workspace-launcher.is-active::before,
+#workspace-launcher-rail .workspace-launcher[aria-pressed="true"]::before,
+#Website-Container.settings-active #workspace-footer #config-toggle::before {
+  animation: none !important;
+}
