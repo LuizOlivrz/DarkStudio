@@ -372,23 +372,27 @@ window.darkStudioLoadNightCoder = loadNightCoder;
  * Carrega um script JS interno
  * @param {string} name - file name without .js
  */
-async function js(name) {
+async const internalScriptPromises = new Map();
+
+function js(name) {
+  if (internalScriptPromises.has(name)) return internalScriptPromises.get(name);
   const path = `Extras/Code/${name}.js`;
 
-  return new Promise((resolve) => {
+  const promise = new Promise((resolve) => {
     const script = document.createElement("script");
-
     script.src = path;
     script.type = "module";
-
     script.onload = () => resolve(true);
     script.onerror = () => {
       bootLogs.push(`❌ ${name}.js`);
+      internalScriptPromises.delete(name);
       resolve(false);
     };
-
     document.body.appendChild(script);
   });
+
+  internalScriptPromises.set(name, promise);
+  return promise;
 }
 
 /**
@@ -412,31 +416,36 @@ function loadJS(name) {
  * Carrega script externo (CDN)
  * @param {string} url
  */
+const externalScriptPromises = new Map();
+
 export function loadExternalScript(url) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${url}"]`)) {
-      resolve();
-      return;
-    }
+  if (externalScriptPromises.has(url)) return externalScriptPromises.get(url);
 
+  const promise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-
     script.src = url;
     script.defer = true;
-
     script.onload = () => {
       bootLogs.push("✅ Color Thief");
       resolve();
     };
-
     script.onerror = () => {
       bootLogs.push("❌ Color Thief");
+      externalScriptPromises.delete(url);
       reject(`Erro ao carregar ${url}`);
     };
-
     document.head.appendChild(script);
   });
+
+  externalScriptPromises.set(url, promise);
+  return promise;
 }
+
+// Recursos opcionais são carregados somente quando a funcionalidade que os usa é acionada.
+window.darkStudioLoadExtensions = () => loadJS("extensions");
+window.darkStudioLoadColorThief = () => loadExternalScript(
+  "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
+);
 
 /**
  * Load CSS dynamically
@@ -517,18 +526,11 @@ function applyFavicon(e) {
 
 if (!block) {
   (async () => {
-    // Color Thief is only needed by optional appearance features. Start it
-    // in parallel so a slow third-party CDN cannot delay the editor startup.
-    loadExternalScript(
-      "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
-    ).catch((error) => {
-      console.error("Could not load Color Thief:", error);
-    });
-
+    // Monaco e extensões têm inicialização própria: os módulos base não
+    // devem aguardar recursos opcionais nem iniciar runtimes que não estão em uso.
     await Promise.all([loadJS("monaco"), loadJS("main")]);
 
     await loadCSS(device !== "Mobile" ? "dark.css" : "mobile.css");
-    await loadJS("extensions");
 
     applyFavicon(mediaQuery);
 
