@@ -2407,7 +2407,7 @@ const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp
 const BINARY_FILE_MIME_TYPES = /^(?:application\/(?:octet-stream|x-msdownload|x-iso9660-image|zip|x-7z-compressed|x-rar-compressed)|audio\/|video\/|font\/)/i;
 const BINARY_FILE_EXTENSIONS = new Set([
   "iso", "bin", "exe", "dll", "sys", "apk", "zip", "7z", "rar", "tar",
-  "gz", "bz2", "xz", "dmg", "img", "class", "wasm", "dat"
+  "gz", "bz2", "xz", "dmg", "img", "class", "wasm", "dat", "mp4", "webm", "mov", "mkv", "avi", "m4v", "ogv"
 ]);
 
 async function hasBinaryFileContent(file) {
