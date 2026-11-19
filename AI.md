@@ -370,3 +370,4 @@ Formato obrigatório:
 | 2026-11-18 20:44 (UTC-03:00) | ChatGPT — GPT-6 | Permite criar arquivos com nome digitado inline no Explorer; ações de renomear arquivos usam o mesmo campo inline, com confirmação, cancelamento e prévia de ícone. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #65 |
 
 | 2026-11-18 20:57 (UTC-03:00) | ChatGPT — GPT-6 | Posiciona a barra de arraste do mini-player abaixo do vídeo por padrão e usa a posição superior quando não há espaço suficiente abaixo. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #65 |
+| 2026-11-18 21:00 (UTC-03:00) | ChatGPT — GPT-6 | Padroniza a identidade do aplicativo Windows com White Favicon.ico: antecipa AppUserModelID, preserva nome/executável DarkStudio e aplica o ICO aos atalhos MSI em vez de remover as referências. | Branch `melhoria/carregamento-sob-demanda-nightcoder`; PR #65 |
