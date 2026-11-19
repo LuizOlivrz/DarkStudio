@@ -4880,14 +4880,14 @@ html.ds-boot-building body #signature {
 
 
 /* Electron: remove animações ambientais contínuas que mantêm o compositor ativo em repouso. */
-html.desktop-app #options,
-html.desktop-app #code-language,
-html.desktop-app #input-area,
-html.desktop-app #inline-input-area,
-html.desktop-app #workspace-footer #code-language,
-html.desktop-app #workspace-footer #config-toggle,
-html.desktop-app #workspace-launcher-rail .workspace-launcher::before,
-html.desktop-app #workspace-footer #config-toggle::before {
+#options,
+#code-language,
+#input-area,
+#inline-input-area,
+#workspace-footer #code-language,
+#workspace-footer #config-toggle,
+#workspace-launcher-rail .workspace-launcher::before,
+#workspace-footer #config-toggle::before {
   animation: none !important;
 }
 html.desktop-app #config-icon {
