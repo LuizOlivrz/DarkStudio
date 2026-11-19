@@ -377,3 +377,4 @@ Formato obrigatório:
 | 2026-11-18 21:24 (UTC-03:00) | ChatGPT — GPT-6 | Otimiza carregamento sob demanda do Monaco, extensões, NightCoder e Color Thief; substitui polling por eventos, desativa animações contínuas e inicia monitor de mídia somente sob demanda. | PR #65 |
 | 2026-11-18 21:27 (UTC-03:00) | ChatGPT — GPT-6 | Remove polling do desktop-bridge e restaura arquivos externos por evento; adiciona preferência desligada por padrão para monitoramento de mídia do sistema. | PR #65 |
 | 2026-11-18 21:29 (UTC-03:00) | ChatGPT — GPT-6 | Adia a criação do terminal integrado, seus listeners e assinaturas IPC até o primeiro acionamento do terminal. | PR #65 |
+| 2026-11-18 21:30 (UTC-03:00) | ChatGPT — GPT-6 | Garante que animações infinitas dos seletores ativos também sejam interrompidas no desktop e mobile. | PR #65 |
