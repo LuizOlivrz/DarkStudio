@@ -1544,10 +1544,9 @@ function createNodeElement(node) {
     }
 
     clearTimeout(folderClickTimer);
-    folderClickTimer = setTimeout(() => {
-      if (node.type === "folder") toggleFolder(node);
-      else openNodeInEditor(node);
-    }, 400);
+    folderClickTimer = null;
+    if (node.type === "folder") toggleFolder(node);
+    else openNodeInEditor(node);
   });
 
   element.addEventListener("contextmenu", (event) => {
@@ -1844,19 +1843,29 @@ function renameFileNode(file, newName) {
     alert(tr("fileExists"));
     return;
   }
-  const extensionChanged = getFileExtension(file.name) !== getFileExtension(newName);
+  const previousType = file.type;
+  const extension = getFileExtension(newName);
+  const extensionChanged = getFileExtension(file.name) !== extension;
+  const nextType = IMAGE_FILE_EXTENSIONS.has(extension) ? "image" : BINARY_FILE_EXTENSIONS.has(extension) ? "binary" : "text";
   file.name = newName;
   file.filePath = newPath;
+  file.type = nextType;
+  if (previousType !== nextType) file.content = "";
 
-  if (extensionChanged) {
+  if (extensionChanged && nextType === "text") {
     const selectedLanguage = getWorkspaceLanguageForFile(newName);
     file.languageOverride = true;
     file.languageOverrideLabel = selectedLanguage?.label || "Texto";
+  } else if (nextType !== "text") {
+    file.languageOverride = false;
+    file.languageOverrideLabel = "";
   }
 
   if (currentEditingNode?.id === file.id) {
     window.darkStudioWorkspaceCurrentFile = file;
-    if (file.languageOverride) setEditorLanguage(file);
+    if (nextType === "text" && file.languageOverride) setEditorLanguage(file);
+    else if (nextType === "binary") showBinaryFileState(file);
+    else if (nextType === "image") showImageViewer(file);
   }
 
   saveState();
@@ -2390,6 +2399,7 @@ function ensureFolderPath(path) {
   return folder;
 }
 
+const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "ico", "avif", "tif", "tiff"]);
 const BINARY_FILE_MIME_TYPES = /^(?:application\/(?:octet-stream|x-msdownload|x-iso9660-image|zip|x-7z-compressed|x-rar-compressed)|audio\/|video\/|font\/)/i;
 const BINARY_FILE_EXTENSIONS = new Set([
   "iso", "bin", "exe", "dll", "sys", "apk", "zip", "7z", "rar", "tar",
@@ -2501,7 +2511,7 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
 
     const filename = parts.pop();
     const extension = filename.includes(".") ? filename.split(".").pop().toLowerCase() : "";
-    const isImage = /^image\//i.test(file.type || "");
+    const isImage = /^image\//i.test(file.type || "") || IMAGE_FILE_EXTENSIONS.has(extension);
     const isBinary = !isImage && (
       BINARY_FILE_MIME_TYPES.test(file.type || "") ||
       BINARY_FILE_EXTENSIONS.has(extension) ||
@@ -3430,7 +3440,7 @@ window.darkStudioHandleDroppedFiles = async (fileList) => {
   if (!files.length || !window.editor) return;
   const isTextFile = (file) => {
     const extension = file.name.split(".").pop().toLowerCase();
-    return TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(file.type || "");
+    return !IMAGE_FILE_EXTENSIONS.has(extension) && (TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(file.type || ""));
   };
   const file = files.find(isTextFile);
   if (!file) {
@@ -3643,25 +3653,13 @@ function wireUI() {
       refreshExplorerList();
       return;
     }
-    if (explorerFileClickTimer && explorerFileClickNodeId === node.id) {
-      clearTimeout(explorerFileClickTimer);
-      explorerFileClickTimer = null;
-      explorerFileClickNodeId = null;
-      return;
-    }
-
     if (explorerFileClickTimer) clearTimeout(explorerFileClickTimer);
-    explorerFileClickNodeId = node.id;
-    explorerFileClickTimer = setTimeout(() => {
-      explorerFileClickTimer = null;
-      explorerFileClickNodeId = null;
-      const currentNode = getNode(node.id);
-      if (!currentNode) return;
-      openNodeInEditor(currentNode);
-      if (currentNode.type !== "image" && currentNode.type !== "binary") {
-        requestAnimationFrame(() => window.editor?.focus?.());
-      }
-    }, 400);
+    explorerFileClickTimer = null;
+    explorerFileClickNodeId = null;
+    openNodeInEditor(node);
+    if (node.type !== "image" && node.type !== "binary") {
+      requestAnimationFrame(() => window.editor?.focus?.());
+    }
   });
 
   explorerFiles?.addEventListener("dblclick", (event) => {
