@@ -3128,7 +3128,7 @@ function openNodeInEditor(node) {
 
   // Se o Monaco ainda não foi necessário (por exemplo, o usuário iniciou em
   // Configurações), solicita sua criação somente depois de revelar o editor.
-  if (!window.editor && !document.getElementById("Website-Container")?.classList.contains("settings-active")) {
+  if (!window.editor) {
     const requestedNodeId = node.id;
     window.addEventListener("darkstudio:editor-ready", () => {
       if (currentEditingNode?.id !== requestedNodeId || !window.editor) return;
@@ -3137,7 +3137,9 @@ function openNodeInEditor(node) {
       updateEmptyFileDeletionTimer(node);
       window.darkStudioRefreshEditorUI?.();
     }, { once: true });
-    window.dispatchEvent(new Event("darkstudio:editor-requested"));
+    if (!document.getElementById("Website-Container")?.classList.contains("settings-active")) {
+      window.dispatchEvent(new Event("darkstudio:editor-requested"));
+    }
   }
 }
 
