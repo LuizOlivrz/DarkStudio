@@ -3348,21 +3348,24 @@ window.addEventListener("darkstudio:external-file-opened", () => {
 });
 
 function waitForEditor() {
-  if (window.editor) {
-    installWorkspaceAutosave();
-    setTimeout(() => {
-      if (!currentEditingNode) restoreActiveWorkspaceFile();
-      const editor = document.getElementById("main-content");
-      const mapVisible = mind && getComputedStyle(mind).display !== "none";
-      const configVisible = document.getElementById("config")?.hidden === false;
-      if (!mapVisible && !configVisible && editor && getComputedStyle(editor).display !== "none") {
-        requestAnimationFrame(() => window.editor?.focus?.());
-      }
-    }, 400);
+  if (!window.editor) {
+    window.addEventListener("darkstudio:editor-ready", waitForEditor, { once: true });
     return;
   }
 
-  setTimeout(waitForEditor, 500);
+  installWorkspaceAutosave();
+  requestAnimationFrame(() => {
+    if (!currentEditingNode) restoreActiveWorkspaceFile();
+    const editorSurface = document.getElementById("main-content");
+    const container = document.getElementById("Website-Container");
+    const editorInput = document.getElementById("Editor-Input");
+    const editorVisible = editorSurface &&
+      !container?.classList.contains("settings-active") &&
+      !container?.classList.contains("extensions-active") &&
+      !editorInput?.hidden &&
+      getComputedStyle(editorSurface).display !== "none";
+    if (editorVisible) window.editor?.focus?.();
+  });
 }
 
 // ============================================================
