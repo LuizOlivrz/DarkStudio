@@ -469,7 +469,15 @@ export async function loadCSS(name) {
     link.rel = "stylesheet";
     link.href = path;
 
+<<<<<<< HEAD
     link.onload = () => resolve(true);
+=======
+    link.onload = () => {
+      // O container permanece oculto até que todos os módulos essenciais
+      // (incluindo extensões) terminem de carregar no carregador principal.
+      resolve(true);
+    };
+>>>>>>> origin/correcao/transicao-inicial-container
 
     link.onerror = () => {
       bootLogs.push(`❌ ${name}`);
