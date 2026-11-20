@@ -18,7 +18,11 @@ contextBridge.exposeInMainWorld("darkStudioDesktop", Object.freeze({
     if (typeof callback !== "function") return () => {};
     const listener = (_event, snapshot) => callback(snapshot);
     ipcRenderer.on("darkstudio:media-session", listener);
-    return () => ipcRenderer.removeListener("darkstudio:media-session", listener);
+    void ipcRenderer.invoke("darkstudio:media-session:start").catch(() => {});
+    return () => {
+      ipcRenderer.removeListener("darkstudio:media-session", listener);
+      void ipcRenderer.invoke("darkstudio:media-session:stop").catch(() => {});
+    };
   },
   onTerminalData: (callback) => {
     const listener = (_event, details) => callback(details);

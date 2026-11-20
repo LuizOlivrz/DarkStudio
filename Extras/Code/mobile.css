@@ -1580,8 +1580,8 @@ body {
 #main-content #config::-webkit-scrollbar,
 #main-content #config *::-webkit-scrollbar {
   display: initial;
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 
 
@@ -3014,13 +3014,15 @@ body {
 }
 
 @media (max-width: 700px) {
-  #main-content #workspace-empty-state img {
+  #main-content #workspace-empty-state img,
+  #main-content #binary-file-state svg {
     width: 64px;
     max-height: 64px;
     align-self: center;
   }
 
-  #main-content #workspace-empty-state p {
+  #main-content #workspace-empty-state p,
+  #main-content #binary-file-state p {
     width: 100%;
     text-align: center;
   }
@@ -3611,3 +3613,70 @@ html.ds-boot-building body #signature {
 #options:hover {
   transform: none !important;
 }
+
+
+/* Barras discretas: o trilho acompanha o tamanho do elemento rolável no mobile. */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .18);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .38);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:active {
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .52);
+  background-clip: padding-box;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--secondary-rgb, 93, 0, 255), .2) transparent;
+}
+#options,
+#messages,
+#inline-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--secondary-rgb, 93, 0, 255), .2) transparent;
+}
+#options::-webkit-scrollbar,
+#messages::-webkit-scrollbar,
+#inline-messages::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+
+/* Oculta visualmente as barras nativas sem desativar a rolagem.
+   Como a barra pertence ao próprio scroll container, sua área acompanha
+   automaticamente toda alteração de altura/largura do elemento. */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+
+html:not(.desktop-app) #system-now-playing-option {
+  display: none !important;
+}
+

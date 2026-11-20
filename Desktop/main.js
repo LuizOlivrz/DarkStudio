@@ -10,6 +10,7 @@ const os = require("node:os");
 const { startMediaSessionMonitor, stopMediaSessionMonitor } = require("./media-session");
 
 app.setName("DarkStudio");
+if (process.platform === "win32") app.setAppUserModelId("dev.darkstudio.desktop");
 
 protocol.registerSchemesAsPrivileged([{
   scheme: "app",
@@ -33,12 +34,48 @@ async function rememberLastOpenedFile(filePath) {
   await fs.writeFile(LAST_OPEN_FILE_FILE(), JSON.stringify({ filePath }, null, 2), "utf8");
 }
 
+async function isBinaryFilePath(filePath) {
+  let handle;
+  try {
+    handle = await fs.open(filePath, "r");
+    const sample = Buffer.alloc(8192);
+    const { bytesRead } = await handle.read(sample, 0, sample.length, 0);
+    if (!bytesRead) return false;
+    const bytes = sample.subarray(0, bytesRead);
+    const hasUtf16Bom = bytes.length >= 2 &&
+      ((bytes[0] === 0xff && bytes[1] === 0xfe) || (bytes[0] === 0xfe && bytes[1] === 0xff));
+    if (bytes.includes(0) && !hasUtf16Bom) return true;
+    let invalidUtf8 = false;
+    try {
+      const encoding = hasUtf16Bom ? (bytes[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8";
+      new TextDecoder(encoding, { fatal: true }).decode(bytes.subarray(0, bytes.length > 4 ? bytes.length - 4 : bytes.length));
+    } catch {
+      if (hasUtf16Bom) return true;
+      invalidUtf8 = true;
+    }
+    if (hasUtf16Bom) return false;
+    let controls = 0;
+    let highBytes = 0;
+    for (const byte of bytes) {
+      if (byte >= 0x80) highBytes++;
+      if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
+    }
+    return controls / bytes.length > 0.02 || (invalidUtf8 && highBytes / bytes.length > 0.25);
+  } finally {
+    await handle?.close().catch(() => {});
+  }
+}
+
 ipcMain.handle("darkstudio:restore-last-file", async () => {
   try {
     const saved = JSON.parse(await fs.readFile(LAST_OPEN_FILE_FILE(), "utf8"));
     if (typeof saved.filePath !== "string" || !path.isAbsolute(saved.filePath)) return null;
+    const fileName = path.basename(saved.filePath);
+    if (await isBinaryFilePath(saved.filePath)) {
+      return { filePath: saved.filePath, fileName, isBinary: true };
+    }
     const content = await fs.readFile(saved.filePath, "utf8");
-    return { filePath: saved.filePath, fileName: path.basename(saved.filePath), content };
+    return { filePath: saved.filePath, fileName, content };
   } catch {
     return null;
   }
@@ -64,9 +101,11 @@ ipcMain.handle("darkstudio:open-file", async () => {
   });
   if (result.canceled || !result.filePaths[0]) return null;
   const filePath = result.filePaths[0];
+  const fileName = path.basename(filePath);
+  if (await isBinaryFilePath(filePath)) return { filePath, fileName, isBinary: true };
   const content = await fs.readFile(filePath, "utf8");
   await rememberLastOpenedFile(filePath);
-  return { filePath, fileName: path.basename(filePath), content };
+  return { filePath, fileName, content };
 });
 
 ipcMain.handle("darkstudio:save-file", async (_event, options = {}) => {
@@ -395,10 +434,69 @@ ipcMain.handle("darkstudio:check-for-updates", async (event) => {
 const WINDOW_STATE_FILE = () => path.join(app.getPath("userData"), "window-state.json");
 const DEFAULT_WINDOW_BOUNDS = { width: 1440, height: 920 };
 let latestMediaSessionSnapshot = null;
+let mediaSessionMonitorStop = null;
+let mediaSessionMonitorPromise = null;
+const mediaSessionSubscribers = new Map();
 
-ipcMain.handle("darkstudio:media-session:get", (event) => {
+async function ensureMediaSessionMonitor() {
+  if (mediaSessionMonitorStop) return mediaSessionMonitorStop;
+  if (mediaSessionMonitorPromise) return mediaSessionMonitorPromise;
+
+  mediaSessionMonitorPromise = startMediaSessionMonitor((snapshot) => {
+    latestMediaSessionSnapshot = snapshot;
+    for (const senderId of mediaSessionSubscribers.keys()) {
+      const window = BrowserWindow.getAllWindows().find((candidate) => candidate.webContents.id === senderId);
+      if (window && !window.isDestroyed() && !window.webContents.isDestroyed()) {
+        window.webContents.send("darkstudio:media-session", snapshot);
+      }
+    }
+  }).then((stop) => {
+    mediaSessionMonitorStop = stop;
+    return stop;
+  }).catch((error) => {
+    console.warn("DarkStudio: monitor de mídia não inicializado.", error);
+    return null;
+  }).finally(() => {
+    mediaSessionMonitorPromise = null;
+  });
+
+  return mediaSessionMonitorPromise;
+}
+
+async function stopMediaSessionMonitorWhenUnused() {
+  if (mediaSessionSubscribers.size) return;
+  if (mediaSessionMonitorPromise) await mediaSessionMonitorPromise;
+  if (mediaSessionSubscribers.size) return;
+  const stop = mediaSessionMonitorStop;
+  mediaSessionMonitorStop = null;
+  if (typeof stop === "function") await stop();
+  else await stopMediaSessionMonitor();
+}
+
+ipcMain.handle("darkstudio:media-session:start", async (event) => {
   if (!isTrustedTerminalEvent(event)) return null;
+  const senderId = event.sender.id;
+  mediaSessionSubscribers.set(senderId, (mediaSessionSubscribers.get(senderId) || 0) + 1);
+  await ensureMediaSessionMonitor();
   return latestMediaSessionSnapshot;
+});
+
+ipcMain.handle("darkstudio:media-session:stop", async (event) => {
+  if (!isTrustedTerminalEvent(event)) return false;
+  const senderId = event.sender.id;
+  const count = mediaSessionSubscribers.get(senderId) || 0;
+  if (count <= 1) mediaSessionSubscribers.delete(senderId);
+  else mediaSessionSubscribers.set(senderId, count - 1);
+  await stopMediaSessionMonitorWhenUnused();
+  return true;
+});
+
+ipcMain.handle("darkstudio:media-session:get", async (event) => {
+  if (!isTrustedTerminalEvent(event)) return null;
+  await ensureMediaSessionMonitor();
+  const snapshot = latestMediaSessionSnapshot;
+  await stopMediaSessionMonitorWhenUnused();
+  return snapshot;
 });
 
 function readWindowState() {
@@ -441,7 +539,7 @@ function createWindow() {
     minHeight: 620,
     title: "DarkStudio",
     icon: path.join(PROJECT_ROOT, "Extras", "Assets", "White Favicon.ico"),
-    backgroundColor: "#111111",
+    backgroundColor: "#000000",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -517,6 +615,8 @@ function createWindow() {
         session.child.kill();
       }
     }
+    mediaSessionSubscribers.delete(terminalOwnerId);
+    void stopMediaSessionMonitorWhenUnused();
   });
 
   win.loadURL("app://darkstudio/index.html");
@@ -550,17 +650,9 @@ app.whenReady().then(async () => {
     }
     return net.fetch(pathToFileURL(bundledPath).toString());
   });
-  app.setAppUserModelId("dev.darkstudio.desktop");
   Menu.setApplicationMenu(null);
   createWindow();
-  void startMediaSessionMonitor((snapshot) => {
-    latestMediaSessionSnapshot = snapshot;
-    for (const window of BrowserWindow.getAllWindows()) {
-      if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
-        window.webContents.send("darkstudio:media-session", snapshot);
-      }
-    }
-  }).catch((error) => console.warn("DarkStudio: monitor de mídia não inicializado.", error));
+  // O monitor de mídia só inicia quando um renderer solicita leitura/assinatura.
   // Atualizações automáticas são exclusivas do executável desktop Windows empacotado.
   if (process.platform === "win32" && app.isPackaged) {
     void checkForUpdates();

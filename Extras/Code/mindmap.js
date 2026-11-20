@@ -907,7 +907,7 @@ function updateWorkspaceNameUI() {
   };
 }
 
-function beginExplorerFileRename(node, label) {
+function beginExplorerFileRename(node, label, options = {}) {
   if (!node || node.type === "folder" || !label || label.dataset.renaming === "true") return;
 
   const input = document.createElement("input");
@@ -974,15 +974,36 @@ function beginExplorerFileRename(node, label) {
   let finished = false;
   const finish = (save) => {
     if (finished) return;
-    finished = true;
     const nextName = input.value.trim();
+
+    if (save && nextName && nextName !== node.name) {
+      if (/[\\/]/.test(nextName)) {
+        alert(tr("invalidName"));
+        input.focus();
+        return;
+      }
+      const parent = getParentFolder(node);
+      const parentPath = parent?.filePath || "";
+      const nextPath = parentPath ? parentPath + "/" + nextName : nextName;
+      if (nodes.some((item) => item.id !== node.id && item.filePath === nextPath)) {
+        alert(tr("fileExists"));
+        input.focus();
+        return;
+      }
+    }
+
+    finished = true;
     delete label.dataset.renaming;
 
     if (save && nextName && nextName !== node.name) {
       renameFileNode(node, nextName);
+    } else if (!save || !nextName) {
+      options.onCancel?.(node);
     }
+
     label.textContent = node.name;
     restoreIcon();
+    if (save && nextName) options.onCommit?.(node);
   };
 
   input.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -999,7 +1020,7 @@ function beginExplorerFileRename(node, label) {
       finish(false);
     }
   });
-  input.addEventListener("blur", () => finish(true), { once: true });
+  input.addEventListener("blur", () => finish(true));
   input.focus();
   input.select();
 }
@@ -1376,9 +1397,43 @@ function addNode(name, content = "", type = "text", position = null) {
 }
 
 function addBlankNode() {
-  addNode(`${tr("newFile")}.txt`, "", "text");
+  createFileInline();
 }
 
+function createFileInline(parentFolder = null) {
+  if (parentFolder && parentFolder.isOpen === false) parentFolder.isOpen = true;
+
+  const parentPath = parentFolder?.filePath || "";
+  const baseName = tr("newFile") + ".txt";
+  const extensionIndex = baseName.lastIndexOf(".");
+  const stem = extensionIndex > 0 ? baseName.slice(0, extensionIndex) : baseName;
+  const extension = extensionIndex > 0 ? baseName.slice(extensionIndex) : "";
+  let name = baseName;
+  let suffix = 2;
+  const pathExists = (candidate) => {
+    const candidatePath = parentPath ? parentPath + "/" + candidate : candidate;
+    return nodes.some((item) => item.filePath === candidatePath);
+  };
+  while (pathExists(name)) {
+    name = stem + " (" + suffix + ")" + extension;
+    suffix++;
+  }
+
+  const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
+  file.filePath = parentPath ? parentPath + "/" + name : name;
+  if (parentFolder) attachNodeToFolder(file, parentFolder);
+  saveState();
+  renderNodes();
+
+  const label = document.querySelector('#explorer-files [data-node-id="' + file.id + '"] .explorer-file-name');
+  if (!label) return file;
+
+  beginExplorerFileRename(file, label, {
+    onCancel: () => deleteNode(file.id),
+    onCommit: (createdFile) => openNodeInEditor(createdFile),
+  });
+  return file;
+}
 async function addFolder() {
   const name = await showNameDialog("", tr("createFolder"));
 
@@ -1489,10 +1544,9 @@ function createNodeElement(node) {
     }
 
     clearTimeout(folderClickTimer);
-    folderClickTimer = setTimeout(() => {
-      if (node.type === "folder") toggleFolder(node);
-      else openNodeInEditor(node);
-    }, 400);
+    folderClickTimer = null;
+    if (node.type === "folder") toggleFolder(node);
+    else openNodeInEditor(node);
   });
 
   element.addEventListener("contextmenu", (event) => {
@@ -1789,19 +1843,33 @@ function renameFileNode(file, newName) {
     alert(tr("fileExists"));
     return;
   }
-  const extensionChanged = getFileExtension(file.name) !== getFileExtension(newName);
+  const previousType = file.type;
+  const extension = getFileExtension(newName);
+  const extensionChanged = getFileExtension(file.name) !== extension;
+  const nextType = IMAGE_FILE_EXTENSIONS.has(extension) ? "image" : BINARY_FILE_EXTENSIONS.has(extension) ? "binary" : "text";
   file.name = newName;
   file.filePath = newPath;
+  file.type = nextType;
+  if (previousType !== nextType) file.content = "";
 
-  if (extensionChanged) {
+  if (extensionChanged && nextType === "text") {
     const selectedLanguage = getWorkspaceLanguageForFile(newName);
     file.languageOverride = true;
     file.languageOverrideLabel = selectedLanguage?.label || "Texto";
+  } else if (nextType !== "text") {
+    file.languageOverride = false;
+    file.languageOverrideLabel = "";
   }
 
   if (currentEditingNode?.id === file.id) {
     window.darkStudioWorkspaceCurrentFile = file;
-    if (file.languageOverride) setEditorLanguage(file);
+    if (nextType === "text" && file.languageOverride) setEditorLanguage(file);
+    else if (nextType !== "text") {
+      currentEditingNode = null;
+      window.darkStudioWorkspaceCurrentFile = null;
+      if (nextType === "binary") showBinaryFileState(file);
+      else showImageViewer(file);
+    }
   }
 
   saveState();
@@ -2335,21 +2403,54 @@ function ensureFolderPath(path) {
   return folder;
 }
 
-async function readFileContent(file) {
-  const binaryTypes = /^(?:image|audio|video|font)\//i;
-  const extension = file.name.split(".").pop().toLowerCase();
-  const declaredText = /^text\//i.test(file.type || "");
-  if (binaryTypes.test(file.type || "") || (!TEXT_FILE_EXTENSIONS.has(extension) && !declaredText)) {
+const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "ico", "avif", "tif", "tiff"]);
+const BINARY_FILE_MIME_TYPES = /^(?:application\/(?:octet-stream|x-msdownload|x-iso9660-image|zip|x-7z-compressed|x-rar-compressed)|audio\/|video\/|font\/)/i;
+const BINARY_FILE_EXTENSIONS = new Set([
+  "iso", "bin", "exe", "dll", "sys", "apk", "zip", "7z", "rar", "tar",
+  "gz", "bz2", "xz", "dmg", "img", "class", "wasm", "dat", "mp4", "webm", "mov", "mkv", "avi", "m4v", "ogv"
+]);
+
+async function hasBinaryFileContent(file) {
+  if (!file || !file.size) return false;
+  const sampleLength = Math.min(file.size, 8192);
+  const sample = new Uint8Array(await file.slice(0, sampleLength).arrayBuffer());
+  if (!sample.length) return false;
+
+  const hasUtf16Bom = sample.length >= 2 &&
+    ((sample[0] === 0xff && sample[1] === 0xfe) || (sample[0] === 0xfe && sample[1] === 0xff));
+  if (sample.includes(0) && !hasUtf16Bom) return true;
+
+  const usableLength = file.size > sampleLength ? Math.max(2, sample.length - 4) : sample.length;
+  const bytes = sample.subarray(0, usableLength);
+  let invalidUtf8 = false;
+  try {
+    const encoding = hasUtf16Bom ? (sample[0] === 0xff ? "utf-16le" : "utf-16be") : "utf-8";
+    new TextDecoder(encoding, { fatal: true }).decode(bytes);
+  } catch {
+    if (hasUtf16Bom) return true;
+    invalidUtf8 = true;
+  }
+  if (hasUtf16Bom) return false;
+
+  let controls = 0;
+  let highBytes = 0;
+  for (const byte of bytes) {
+    if (byte >= 0x80) highBytes++;
+    if (byte < 0x20 && byte !== 0x08 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) controls++;
+  }
+  return controls / Math.max(1, bytes.length) > 0.02 ||
+    (invalidUtf8 && highBytes / Math.max(1, bytes.length) > 0.25);
+}
+
+async function readFileContent(file, isImage = false) {
+  if (isImage) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
       reader.onload = () => resolve(String(reader.result || ""));
       reader.onerror = reject;
-
       reader.readAsDataURL(file);
     });
   }
-
   return file.text();
 }
 
@@ -2413,11 +2514,18 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     if (!parts.length) continue;
 
     const filename = parts.pop();
-    if (file.size > MAX_IMPORT_FILE_BYTES) {
+    const extension = filename.includes(".") ? filename.split(".").pop().toLowerCase() : "";
+    const isImage = /^image\//i.test(file.type || "") || IMAGE_FILE_EXTENSIONS.has(extension);
+    const isBinary = !isImage && (
+      BINARY_FILE_MIME_TYPES.test(file.type || "") ||
+      BINARY_FILE_EXTENSIONS.has(extension) ||
+      await hasBinaryFileContent(file)
+    );
+    if (!isBinary && file.size > MAX_IMPORT_FILE_BYTES) {
       oversizedFiles++;
       continue;
     }
-    if (totalBytes + file.size > MAX_IMPORT_TOTAL_BYTES) {
+    if (!isBinary && totalBytes + file.size > MAX_IMPORT_TOTAL_BYTES) {
       overBudgetFiles++;
       continue;
     }
@@ -2427,8 +2535,8 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     if (directoryPath) markImportedFolderPath(directoryPath);
     const filePath = [basePath, relativeDirectoryPath, filename].filter(Boolean).join("/");
     if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === filePath)) continue;
-    prepared.push({ file, filename, directoryPath, filePath });
-    totalBytes += file.size;
+    prepared.push({ file, filename, directoryPath, filePath, isImage, isBinary });
+    if (!isBinary) totalBytes += file.size;
   }
 
   const filteredDirectories = directoryPaths.filter((path) => !shouldIgnoreImportedPath(path));
@@ -2469,14 +2577,11 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
     if ((!isDirectoryImport || targetFolder) && nodes.some((node) => (node.filePath || node.name) === entry.filePath)) continue;
 
     const parent = entry.directoryPath ? ensureFolderPath(entry.directoryPath) : targetFolder;
-    const content = await readFileContent(entry.file);
-    const isImage = Boolean(entry.file.type && entry.file.type.startsWith("image/"));
-    const extension = entry.filename.split(".").pop().toLowerCase();
-    const isText = TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(entry.file.type || "");
+    const content = entry.isBinary ? "" : await readFileContent(entry.file, entry.isImage);
     const node = addNode(
       entry.filename,
       content,
-      isImage ? "image" : isText ? "text" : "binary",
+      entry.isImage ? "image" : entry.isBinary ? "binary" : "text",
       centerPosition((nodes.length % 8) * 18),
     );
     node.filePath = entry.filePath;
@@ -2989,14 +3094,16 @@ function configureEmptyFileAutoDeletion() {
 function openNodeInEditor(node) {
   if (!node || node.type === "folder") return;
 
+  const binaryState = document.getElementById("binary-file-state");
+  if (binaryState) binaryState.hidden = true;
+
   if (node.type === "image") {
     syncCurrentEditorToMap();
     showImageViewer(node);
     return;
   }
   if (node.type === "binary") {
-    showMap();
-    updateSelectedNodeUI();
+    showBinaryFileState(node);
     return;
   }
 
@@ -3013,16 +3120,55 @@ function openNodeInEditor(node) {
     window.editor.setValue(node.content || "");
     setEditorLanguage(node);
     updateEmptyFileDeletionTimer(node);
-  } else {
-    console.warn("DarkStudio: o Monaco Editor ainda não está disponível.");
   }
 
   closeImageViewer();
   updateSelectedNodeUI();
   showEditor();
+
+  // Se o Monaco ainda não foi necessário (por exemplo, o usuário iniciou em
+  // Configurações), solicita sua criação somente depois de revelar o editor.
+  if (!window.editor) {
+    const requestedNodeId = node.id;
+    window.addEventListener("darkstudio:editor-ready", () => {
+      if (currentEditingNode?.id !== requestedNodeId || !window.editor) return;
+      window.editor.setValue(node.content || "");
+      setEditorLanguage(node);
+      updateEmptyFileDeletionTimer(node);
+      window.darkStudioRefreshEditorUI?.();
+    }, { once: true });
+    if (!document.getElementById("Website-Container")?.classList.contains("settings-active")) {
+      window.dispatchEvent(new Event("darkstudio:editor-requested"));
+    }
+  }
 }
 
+function showBinaryFileState(nodeOrName = "") {
+  syncCurrentEditorToMap();
+  currentEditingNode = null;
+  window.darkStudioWorkspaceCurrentFile = null;
+  rememberActiveWorkspaceFile(null);
+  try { localStorage.setItem("darkstudio-editor-session-mode", "workspace"); } catch {}
+  closeImageViewer();
+  showEditor();
+
+  const editorInput = document.getElementById("Editor-Input");
+  const emptyState = document.getElementById("workspace-empty-state");
+  const binaryState = document.getElementById("binary-file-state");
+  if (editorInput) editorInput.hidden = true;
+  if (emptyState) emptyState.hidden = true;
+  if (binaryState) binaryState.hidden = false;
+
+  window.dispatchEvent(new CustomEvent("darkstudio:workspace-file-opened", {
+    detail: { fileName: typeof nodeOrName === "string" ? nodeOrName : nodeOrName?.name || "" }
+  }));
+  updateSelectedNodeUI();
+}
+window.darkStudioShowBinaryFileState = showBinaryFileState;
+
 function showEditor() {
+  const binaryState = document.getElementById("binary-file-state");
+  if (binaryState) binaryState.hidden = true;
   setWorkspaceManagerView(false);
   const details = document.getElementById("workspace-details-button");
   if (details) details.style.display = "none";
@@ -3216,21 +3362,24 @@ window.addEventListener("darkstudio:external-file-opened", () => {
 });
 
 function waitForEditor() {
-  if (window.editor) {
-    installWorkspaceAutosave();
-    setTimeout(() => {
-      if (!currentEditingNode) restoreActiveWorkspaceFile();
-      const editor = document.getElementById("main-content");
-      const mapVisible = mind && getComputedStyle(mind).display !== "none";
-      const configVisible = document.getElementById("config")?.hidden === false;
-      if (!mapVisible && !configVisible && editor && getComputedStyle(editor).display !== "none") {
-        requestAnimationFrame(() => window.editor?.focus?.());
-      }
-    }, 400);
+  if (!window.editor) {
+    window.addEventListener("darkstudio:editor-ready", waitForEditor, { once: true });
     return;
   }
 
-  setTimeout(waitForEditor, 500);
+  installWorkspaceAutosave();
+  requestAnimationFrame(() => {
+    if (!currentEditingNode) restoreActiveWorkspaceFile();
+    const editorSurface = document.getElementById("main-content");
+    const container = document.getElementById("Website-Container");
+    const editorInput = document.getElementById("Editor-Input");
+    const editorVisible = editorSurface &&
+      !container?.classList.contains("settings-active") &&
+      !container?.classList.contains("extensions-active") &&
+      !editorInput?.hidden &&
+      getComputedStyle(editorSurface).display !== "none";
+    if (editorVisible) window.editor?.focus?.();
+  });
 }
 
 // ============================================================
@@ -3312,13 +3461,30 @@ window.darkStudioHandleDroppedFiles = async (fileList) => {
   if (!files.length || !window.editor) return;
   const isTextFile = (file) => {
     const extension = file.name.split(".").pop().toLowerCase();
-    return TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(file.type || "");
+    return !IMAGE_FILE_EXTENSIONS.has(extension) && (TEXT_FILE_EXTENSIONS.has(extension) || /^text\//i.test(file.type || ""));
   };
   const file = files.find(isTextFile);
   if (!file) {
+    const candidate = files[0];
+    const extension = candidate?.name?.split(".").pop().toLowerCase();
+    const isBinary = candidate && (
+      BINARY_FILE_MIME_TYPES.test(candidate.type || "") ||
+      BINARY_FILE_EXTENSIONS.has(extension) ||
+      await hasBinaryFileContent(candidate)
+    );
+    if (isBinary) {
+      showBinaryFileState(candidate.name);
+      return;
+    }
     alert(tr("editorDropTextOnly"));
     return;
   }
+  if (await hasBinaryFileContent(file)) {
+    showBinaryFileState(file.name);
+    return;
+  }
+  const binaryState = document.getElementById("binary-file-state");
+  if (binaryState) binaryState.hidden = true;
   window.editor.setValue(await file.text());
   const language = getWorkspaceLanguageForFile(file.name);
   const label = document.querySelector("#code-language h4");
@@ -3399,19 +3565,7 @@ function showExplorerContextMenu(node, x, y) {
   };
 
   const parentFolder = node?.type === "folder" ? node : getParentFolder(node);
-  addAction("＋ " + tr("newFile"), async () => {
-    const name = (await showNameDialog("", tr("newFile")) || "").trim();
-    if (!name) return;
-    if (/[\\/]/.test(name)) { alert(tr("invalidName")); return; }
-    const parentPath = parentFolder?.filePath || "";
-    const filePath = parentPath ? `${parentPath}/${name}` : name;
-    if (nodes.some((item) => item.filePath === filePath)) { alert(tr("fileExists")); return; }
-    const file = addNode(name, "", "text", centerPosition((nodes.length % 8) * 18));
-    file.filePath = filePath;
-    if (parentFolder) attachNodeToFolder(file, parentFolder);
-    saveState(); renderNodes();
-    openNodeInEditor(file);
-  });
+  addAction("＋ " + tr("newFile"), () => createFileInline(parentFolder));
   addAction("📁 " + tr("newFolder"), async () => {
     const name = (await showNameDialog("", tr("createFolder")) || "").trim();
     if (!name) return;
@@ -3426,10 +3580,13 @@ function showExplorerContextMenu(node, x, y) {
   });
   if (node) {
     addAction("✎ " + tr(node.type === "folder" ? "renameFolder" : "renameFile"), async () => {
-      const name = (await showNameDialog(node.name, tr(node.type === "folder" ? "renameFolder" : "renameFile")) || "").trim();
-      if (!name || name === node.name) return;
-      if (node.type === "folder") renameFolderNode(node, name);
-      else renameFileNode(node, name);
+      if (node.type === "folder") {
+        const name = (await showNameDialog(node.name, tr("renameFolder")) || "").trim();
+        if (name && name !== node.name) renameFolderNode(node, name);
+        return;
+      }
+      const label = document.querySelector('#explorer-files [data-node-id="' + node.id + '"] .explorer-file-name');
+      if (label) beginExplorerFileRename(node, label);
     });
     addAction("🗑 Apagar", () => {
       const detail = node.type === "folder" ? " e todo o conteúdo dela" : "";
@@ -3517,25 +3674,13 @@ function wireUI() {
       refreshExplorerList();
       return;
     }
-    if (explorerFileClickTimer && explorerFileClickNodeId === node.id) {
-      clearTimeout(explorerFileClickTimer);
-      explorerFileClickTimer = null;
-      explorerFileClickNodeId = null;
-      return;
-    }
-
     if (explorerFileClickTimer) clearTimeout(explorerFileClickTimer);
-    explorerFileClickNodeId = node.id;
-    explorerFileClickTimer = setTimeout(() => {
-      explorerFileClickTimer = null;
-      explorerFileClickNodeId = null;
-      const currentNode = getNode(node.id);
-      if (!currentNode) return;
-      openNodeInEditor(currentNode);
-      if (currentNode.type !== "image" && currentNode.type !== "binary") {
-        requestAnimationFrame(() => window.editor?.focus?.());
-      }
-    }, 400);
+    explorerFileClickTimer = null;
+    explorerFileClickNodeId = null;
+    openNodeInEditor(node);
+    if (node.type !== "image" && node.type !== "binary") {
+      requestAnimationFrame(() => window.editor?.focus?.());
+    }
   });
 
   explorerFiles?.addEventListener("dblclick", (event) => {
@@ -3680,6 +3825,8 @@ async function initMindmap() {
   waitForEditor();
   processPendingSharedTexts();
 
+  window.darkStudioWorkspaceReady = true;
+  window.dispatchEvent(new Event("darkstudio:workspace-ready"));
   devLog("DarkStudio Workspace inicializado.");
 }
 

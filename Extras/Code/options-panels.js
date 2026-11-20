@@ -159,13 +159,27 @@ function setActiveView(view) {
   debuggerLauncher?.setAttribute("aria-pressed", String(showDebugger));
 
   if (showMap) {
-    // O SVG de mapa abre a mesma tela do botão Extensões.
-    window.darkStudioShowExtensions?.();
+    // O host e os runtimes das extensões só são carregados quando a tela é solicitada.
+    const loading = window.darkStudioLoadExtensions?.();
+    if (loading?.then) {
+      void loading.then(() => {
+        if (activeView === "map") {
+          window.darkStudioShowExtensions?.();
+        }
+      }).catch((error) => console.error("DarkStudio: não foi possível carregar Extensões.", error));
+    } else {
+      window.darkStudioShowExtensions?.();
+    }
   } else if (activeView === "map") {
     window.darkStudioShowWorkspaceEditor?.();
   }
 
   activeView = view;
+  if (!showMap && !window.darkStudioSettingsTransition &&
+      !container?.classList.contains("settings-active") &&
+      !container?.classList.contains("extensions-active")) {
+    window.dispatchEvent(new Event("darkstudio:editor-requested"));
+  }
   clearUnsupportedState();
 }
 
@@ -266,19 +280,20 @@ unsupportedOverlay?.addEventListener("click", () => {
 });
 
 function watchEditor() {
-  if (!window.editor) {
-    window.setTimeout(watchEditor, 250);
-    return;
-  }
+  if (!window.editor) return;
 
-  // Recalcula o Monaco depois que a instância e os estilos responsivos estiverem prontos.
+  // Só conecta os eventos quando o Monaco realmente existir.
   window.editor.layout?.();
   syncMobileOptionsSpace();
   window.editor.onDidChangeModelContent?.(clearUnsupportedState);
   window.editor.onDidChangeModel?.(clearUnsupportedState);
 }
 
-watchEditor();
+if (window.editor) {
+  watchEditor();
+} else {
+  window.addEventListener("darkstudio:editor-ready", watchEditor, { once: true });
+}
 setActiveView("files");
 if (isCompactLayout.matches) {
   container?.classList.add("mobile-layout");
