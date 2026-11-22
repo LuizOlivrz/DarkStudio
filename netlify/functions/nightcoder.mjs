@@ -10,12 +10,52 @@ const ALLOWED_ORIGINS = new Set([
   "https://dscode.dev",
 ]);
 const MODEL = "openai/gpt-oss-120b";
-const MAX_MESSAGES = 12;
+const MAX_MESSAGES = 24;
 const MAX_MESSAGE_LENGTH = 20000;
 const MAX_TOTAL_LENGTH = 40000;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
 const requestsByIP = new Map();
+const AGENT_TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "list_workspace_files",
+      description: "Lista arquivos e pastas do Workspace ativo, incluindo caminhos e metadados.",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_workspace_file",
+      description: "Lê o conteúdo de um arquivo de texto existente no Workspace ativo.",
+      parameters: {
+        type: "object",
+        properties: { path: { type: "string", description: "Caminho relativo do arquivo no Workspace." } },
+        required: ["path"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "write_workspace_file",
+      description: "Cria ou altera um arquivo de texto no Workspace. A interface sempre solicitará aprovação explícita ao usuário antes de gravar.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Caminho relativo do arquivo." },
+          content: { type: "string", description: "Conteúdo integral do arquivo." },
+        },
+        required: ["path", "content"],
+        additionalProperties: false,
+      },
+    },
+  },
+];
+
 
 export default async (request) => {
   if (request.method !== "POST") {
@@ -79,14 +119,30 @@ export default async (request) => {
   for (const message of messages) {
     if (
       !message ||
-      !["system", "user", "assistant"].includes(message.role) ||
+      !["system", "user", "assistant", "tool"].includes(message.role) ||
       typeof message.content !== "string" ||
       message.content.length > MAX_MESSAGE_LENGTH
     ) {
       return json({ error: "Invalid message format." }, 400);
     }
     totalLength += message.content.length;
-    safeMessages.push({ role: message.role, content: message.content });
+    const safeMessage = { role: message.role, content: message.content };
+    if (message.role === "tool") {
+      if (typeof message.tool_call_id !== "string" || message.tool_call_id.length > 128) {
+        return json({ error: "Invalid tool response." }, 400);
+      }
+      safeMessage.tool_call_id = message.tool_call_id;
+    }
+    if (message.role === "assistant" && Array.isArray(message.tool_calls)) {
+      if (message.tool_calls.length > 4) return json({ error: "Too many tool calls." }, 400);
+      safeMessage.tool_calls = message.tool_calls.filter((call) =>
+        call && typeof call.id === "string" &&
+        call.type === "function" &&
+        typeof call.function?.name === "string" &&
+        typeof call.function?.arguments === "string"
+      );
+    }
+    safeMessages.push(safeMessage);
   }
   if (totalLength > MAX_TOTAL_LENGTH) {
     return json({ error: "Message history is too large." }, 413);
@@ -99,7 +155,7 @@ export default async (request) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ model: MODEL, messages: safeMessages }),
+      body: JSON.stringify({ model: MODEL, messages: safeMessages, tools: AGENT_TOOLS, tool_choice: "auto" }),
     });
 
     const data = await upstream.json().catch(() => ({}));
@@ -113,7 +169,23 @@ export default async (request) => {
       );
     }
 
-    const reply = data?.choices?.[0]?.message?.content;
+    const assistantMessage = data?.choices?.[0]?.message;
+    if (Array.isArray(assistantMessage?.tool_calls) && assistantMessage.tool_calls.length) {
+      const toolCalls = assistantMessage.tool_calls.filter((call) =>
+        call?.type === "function" &&
+        typeof call.id === "string" &&
+        AGENT_TOOLS.some((tool) => tool.function.name === call.function?.name) &&
+        typeof call.function?.arguments === "string"
+      ).slice(0, 4);
+      if (toolCalls.length) {
+        return json({
+          intermediate: typeof assistantMessage.content === "string" ? assistantMessage.content : "",
+          toolCalls,
+        }, 200);
+      }
+    }
+
+    const reply = assistantMessage?.content;
     if (typeof reply !== "string") {
       return json({ error: "The AI provider returned an invalid response." }, 502);
     }
