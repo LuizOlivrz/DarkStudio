@@ -3712,3 +3712,27 @@ html:not(.desktop-app) #system-now-playing-option {
   display: none !important;
 }
 
+
+
+/* Mantém Code Language, assinatura e configurações na mesma faixa responsiva. */
+#workspace-footer {
+  align-items: center;
+  gap: 6px;
+}
+#workspace-footer #signature {
+  position: relative;
+  inset: auto;
+  left: auto;
+  bottom: auto;
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 2px;
+  transform: none;
+  white-space: nowrap;
+  font-size: clamp(14px, 3.2vw, 18px);
+  line-height: 1;
+  pointer-events: auto;
+  order: 1;
+}
+#workspace-footer #code-language { order: 0; }
+#workspace-footer #config-toggle { order: 2; }

@@ -4984,3 +4984,25 @@ html:not(.desktop-app) #system-now-playing-option {
   display: none !important;
 }
 
+
+
+/* A assinatura integra a mesma faixa do Code Language e dos controles. */
+#workspace-footer {
+  align-items: center;
+  gap: 12px;
+}
+#workspace-footer #signature {
+  position: relative;
+  inset: auto;
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 4px;
+  transform: none;
+  white-space: nowrap;
+  font-size: clamp(18px, 2vw, 28px);
+  line-height: 1;
+  pointer-events: auto;
+  order: 1;
+}
+#workspace-footer #config-toggle { order: 2; }
+#workspace-footer #code-language { order: 0; }

@@ -2706,6 +2706,52 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
   }
 }
 
+// Ferramentas locais controladas do NightCoder: acesso apenas ao Workspace ativo.
+window.darkStudioAgentTools = {
+  listFiles() {
+    syncCurrentEditorToMap();
+    return { files: nodes.slice(0, 200).map((node) => ({
+      path: normalizeProjectPath(node.filePath || node.name),
+      name: node.name,
+      type: node.type,
+      size: typeof node.content === "string" ? node.content.length : 0,
+      active: node.id === currentEditingNode?.id,
+    })), truncated: nodes.length > 200, total: nodes.length };
+  },
+  readFile({ path } = {}) {
+    syncCurrentEditorToMap();
+    const normalized = normalizeProjectPath(path);
+    const node = nodes.find((item) => item.type !== "folder" && normalizeProjectPath(item.filePath || item.name) === normalized);
+    if (!node) throw new Error("Arquivo não encontrado no Workspace: " + normalized);
+    if (node.type === "binary" || node.type === "image") throw new Error("Este tipo de arquivo não pode ser lido como texto.");
+    const content = String(node.content || "");
+    return { path: normalized, content: content.slice(0, 18000), truncated: content.length > 18000, totalCharacters: content.length };
+  },
+  writeFile({ path, content } = {}) {
+    const normalized = normalizeProjectPath(path);
+    if (!normalized || normalized.split("/").some((part) => !part || part === "..")) throw new Error("Caminho inválido.");
+    if (typeof content !== "string" || content.length > 30000) throw new Error("Conteúdo inválido ou maior que 30 KB por operação.");
+    const existing = nodes.find((item) => item.type !== "folder" && normalizeProjectPath(item.filePath || item.name) === normalized);
+    if (existing && existing.type !== "text") throw new Error("O agente só pode alterar arquivos de texto.");
+    if (existing) {
+      existing.content = content;
+      if (currentEditingNode?.id === existing.id) window.editor?.setValue?.(content);
+      saveState();
+      renderNodes();
+      return { action: "updated", path: normalized, size: content.length };
+    }
+    const parts = normalized.split("/");
+    const name = parts.pop();
+    const parent = parts.length ? ensureFolderPath(parts.join("/")) : null;
+    const node = addNode(name, content, "text", centerPosition((nodes.length % 8) * 18));
+    node.filePath = normalized;
+    if (parent) attachNodeToFolder(node, parent);
+    saveState();
+    renderNodes();
+    return { action: "created", path: normalized, size: content.length };
+  },
+};
+
 function normalizeProjectPath(path) {
   const parts = [];
   for (const part of String(path || "").replace(/\\/g, "/").split("/")) {
