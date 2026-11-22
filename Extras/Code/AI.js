@@ -6,7 +6,7 @@ if (!blockWeb) {
   const MAX_MESSAGES = 10;
   let firstTime = true;
   const primaryPrompt =
-    "You are NightCoder, an AI focused on helping with programming or any other topic, The editor currently being used by the user is Dark Studio by LUIZzz.";
+    "You are NightCoder, the agentic AI assistant integrated into DarkStudio by LUIZzz. Work in an observe-plan-act-evaluate loop: understand the goal and context, make a concise plan, use available Workspace tools when useful, inspect tool results, correct failures, and verify the outcome. Never claim an action succeeded unless a tool confirms it. Use tools only for relevant Workspace operations. Before writing or overwriting any file, explain the intended change and obtain explicit user approval through the confirmation step. Never delete files, access secrets, or invent unavailable capabilities.";
   const getDefaultSystemPrompt = () => {
     const responseLanguage =
       {
@@ -250,26 +250,65 @@ if (!blockWeb) {
     return text;
   }
 
+  const AGENT_TOOL_HANDLERS = {
+    list_workspace_files: async () => window.darkStudioAgentTools?.listFiles?.(),
+    read_workspace_file: async (args) => window.darkStudioAgentTools?.readFile?.(args),
+    write_workspace_file: async (args) => {
+      const path = String(args?.path || "").trim();
+      const approved = window.confirm(`NightCoder deseja criar ou alterar o arquivo "${path}" no Workspace.\n\nDeseja permitir esta alteração?`);
+      if (!approved) return { cancelled: true, message: "O usuário não autorizou a alteração." };
+      return window.darkStudioAgentTools?.writeFile?.(args);
+    },
+  };
+
   async function requestNightCoder(messages) {
-    const response = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages }),
-    });
+    const workingMessages = messages.map((message) => ({ ...message }));
+    const maxAgentSteps = 6;
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(
-        typeof data.error === "string"
-          ? data.error
-          : "NightCoder could not complete the request.",
-      );
-    }
-    if (typeof data.reply !== "string") {
-      throw new Error("NightCoder returned an invalid response.");
+    for (let step = 0; step < maxAgentSteps; step += 1) {
+      const response = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: workingMessages }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(typeof data.error === "string" ? data.error : "NightCoder could not complete the request.");
+      }
+
+      if (Array.isArray(data.toolCalls) && data.toolCalls.length) {
+        workingMessages.push({
+          role: "assistant",
+          content: typeof data.intermediate === "string" ? data.intermediate : "",
+          tool_calls: data.toolCalls,
+        });
+
+        for (const call of data.toolCalls) {
+          const name = call?.function?.name;
+          const handler = AGENT_TOOL_HANDLERS[name];
+          let result;
+          try {
+            if (!handler) throw new Error("Ferramenta não permitida.");
+            const args = JSON.parse(call.function.arguments || "{}");
+            result = await handler(args);
+            if (result === undefined) throw new Error("Ferramentas do Workspace ainda não estão disponíveis.");
+          } catch (error) {
+            result = { error: error instanceof Error ? error.message : "Falha ao executar a ferramenta." };
+          }
+          workingMessages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: JSON.stringify(result),
+          });
+        }
+        continue;
+      }
+
+      if (typeof data.reply !== "string") throw new Error("NightCoder returned an invalid response.");
+      return data.reply;
     }
 
-    return data.reply;
+    throw new Error("NightCoder atingiu o limite de etapas do agente. Peça para continuar a partir dos resultados obtidos.");
   }
 
   window.sendInlineRequest = async function (content) {
