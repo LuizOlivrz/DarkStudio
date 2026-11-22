@@ -11,8 +11,8 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 const MODEL = "openai/gpt-oss-120b";
 const MAX_MESSAGES = 24;
-const MAX_MESSAGE_LENGTH = 20000;
-const MAX_TOTAL_LENGTH = 40000;
+const MAX_MESSAGE_LENGTH = 40000;
+const MAX_TOTAL_LENGTH = 80000;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
 const requestsByIP = new Map();
@@ -93,7 +93,7 @@ export default async (request) => {
   }
 
   const contentLength = Number(request.headers.get("content-length") || 0);
-  if (contentLength > 50000) {
+  if (contentLength > 100000) {
     return json({ error: "Request body is too large." }, 413);
   }
 
