@@ -2710,13 +2710,13 @@ async function importWorkspaceFiles(fileList, targetFolder = null, options = {})
 window.darkStudioAgentTools = {
   listFiles() {
     syncCurrentEditorToMap();
-    return nodes.map((node) => ({
+    return { files: nodes.slice(0, 200).map((node) => ({
       path: normalizeProjectPath(node.filePath || node.name),
       name: node.name,
       type: node.type,
       size: typeof node.content === "string" ? node.content.length : 0,
       active: node.id === currentEditingNode?.id,
-    }));
+    })), truncated: nodes.length > 200, total: nodes.length };
   },
   readFile({ path } = {}) {
     syncCurrentEditorToMap();
@@ -2724,13 +2724,15 @@ window.darkStudioAgentTools = {
     const node = nodes.find((item) => item.type !== "folder" && normalizeProjectPath(item.filePath || item.name) === normalized);
     if (!node) throw new Error("Arquivo não encontrado no Workspace: " + normalized);
     if (node.type === "binary" || node.type === "image") throw new Error("Este tipo de arquivo não pode ser lido como texto.");
-    return { path: normalized, content: String(node.content || "") };
+    const content = String(node.content || "");
+    return { path: normalized, content: content.slice(0, 18000), truncated: content.length > 18000, totalCharacters: content.length };
   },
   writeFile({ path, content } = {}) {
     const normalized = normalizeProjectPath(path);
     if (!normalized || normalized.split("/").some((part) => !part || part === "..")) throw new Error("Caminho inválido.");
-    if (typeof content !== "string" || content.length > 200000) throw new Error("Conteúdo inválido ou maior que 200 KB.");
+    if (typeof content !== "string" || content.length > 30000) throw new Error("Conteúdo inválido ou maior que 30 KB por operação.");
     const existing = nodes.find((item) => item.type !== "folder" && normalizeProjectPath(item.filePath || item.name) === normalized);
+    if (existing && existing.type !== "text") throw new Error("O agente só pode alterar arquivos de texto.");
     if (existing) {
       existing.content = content;
       if (currentEditingNode?.id === existing.id) window.editor?.setValue?.(content);
