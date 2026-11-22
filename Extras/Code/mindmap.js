@@ -15,6 +15,12 @@ import {
 } from "./workspace-language.js";
 const STORAGE_KEY = "darkstudio_mindmap_v1";
 const MAX_LOCAL_STORAGE_STATE_CHARS = 350_000;
+const OPEN_EDITOR_TABS_KEY = "darkstudio-open-editor-tabs-v1";
+let openEditorTabIds = [];
+try {
+  const storedTabs = JSON.parse(localStorage.getItem(OPEN_EDITOR_TABS_KEY) || "[]");
+  if (Array.isArray(storedTabs)) openEditorTabIds = storedTabs.filter((id) => typeof id === "string").slice(-30);
+} catch {}
 let storageQuotaWarningShown = false;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -242,6 +248,88 @@ function makeId() {
 function getNode(id) {
   return nodes.find((node) => node.id === id);
 }
+
+function saveAndRenderEditorTabs() {
+  const tabs = document.getElementById("editor-tabs");
+  if (!tabs) return;
+  openEditorTabIds = [...new Set(openEditorTabIds)].filter((id) => {
+    const node = getNode(id);
+    return node && node.type !== "folder" && node.type !== "image" && node.type !== "binary";
+  }).slice(-30);
+  try { localStorage.setItem(OPEN_EDITOR_TABS_KEY, JSON.stringify(openEditorTabIds)); } catch {}
+  tabs.replaceChildren();
+  for (const id of openEditorTabIds) {
+    const node = getNode(id);
+    if (!node) continue;
+    const tab = document.createElement("div");
+    tab.className = "editor-file-tab";
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-selected", String(currentEditingNode?.id === id));
+    tab.title = node.filePath || node.name;
+    const label = document.createElement("span");
+    label.className = "editor-file-tab-label";
+    label.textContent = node.name;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "editor-file-tab-close";
+    close.setAttribute("aria-label", `Fechar ${node.name}`);
+    close.textContent = "×";
+    close.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeEditorTab(id);
+    });
+    tab.append(label, close);
+    tab.addEventListener("click", () => openNodeInEditor(node));
+    tabs.appendChild(tab);
+  }
+}
+
+function closeEditorTab(id) {
+  const index = openEditorTabIds.indexOf(id);
+  if (index < 0) return;
+  openEditorTabIds.splice(index, 1);
+  if (currentEditingNode?.id === id) {
+    const nextId = openEditorTabIds[Math.min(index, openEditorTabIds.length - 1)];
+    const nextNode = nextId ? getNode(nextId) : null;
+    if (nextNode) openNodeInEditor(nextNode);
+    else {
+      syncCurrentEditorToMap();
+      currentEditingNode = null;
+      window.darkStudioWorkspaceCurrentFile = null;
+      rememberActiveWorkspaceFile(null);
+      window.editor?.setValue?.("");
+      saveAndRenderEditorTabs();
+    }
+  } else saveAndRenderEditorTabs();
+}
+
+window.darkStudioCloseEditorTabs = (all = false) => {
+  if (all) {
+    openEditorTabIds = [];
+    if (currentEditingNode) {
+      syncCurrentEditorToMap();
+      currentEditingNode = null;
+      window.darkStudioWorkspaceCurrentFile = null;
+      rememberActiveWorkspaceFile(null);
+      window.editor?.setValue?.("");
+    }
+    saveAndRenderEditorTabs();
+    return;
+  }
+  if (currentEditingNode) closeEditorTab(currentEditingNode.id);
+};
+
+window.darkStudioCycleEditorTab = (direction = 1) => {
+  if (!openEditorTabIds.length) return false;
+  const currentIndex = openEditorTabIds.indexOf(currentEditingNode?.id);
+  const nextIndex = currentIndex < 0
+    ? 0
+    : (currentIndex + direction + openEditorTabIds.length) % openEditorTabIds.length;
+  const node = getNode(openEditorTabIds[nextIndex]);
+  if (!node) return false;
+  openNodeInEditor(node);
+  return true;
+};
 
 function activeWorkspaceFileKey(id = workspaceId) {
   return `${ACTIVE_WORKSPACE_FILE_PREFIX}${id || "current"}`;
@@ -1620,6 +1708,7 @@ function renderNodes() {
   updateFolderVisibility();
   updateConnections();
   refreshExplorerList();
+  saveAndRenderEditorTabs();
 }
 
 function refreshExplorerList() {
@@ -3111,6 +3200,8 @@ function openNodeInEditor(node) {
   syncCurrentEditorToMap();
 
   currentEditingNode = node;
+  if (!openEditorTabIds.includes(node.id)) openEditorTabIds.push(node.id);
+  saveAndRenderEditorTabs();
   window.darkStudioWorkspaceCurrentFile = node;
   rememberActiveWorkspaceFile(node);
   try { localStorage.setItem("darkstudio-editor-session-mode", "workspace"); } catch {}

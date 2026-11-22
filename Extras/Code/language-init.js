@@ -1,7 +1,7 @@
 (() => {
   // Android mantém o carregamento atual, sem tela de entrada nem animação.
   const isAndroidDevice = /Android/i.test(navigator.userAgent || "");
-  if (!isAndroidDevice) {
+  if (!isAndroidDevice && document.documentElement.classList.contains("ds-boot")) {
     document.documentElement.classList.add("ds-boot-pending");
     const bootStyle = document.createElement("style");
     bootStyle.textContent = "html.ds-boot-pending,html.ds-boot-pending body{background:#000!important}html.ds-boot-pending body #Website-Container{opacity:0!important}";

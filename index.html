@@ -4,8 +4,15 @@
 <head>
   <script>
     const root = document.documentElement;
-    root.classList.add("ds-boot");
+    const navigation = performance.getEntriesByType?.("navigation")?.[0];
+    const isReload = navigation?.type === "reload";
+    if (!isReload && navigation?.type !== "back_forward") root.classList.add("ds-boot");
     if (window.darkStudioDesktop?.isDesktop) root.classList.add("desktop-app");
+    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = isMobile ? "Extras/Code/mobile.css" : "Extras/Code/dark.css";
+    document.head.appendChild(stylesheet);
   </script>
   <style>
     html.ds-boot, html.ds-boot body { background: #000 !important; }
@@ -55,6 +62,7 @@
 
     <!-- ====== CODE EDITOR / EDITOR DE CÓDIGO ====== -->
     <div id="main-content">
+      <div id="editor-tabs" role="tablist" aria-label="Arquivos abertos"></div>
       <div id="Editor-Input" translate="no"></div>
       <div id="workspace-empty-state" aria-live="polite" hidden>
         <img src="Extras/Assets/White Favicon.png" alt="DarkStudio" />
@@ -144,6 +152,10 @@
           <input type="checkbox" id="empty-file-auto-delete-checkbox" />
           <span data-i18n="emptyFileAutoDelete">Excluir automaticamente arquivos vazios</span>
         </label>
+        <label id="show-ghost-files-option" for="show-ghost-files-checkbox">
+          <input type="checkbox" id="show-ghost-files-checkbox" />
+          <span>Mostrar arquivos ocultos e ignorados no workspace</span>
+        </label>
         <label for="empty-file-auto-delete-minutes" data-i18n="emptyFileAutoDeleteTime">Tempo até a exclusão (minutos):</label>
         <input type="number" id="empty-file-auto-delete-minutes" min="3.1" step="0.1" value="15" disabled />
         <p data-i18n="emptyFileAutoDeleteHint">O tempo deve ser maior que 3 minutos. A opção vem desativada por padrão.</p>
@@ -210,6 +222,7 @@
         interface, without access to editor contents.</p>
       <button id="extensions-import-button" type="button" data-i18n="installExtension">Install extension file</button>
       <button id="extensions-import-folder-button" type="button" data-i18n="installExtensionFolder">Install extension folder</button>
+      <button id="extensions-panic-button" type="button" aria-pressed="false">Desativar todas as extensões</button>
       <input id="extensions-file-input" type="file" accept=".dsx.json,application/json,.json" hidden />
       <input id="extensions-folder-input" type="file" webkitdirectory directory multiple hidden aria-label="Select extension folder" />
       <p id="extensions-empty" data-i18n="noExtensions">No extensions installed.</p>
@@ -294,10 +307,11 @@
         </button>
 
         <section id="explorer" aria-label="Workspace explorer" data-i18n-aria-label="explorerAriaLabel">
-          <button id="explorer-toggle" type="button" aria-expanded="false" title="Toggle explorer" data-i18n-title="explorerToggleTitle">
+          <button id="explorer-toggle" type="button" aria-expanded="false" title="Explorador · Ctrl+K, depois O abre uma pasta">
             <span class="explorer-label" data-i18n="explorer">Explorer</span><span class="explorer-chevron" aria-hidden="true"></span>
           </button>
           <div id="explorer-files" role="list" aria-label="Workspace files" data-i18n-aria-label="explorerFilesAriaLabel"></div>
+          <div id="desktop-folder-tree" role="tree" aria-label="Arquivos locais" hidden></div>
           <button id="explorer-graph-button" type="button" title="Toggle graphical workspace" data-i18n="graphView" data-i18n-title="graphViewTitle">Graph view</button>
         </section>
       </section>

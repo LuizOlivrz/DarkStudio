@@ -47,13 +47,15 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     return rect.width > 0 && rect.height > 0;
   });
 
-  const positionHandle = (handle, left, visible, containerRect) => {
-    if (!visible || !Number.isFinite(left)) {
+  const positionHandle = (handle, left, panelRect, visible, containerRect) => {
+    if (!visible || !panelRect || !Number.isFinite(left)) {
       handle.hidden = true;
       return;
     }
     handle.hidden = false;
     handle.style.left = `${left - containerRect.left - WebsiteContainer.clientLeft - 2}px`;
+    handle.style.top = `${panelRect.top - containerRect.top - WebsiteContainer.clientTop}px`;
+    handle.style.height = `${panelRect.height}px`;
   };
 
   const updateHandles = () => {
@@ -69,6 +71,7 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     positionHandle(
       optionsHandle,
       optionsRect.right + optionsGap / 2,
+      optionsRect,
       optionsIsVisible && optionsGap > 0,
       containerRect
     );
@@ -84,6 +87,7 @@ export function setupPanelResizers(WebsiteContainer, onChatOpen = () => {}) {
     positionHandle(
       chatHandle,
       chatHandleCenter,
+      chatIsVisible ? chatRect : editorRect,
       Boolean(editorRect) && (chatIsVisible ? chatGap > 0 : true),
       containerRect
     );

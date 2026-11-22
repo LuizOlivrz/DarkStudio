@@ -48,6 +48,9 @@ if (!blockWeb) {
   const executorPanel = document.getElementById("executor-panel");
   const executorOutput = document.getElementById("executor-output");
   const configMenu = document.getElementById("config");
+  const SETTINGS_SCROLL_KEY = "darkstudio-settings-scroll-top";
+  const ACTIVE_WORKBENCH_VIEW_KEY = "darkstudio-active-workbench-view";
+  let settingsScrollSaveTimer = 0;
   const chat = document.getElementById("chat");
   const signatureInput = document.getElementById("signature-input");
   const resetSignatureButton = document.getElementById("reset-signature");
@@ -1655,11 +1658,24 @@ ${code}
     configValue = opening;
     WebsiteContainer.classList.toggle("settings-active", opening);
     configMenu.hidden = !opening;
+    try {
+      localStorage.setItem(ACTIVE_WORKBENCH_VIEW_KEY, opening ? "settings" : "files");
+    } catch {}
     window.darkStudioSettingsTransition = false;
     // Ao fechar Configurações, respeita o estado vazio do Explorer em vez de exibir Monaco sem arquivos.
     if (editorInput) editorInput.hidden = opening || Boolean(emptyState && !emptyState.hidden);
 
-    configMenu.scrollTop = 0;
+    if (opening) {
+      requestAnimationFrame(() => {
+        if (!WebsiteContainer.classList.contains("settings-active")) return;
+        try {
+          const savedScrollTop = Number(localStorage.getItem(SETTINGS_SCROLL_KEY));
+          configMenu.scrollTop = Number.isFinite(savedScrollTop) ? savedScrollTop : 0;
+        } catch {
+          configMenu.scrollTop = 0;
+        }
+      });
+    }
     // Não solicita layout nem inicialização do Monaco enquanto Configurações está aberta.
     if (!opening) {
       window.dispatchEvent(new Event("darkstudio:editor-requested"));
@@ -1668,6 +1684,16 @@ ${code}
   }
 
   window.config = config;
+
+  configMenu?.addEventListener("scroll", () => {
+    if (!WebsiteContainer.classList.contains("settings-active")) return;
+    clearTimeout(settingsScrollSaveTimer);
+    settingsScrollSaveTimer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(SETTINGS_SCROLL_KEY, String(configMenu.scrollTop));
+      } catch {}
+    }, 160);
+  }, { passive: true });
 
   // O editor de prompt só precisa do módulo NightCoder quando sua seção é expandida.
   const aiSettingsDetails = [...document.querySelectorAll("#config details.settings-tree")]
@@ -1688,6 +1714,57 @@ ${code}
       config(); // chama sua função
     }
   });
+
+  // Shortcuts used by the user's VS Code profile plus file-tab controls.
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    const key = e.key.toLowerCase();
+    if (e.ctrlKey && !e.altKey && !e.shiftKey && key === "l" &&
+        (e.target instanceof Element && e.target.closest("#Editor-Input, .monaco-editor"))) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.editor?.trigger("keyboard", "editor.action.gotoLine", null);
+      return;
+    }
+    if (e.ctrlKey && !e.metaKey && key === "tab") {
+      e.preventDefault();
+      e.stopPropagation();
+      window.darkStudioCycleEditorTab?.(e.shiftKey ? -1 : 1);
+      return;
+    }
+    if (e.ctrlKey && !e.metaKey && e.shiftKey && key === "w") {
+      e.preventDefault();
+      e.stopPropagation();
+      window.darkStudioCloseEditorTabs?.(true);
+      return;
+    }
+    if (e.ctrlKey && !e.metaKey && !e.shiftKey && key === "w") {
+      e.preventDefault();
+      e.stopPropagation();
+      window.darkStudioCloseEditorTabs?.(false);
+      return;
+    }
+    if (e.ctrlKey && e.altKey && !e.shiftKey && key === "e") {
+      e.preventDefault();
+      window.darkStudioSetActiveView?.("map");
+      return;
+    }
+    if (e.ctrlKey && e.altKey && !e.shiftKey && key === "c") {
+      e.preventDefault();
+      if (window.darkStudioDesktop?.isDesktop) void window.darkStudioOpenDesktopExtension?.("darkstudio.gitlens");
+      else window.darkStudioSetActiveView?.("map");
+      return;
+    }
+    if (e.ctrlKey && e.shiftKey && !e.altKey && key === "x") {
+      e.preventDefault();
+      window.darkStudioSetActiveView?.("map");
+      return;
+    }
+    if (e.ctrlKey && e.altKey && !e.shiftKey && key === "d") {
+      e.preventDefault();
+      window.darkStudioSetActiveView?.("debugger");
+    }
+  }, true);
 
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "s") {

@@ -469,15 +469,11 @@ export async function loadCSS(name) {
     link.rel = "stylesheet";
     link.href = path;
 
-<<<<<<< HEAD
-    link.onload = () => resolve(true);
-=======
     link.onload = () => {
       // O container permanece oculto até que todos os módulos essenciais
       // (incluindo extensões) terminem de carregar no carregador principal.
       resolve(true);
     };
->>>>>>> origin/correcao/transicao-inicial-container
 
     link.onerror = () => {
       bootLogs.push(`❌ ${name}`);
@@ -560,8 +556,22 @@ if (!block) {
       timeoutId = window.setTimeout(finish, 5000);
     });
 
+    // Restaura a última área de trabalho aberta depois que os módulos de
+    // interface e o Workspace estão prontos, sem disparar carregamentos duplicados.
+    try {
+      const savedView = localStorage.getItem("darkstudio-active-workbench-view");
+      if (savedView === "settings") window.config?.();
+    } catch {}
+
     const root = document.documentElement;
-    root.classList.remove("ds-boot", "ds-boot-building", "ds-boot-pending");
+    const shouldAnimateBoot = root.classList.contains("ds-boot");
+    root.classList.remove("ds-boot", "ds-boot-pending");
+    if (shouldAnimateBoot) {
+      root.classList.add("ds-boot-building");
+      // A assinatura termina em 1,84 s; liberamos a interface antes de 2 s.
+      await new Promise((resolve) => window.setTimeout(resolve, 1900));
+      root.classList.remove("ds-boot-building");
+    }
     root.classList.add("ds-boot-complete");
     flushBootLogs();
   })();

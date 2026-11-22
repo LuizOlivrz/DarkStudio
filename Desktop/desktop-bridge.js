@@ -29,6 +29,7 @@ async function hasBinaryContent(file) {
 }
 
   if (!window.darkStudioDesktop?.isDesktop) {
+    document.getElementById("show-ghost-files-option")?.remove();
     // Navegadores compatíveis: persistir o FileSystemFileHandle no IndexedDB
     // permite restaurar o mesmo arquivo e gravar nele após recarregar a página.
     if (typeof window.showOpenFilePicker === "function" && typeof window.showSaveFilePicker === "function") {
@@ -210,10 +211,19 @@ async function hasBinaryContent(file) {
 
   const EDITOR_SESSION_MODE_KEY = "darkstudio-editor-session-mode";
   const EXTERNAL_FILE_DRAFT_KEY = "darkstudio-last-open-file-draft";
+  const WORKSPACE_FOLDER_FILE_KEY = "darkstudio-desktop-folder-active-file";
+  const SHOW_GHOST_FILES_KEY = "darkstudio.workspace.show-ghost-files";
   let currentExternalFile = null;
+  let currentWorkspaceFolderPath = "";
+  let currentWorkspaceFileContent = null;
+  let currentWorkspaceFolder = null;
+  const expandedWorkspaceFolders = new Map();
   let draftPersistTimer = null;
+  let workspaceRefreshTimer = null;
 
   const setExternalFile = (file, dispatchExternalEvent = true) => {
+    currentWorkspaceFolderPath = "";
+    currentWorkspaceFileContent = null;
     currentExternalFile = file ? { filePath: file.filePath, fileName: file.fileName } : null;
     try {
       localStorage.setItem(EDITOR_SESSION_MODE_KEY, file ? "external-file" : "workspace");
@@ -222,6 +232,204 @@ async function hasBinaryContent(file) {
     if (dispatchExternalEvent) window.dispatchEvent(new CustomEvent("darkstudio:external-file-opened", { detail: currentExternalFile || {} }));
     window.dispatchEvent(new CustomEvent("darkstudio:file-opened", { detail: currentExternalFile || {} }));
   };
+
+  const renderDesktopFolder = (folder) => {
+    const tree = document.getElementById("desktop-folder-tree");
+    if (!tree) return;
+    currentWorkspaceFolder = folder;
+    const scrollTop = tree.scrollTop;
+    tree.hidden = false;
+    tree.replaceChildren();
+    const includeGhostFiles = document.getElementById("show-ghost-files-checkbox")?.checked ?? localStorage.getItem(SHOW_GHOST_FILES_KEY) === "1";
+    const workspaceFiles = document.getElementById("explorer-files");
+    const graphButton = document.getElementById("explorer-graph-button");
+    if (workspaceFiles) workspaceFiles.hidden = !includeGhostFiles;
+    if (graphButton) graphButton.hidden = !includeGhostFiles;
+    const root = document.createElement("button");
+    root.type = "button";
+    root.setAttribute("role", "treeitem");
+    let rootExpanded = expandedWorkspaceFolders.get("@root") !== false;
+    root.setAttribute("aria-expanded", String(rootExpanded));
+    root.dataset.kind = "folder";
+    root.textContent = `${rootExpanded ? "▾" : "▸"} ${folder.name}`;
+    root.classList.add("desktop-folder-root");
+    tree.appendChild(root);
+    const rows = [];
+    const updateVisibility = () => {
+      for (const row of rows) {
+        const parts = row.dataset.relativePath.split("/");
+        let hidden = !rootExpanded;
+        for (let depth = 1; !hidden && depth < parts.length; depth++) {
+          if (expandedWorkspaceFolders.get(parts.slice(0, depth).join("/")) === false) hidden = true;
+        }
+        row.hidden = hidden;
+      }
+    };
+    root.addEventListener("click", () => {
+      rootExpanded = !rootExpanded;
+      expandedWorkspaceFolders.set("@root", rootExpanded);
+      root.setAttribute("aria-expanded", String(rootExpanded));
+      root.textContent = `${rootExpanded ? "▾" : "▸"} ${folder.name}`;
+      updateVisibility();
+    });
+    for (const entry of folder.entries || []) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.setAttribute("role", "treeitem");
+      item.dataset.kind = entry.type;
+      item.dataset.relativePath = entry.path;
+      const expanded = entry.type === "folder" && expandedWorkspaceFolders.get(entry.path) !== false;
+      item.setAttribute("aria-expanded", String(expanded));
+      item.style.paddingInlineStart = `${22 + Math.max(0, entry.path.split("/").length - 1) * 12}px`;
+      const name = document.createElement("span");
+      name.className = "desktop-file-name";
+      name.textContent = `${entry.type === "folder" ? "▾ " : ""}${entry.name}`;
+      item.appendChild(name);
+      if (entry.type === "file") {
+        item.title = entry.path;
+        item.addEventListener("click", () => { void openDesktopWorkspaceFile(entry.path, entry.name); });
+      } else {
+        item.addEventListener("click", () => {
+          const isExpanded = item.getAttribute("aria-expanded") === "true";
+          expandedWorkspaceFolders.set(entry.path, !isExpanded);
+          item.setAttribute("aria-expanded", String(!isExpanded));
+          name.textContent = `${isExpanded ? "▸ " : "▾ "}${entry.name}`;
+          updateVisibility();
+        });
+      }
+      tree.appendChild(item);
+      rows.push(item);
+    }
+    updateVisibility();
+    tree.scrollTop = scrollTop;
+  };
+
+  const markWorkspaceFolderFile = (relativePath, fileName) => {
+    currentWorkspaceFolderPath = relativePath;
+    currentExternalFile = null;
+    try {
+      localStorage.setItem(EDITOR_SESSION_MODE_KEY, "workspace-folder");
+      localStorage.setItem(WORKSPACE_FOLDER_FILE_KEY, relativePath);
+    } catch {}
+    window.dispatchEvent(new CustomEvent("darkstudio:external-file-opened", { detail: { fileName, workspaceFolderPath: relativePath } }));
+    window.dispatchEvent(new CustomEvent("darkstudio:file-opened", { detail: { fileName, workspaceFolderPath: relativePath } }));
+  };
+
+  async function openDesktopWorkspaceFile(relativePath, fileName) {
+    const file = await window.darkStudioDesktop.readWorkspaceFile(relativePath);
+    if (!file?.ok) {
+      if (file?.binary) window.darkStudioShowBinaryFileState?.(fileName);
+      else window.alert(file?.message || "Não foi possível abrir este arquivo.");
+      return;
+    }
+    const apply = () => {
+      if (!window.editor?.setValue) return false;
+      markWorkspaceFolderFile(relativePath, fileName);
+      currentWorkspaceFileContent = file.content;
+      window.editor.setValue(file.content);
+      window.darkStudioRefreshEditorUI?.();
+      window.editor.focus?.();
+      return true;
+    };
+    if (!apply()) {
+      window.addEventListener("darkstudio:editor-ready", apply, { once: true });
+      window.dispatchEvent(new Event("darkstudio:editor-requested"));
+    }
+  }
+
+  const saveWorkspaceFolderFile = async () => {
+    if (!currentWorkspaceFolderPath || typeof window.editor?.getValue !== "function") return false;
+    const result = await window.darkStudioDesktop.writeWorkspaceFile({
+      path: currentWorkspaceFolderPath,
+      content: window.editor.getValue()
+    });
+    if (!result?.ok) window.alert(result?.message || "Não foi possível salvar o arquivo local.");
+    else currentWorkspaceFileContent = window.editor.getValue();
+    return Boolean(result?.ok);
+  };
+
+  const chooseWorkspaceFolder = async () => {
+    const folder = await window.darkStudioDesktop.openWorkspaceFolder({ includeHidden: showGhostFilesCheckbox?.checked === true });
+    if (!folder) return;
+    renderDesktopFolder(folder);
+    window.darkStudioRefreshEditorUI?.();
+  };
+
+  let workspaceChordArmed = false;
+  let workspaceChordTimer = null;
+  document.addEventListener("keydown", (event) => {
+    if (workspaceChordArmed) {
+      workspaceChordArmed = false;
+      clearTimeout(workspaceChordTimer);
+      if (!event.ctrlKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === "o") {
+        event.preventDefault(); event.stopImmediatePropagation(); void chooseWorkspaceFolder();
+      }
+      return;
+    }
+    if (event.repeat || !event.ctrlKey || event.altKey || event.metaKey || event.key.toLowerCase() !== "k") return;
+    workspaceChordArmed = true;
+    event.preventDefault(); event.stopImmediatePropagation();
+    workspaceChordTimer = setTimeout(() => { workspaceChordArmed = false; }, 1400);
+  }, true);
+
+  const showGhostFilesCheckbox = document.getElementById("show-ghost-files-checkbox");
+  if (showGhostFilesCheckbox) {
+    showGhostFilesCheckbox.checked = localStorage.getItem(SHOW_GHOST_FILES_KEY) === "1";
+    showGhostFilesCheckbox.addEventListener("change", async () => {
+      localStorage.setItem(SHOW_GHOST_FILES_KEY, showGhostFilesCheckbox.checked ? "1" : "0");
+      if (currentWorkspaceFolder) {
+        const result = await window.darkStudioDesktop.refreshWorkspaceFolder({ includeHidden: showGhostFilesCheckbox.checked, force: true });
+        if (result?.ok && result.changed) renderDesktopFolder(result);
+      }
+    });
+  }
+
+  const restoreDesktopFolder = async () => {
+    const folder = await window.darkStudioDesktop.restoreWorkspaceFolder?.({ includeHidden: showGhostFilesCheckbox?.checked === true });
+    if (!folder) return;
+    renderDesktopFolder(folder);
+    if (localStorage.getItem(EDITOR_SESSION_MODE_KEY) === "workspace-folder") {
+      const relativePath = localStorage.getItem(WORKSPACE_FOLDER_FILE_KEY) || "";
+      const entry = folder.entries?.find((item) => item.type === "file" && item.path === relativePath);
+      if (entry) await openDesktopWorkspaceFile(entry.path, entry.name);
+    }
+  };
+
+  const refreshDesktopWorkspace = async () => {
+    if (!currentWorkspaceFolder) return;
+    const result = await window.darkStudioDesktop.refreshWorkspaceFolder({ includeHidden: showGhostFilesCheckbox?.checked === true });
+    if (result?.ok && result.changed) {
+      renderDesktopFolder(result);
+      if (currentWorkspaceFolderPath) {
+        const file = await window.darkStudioDesktop.readWorkspaceFile(currentWorkspaceFolderPath);
+        if (file?.ok && file.content !== currentWorkspaceFileContent && window.editor?.getValue?.() === currentWorkspaceFileContent) {
+          currentWorkspaceFileContent = file.content;
+          window.editor.setValue(file.content);
+          window.darkStudioRefreshEditorUI?.();
+        }
+      }
+    }
+  };
+  workspaceRefreshTimer = setInterval(() => { void refreshDesktopWorkspace(); }, 1000);
+  window.addEventListener("beforeunload", () => clearInterval(workspaceRefreshTimer), { once: true });
+
+  window.addEventListener("darkstudio:workspace-file-opened", () => {
+    currentWorkspaceFolderPath = "";
+    currentWorkspaceFileContent = null;
+  });
+  window.addEventListener("darkstudio:external-file-opened", (event) => {
+    if (!event.detail?.workspaceFolderPath) {
+      currentWorkspaceFolderPath = "";
+      currentWorkspaceFileContent = null;
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === "s" && currentWorkspaceFolderPath) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      void saveWorkspaceFolderFile();
+    }
+  }, true);
 
   const persistExternalDraft = () => {
     if (!currentExternalFile || !window.editor?.getValue) return;
@@ -270,6 +478,7 @@ async function hasBinaryContent(file) {
       if (!window.editor?.setValue) return;
       await restoreExternalFileIfNeeded();
       window.editor.onDidChangeModelContent?.(persistExternalDraft);
+      await restoreDesktopFolder();
     }));
   };
 
@@ -324,6 +533,10 @@ async function hasBinaryContent(file) {
             try { localStorage.setItem(EXTERNAL_FILE_DRAFT_KEY, JSON.stringify({ filePath: result.filePath, content, savedAt: Date.now() })); } catch {}
             return;
           }
+        }
+        if (currentWorkspaceFolderPath) {
+          await saveWorkspaceFolderFile();
+          return;
         }
         const result = await window.darkStudioDesktop.saveFile({
           content,
@@ -420,10 +633,20 @@ async function hasBinaryContent(file) {
     terminalStyles.id = "desktop-terminal-styles";
     terminalStyles.textContent = [
       "#Website-Container.desktop-terminal-open { grid-template-rows: minmax(0, 1fr) minmax(160px, 32vh) !important; }",
+      "#Website-Container.desktop-terminal-open.extensions-active { grid-template-columns: 44px minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) minmax(160px, 32vh) !important; }",
+      "#Website-Container.with-chat.desktop-terminal-open.extensions-active { grid-template-columns: 44px minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) minmax(160px, 32vh) !important; }",
       "#Website-Container.desktop-terminal-open #main-content { height: 100% !important; min-height: 0 !important; grid-column: 3 !important; grid-row: 1 !important; overflow: hidden; }",
+      "#Website-Container.desktop-terminal-open.extensions-active #main-content { grid-column: 2 !important; }",
       "#Website-Container.desktop-terminal-open #options { grid-column: 2 !important; grid-row: 1 !important; height: var(--workspace-height, 88dvh) !important; align-self: start; }",
       "#Website-Container.desktop-terminal-open #chat { grid-column: 4 !important; grid-row: 1 !important; }",
+      "#Website-Container.desktop-terminal-open #workspace-footer { position:fixed !important; left:calc(44px + var(--options-width,120px) + 8px) !important; right:8px !important; bottom:0 !important; z-index:80 !important; }",
+      "#Website-Container.desktop-terminal-open.extensions-active #workspace-footer { left:52px !important; }",
+      "#Website-Container.desktop-terminal-open #signature { position:fixed !important; left:50% !important; bottom:4px !important; z-index:81 !important; }",
+      "#Website-Container.desktop-terminal-open #desktop-terminal { padding-bottom:64px !important; box-sizing:border-box !important; }",
       "#desktop-terminal { grid-column: 3 !important; grid-row: 2 !important; display:flex; flex-direction:column; min-width:0; min-height:0; width:100%; height:100%; box-sizing:border-box; overflow:hidden; color:#cccccc; background:#0c0c0c; border:1px solid #454545; border-radius:6px; font:14px/1.35 Consolas,'Courier New',monospace; }",
+      "#Website-Container.desktop-terminal-open.extensions-active #desktop-terminal { grid-column: 2 !important; }",
+      "#Website-Container.with-chat.desktop-terminal-open.extensions-active #desktop-terminal { grid-column: 2 !important; }",
+      "#Website-Container.with-chat.desktop-terminal-open.extensions-active #chat { display: none !important; }",
       "#desktop-terminal[hidden] { display:none !important; }",
       "#desktop-terminal .ds-terminal-header { display:flex; align-items:center; gap:8px; flex:0 0 36px; min-width:0; padding:0 8px; background:#181818; border-bottom:1px solid #333; color:#ddd; font:12px/1.2 'Segoe UI',sans-serif; user-select:none; }",
       "#desktop-terminal .ds-terminal-title { display:flex; align-items:center; gap:7px; min-width:0; flex:1; height:100%; }",
