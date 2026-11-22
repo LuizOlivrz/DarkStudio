@@ -230,83 +230,62 @@ if (!blockWeb) {
     });
   }
 
-  function testMonacoWeb(timeout = 1800) {
-    return new Promise((resolve) => {
-      const controller = new AbortController();
-
-      const timer = setTimeout(() => {
-        controller.abort();
-        resolve(false);
-      }, timeout);
-
-      fetch(MONACO_WEB, {
-        method: "GET",
-        cache: "no-store",
-        signal: controller.signal,
-      })
-        .then((response) => {
-          clearTimeout(timer);
-          resolve(response.ok);
-        })
-        .catch(() => {
-          clearTimeout(timer);
-          resolve(false);
-        });
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = () => {
+        script.remove();
+        reject(new Error(`Não foi possível carregar ${src}`));
+      };
+      document.head.appendChild(script);
     });
   }
 
   async function loadMonacoLoader() {
     if (window.require) return;
 
-    let loaderURL = MONACO_LOCAL;
-
     if (navigator.onLine) {
-      const webAvailable = await testMonacoWeb();
-
-      if (webAvailable) {
-        loaderURL = MONACO_WEB;
+      try {
+        await loadScript(MONACO_WEB);
         monacoSource = "web";
+        return;
+      } catch {
+        // Tenta diretamente a cópia local; sem requisição de preflight.
       }
     }
 
-    try {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-
-        script.src = loaderURL;
-        script.onload = resolve;
-        script.onerror = reject;
-
-        document.head.appendChild(script);
-      });
-    } catch {
-      if (loaderURL !== MONACO_LOCAL) {
-        monacoSource = "local";
-
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-
-          script.src = MONACO_LOCAL;
-          script.onload = resolve;
-          script.onerror = reject;
-
-          document.head.appendChild(script);
-        });
-      } else {
-        throw new Error("Não foi possível carregar o Monaco.");
-      }
-    }
+    monacoSource = "local";
+    await loadScript(MONACO_LOCAL);
   }
-  await loadMonacoLoader();
 
   // ─────────────────────────────────────────────
   // 🧠 Inicialização do Monaco Editor / Monaco Editor Setup
   // ─────────────────────────────────────────────
 
-  async function initMonaco() {
-    await loadMonacoLoader();
+  function isEditorViewActive() {
+    const container = document.getElementById("Website-Container");
+    const input = document.getElementById("Editor-Input");
+    const surface = document.getElementById("main-content");
+    return !container?.classList.contains("settings-active") &&
+      !container?.classList.contains("extensions-active") &&
+      !input?.hidden && surface?.style.display !== "none";
+  }
 
-    require.config({
+  let editorInitializationPromise = null;
+
+  async function initMonaco() {
+    if (window.editor) return window.editor;
+    if (editorInitializationPromise) return editorInitializationPromise;
+
+    editorInitializationPromise = (async () => {
+      await loadMonacoLoader();
+      // Se o usuário mudou para Configurações/Extensões durante o download,
+      // não inicialize o editor em segundo plano.
+      if (!isEditorViewActive()) return null;
+
+      require.config({
       paths: {
         vs: monacoSource === "web" ? MONACO_WEB_PATH : "./Extras/Monaco/vs",
       },
@@ -320,7 +299,8 @@ if (!blockWeb) {
     // e os módulos compartilhados de HTML/TypeScript desta distribuição.
     // Importar novamente os wrappers monaco.contribution pode fazer o AMD
     // definir o mesmo módulo duas vezes e impedir a criação do editor.
-    require(["vs/editor/editor.main"], (monacoInstance) => {
+      return new Promise((resolve, reject) => {
+        require(["vs/editor/editor.main"], (monacoInstance) => {
       window.monaco = monacoInstance;
 
       // 1️⃣ Definir tema inicial
@@ -408,10 +388,35 @@ if (!blockWeb) {
 
         showInlineChat("🤖 O que você quer que eu faça com esse código?");
       });
-    });
+          window.dispatchEvent(new Event("darkstudio:editor-ready"));
+          resolve(window.editor);
+        }, reject);
+      });
+    })();
+
+    try {
+      return await editorInitializationPromise;
+    } finally {
+      editorInitializationPromise = null;
+    }
   }
 
-  initMonaco();
+  window.darkStudioRequestEditor = () => {
+    if (window.editor) {
+      window.editor.layout?.();
+      return Promise.resolve(window.editor);
+    }
+    return initMonaco().catch((error) => {
+      console.error("DarkStudio: não foi possível inicializar o editor.", error);
+      return null;
+    });
+  };
+
+  window.addEventListener("darkstudio:editor-requested", () => {
+    window.darkStudioRequestEditor?.();
+  });
+
+  if (isEditorViewActive()) window.darkStudioRequestEditor();
 
   // ─────────────────────────────────────────────
   // 🎨 Carregamento de Tema / Theme Loader
@@ -422,6 +427,8 @@ if (!blockWeb) {
    * @param {string} themeName - Nome do tema / Theme name
    */
   async function loadTheme(themeName) {
+    theme = themeName;
+    if (!window.monaco?.editor) return false;
     try {
       const response = await fetch(`Extras/Themes/${themeName}.json`);
       const theme = await response.json();

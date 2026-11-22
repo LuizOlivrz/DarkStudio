@@ -1,5 +1,7 @@
 // DarkStudio extension host. Extension code executes in an opaque-origin sandbox.
+import { registerDesktopTools } from "../Extensions/desktop-tools.js";
 const STORAGE_KEY = "darkstudio.extensions.v1";
+const PANIC_KEY = "darkstudio.extensions.panic.v1";
 const CHANNEL = "darkstudio-extension";
 const MAX_EXTENSION_BYTES = 20 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
@@ -341,7 +343,7 @@ function runCommand(extension, command, args) {
         }, "*");
       };
       document.addEventListener(eventName, listener, true);
-      extension.subscriptions.set(subscriptionId, listener);
+      extension.subscriptions.set(subscriptionId, { eventName, listener });
       return true;
     }
     default:
@@ -498,6 +500,8 @@ function renderExtensions() {
       const info = document.createElement("div");
       const title = document.createElement("h2");
       const detail = document.createElement("p");
+      const author = document.createElement("p");
+      author.className = "ds-extension-author";
       const toggle = document.createElement("button");
       toggle.type = "button";
       toggle.dataset.extensionAction = "toggle";
@@ -512,10 +516,10 @@ function renderExtensions() {
       icon.className = "ds-extension-icon";
       icon.alt = "";
       icon.hidden = true;
-      info.append(icon, title, detail);
+      info.append(icon, title, detail, author);
       card.append(info, toggle);
       list.appendChild(card);
-      extension.card = { card, icon, titleText, detailText, buttonText };
+      extension.card = { card, icon, titleText, detailText, buttonText, author };
     }
     const demoMetadata = getDemoMetadata(extension.manifest.assets?.["Assets/demo/demo.txt"]);
     extension.card.titleText.data = demoMetadata.title || extension.manifest.name;
@@ -526,12 +530,22 @@ function renderExtensions() {
     extension.card.detailText.data = extension.manifest.broken
       ? `${t("extensionBroken")}: ${extension.manifest.error || "faltam arquivos obrigatórios"}`
       : demoMetadata.description || extension.manifest.description || "";
+    extension.card.author.replaceChildren();
+    if (extension.manifest.author) {
+      if (extension.manifest.verified === true) extension.card.author.append(document.createTextNode("✓ "));
+      const email = String(extension.manifest.authorEmail || "");
+      const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (validEmail) {
+        const authorLink = document.createElement("a"); authorLink.textContent = extension.manifest.author; authorLink.href = `mailto:${email}`;
+        extension.card.author.append(authorLink, document.createTextNode(` · ${email}`));
+      } else extension.card.author.textContent = extension.manifest.author;
+    }
     extension.card.buttonText.data = extension.manifest.broken
       ? t("extensionBroken")
       : extension.enabled ? t("extensionDisable") : t("extensionEnable");
     const toggle = extension.card.card.querySelector("button[data-extension-action='toggle']");
     if (toggle) {
-      toggle.disabled = Boolean(extension.manifest.broken);
+      toggle.disabled = Boolean(extension.manifest.broken) || localStorage.getItem(PANIC_KEY) === "1";
       toggle.title = extension.manifest.broken ? extension.manifest.error || "Extensão quebrada" : "";
     }
   }
@@ -546,6 +560,8 @@ async function installManifest(manifest, { requireFolderPackage = false } = {}) 
     assets,
     styles: typeof manifest.styles === "string" ? manifest.styles : "",
     name: manifest.name.trim(),
+    author: typeof manifest.author === "string" ? manifest.author.slice(0, 120) : "",
+    authorEmail: typeof manifest.authorEmail === "string" ? manifest.authorEmail.slice(0, 254) : "",
     packageFormat: isCompleteFolderPackage ? "folder" : "legacy",
     broken: !isCompleteFolderPackage || Boolean(manifest.broken),
     error: isCompleteFolderPackage ? String(manifest.error || "") : "Pacote incompleto: use uma pasta com manifest.json, main.ds, Assets/demo/demo.txt e Assets/demo/demo.ico.",
@@ -560,7 +576,7 @@ async function installManifest(manifest, { requireFolderPackage = false } = {}) 
   records.set(extension.manifest.id, extension);
   try { await persistExtensions(); }
   catch (error) { records.delete(extension.manifest.id); throw error; }
-  if (extension.enabled) createRuntime(extension);
+  if (extension.enabled && localStorage.getItem(PANIC_KEY) !== "1") createRuntime(extension);
   renderExtensions();
   window.dispatchEvent(new CustomEvent("darkstudio:extensions-changed"));
 }
@@ -593,8 +609,58 @@ async function initializeExtensions() {
     try { await persistExtensions(); }
     catch (error) { console.warn("DarkStudio: não foi possível salvar o estado de extensões antigas/quebradas.", error); }
   }
-  for (const extension of records.values()) if (extension.enabled) createRuntime(extension);
+  for (const extension of records.values()) if (extension.enabled && localStorage.getItem(PANIC_KEY) !== "1") createRuntime(extension);
   renderExtensions();
+  const panicButton = document.getElementById("extensions-panic-button");
+  if (panicButton) {
+    const panic = localStorage.getItem(PANIC_KEY) === "1";
+    panicButton.textContent = panic ? "Reativar extensões habilitadas" : "Desativar todas as extensões";
+    panicButton.setAttribute("aria-pressed", String(panic));
+    panicButton.classList.toggle("is-panic-active", panic);
+    panicButton.addEventListener("click", () => {
+      const next = localStorage.getItem(PANIC_KEY) !== "1";
+      localStorage.setItem(PANIC_KEY, next ? "1" : "0");
+      for (const extension of records.values()) {
+        if (next) {
+          extension.frame?.remove(); extension.frame = null;
+          extension.style?.remove(); extension.style = null;
+          extension.elementStyle?.remove(); extension.elementStyle = null;
+          for (const subscription of extension.subscriptions?.values?.() || []) {
+            document.removeEventListener(subscription.eventName, subscription.listener, true);
+          }
+          extension.subscriptions?.clear();
+          document.querySelectorAll(`[data-ds-extension-host="${CSS.escape(extension.manifest.id)}"]`).forEach((host) => { host.hidden = true; });
+        } else if (extension.enabled && !extension.manifest.broken) createRuntime(extension);
+      }
+      panicButton.textContent = next ? "Reativar extensões habilitadas" : "Desativar todas as extensões";
+      panicButton.setAttribute("aria-pressed", String(next));
+      panicButton.classList.toggle("is-panic-active", next);
+      renderExtensions();
+      window.dispatchEvent(new CustomEvent("darkstudio:extension-panic", { detail: { active: next } }));
+    });
+  }
+  void registerDesktopTools({
+    list,
+    panicButton: null,
+    customExtensions: (panic) => {
+      for (const extension of records.values()) {
+        if (panic) {
+          extension.frame?.remove(); extension.frame = null;
+          extension.style?.remove(); extension.style = null;
+          extension.elementStyle?.remove(); extension.elementStyle = null;
+          for (const subscription of extension.subscriptions?.values?.() || []) {
+            document.removeEventListener(subscription.eventName, subscription.listener, true);
+          }
+          extension.subscriptions?.clear();
+          document.querySelectorAll(`[data-ds-extension-host="${CSS.escape(extension.manifest.id)}"]`).forEach((host) => { host.hidden = true; });
+        } else if (extension.enabled && !extension.manifest.broken) {
+          createRuntime(extension);
+          document.querySelectorAll(`[data-ds-extension-host="${CSS.escape(extension.manifest.id)}"]`).forEach((host) => { host.hidden = false; });
+        }
+      }
+      renderExtensions();
+    },
+  }).catch((error) => console.warn("DarkStudio: extensões desktop não carregadas.", error));
 }
 
 void initializeExtensions();
@@ -767,7 +833,7 @@ async function importExtensionFolder(fileList) {
     if (!key || key.length > 240) throw packageValidationError(`Caminho de recurso inválido: ${path}`);
     assets[key] = await fileToDataURL(file);
   }
-  await installManifest({ id: source.id, name: source.name, version: source.version, description: String(source.description || ""), code, styles, assets }, { requireFolderPackage: true });
+  await installManifest({ id: source.id, name: source.name, version: source.version, description: String(source.description || ""), author: String(source.author || ""), authorEmail: String(source.authorEmail || ""), code, styles, assets }, { requireFolderPackage: true });
 }
 fileInput?.addEventListener("change", async () => {
   const file = fileInput.files?.[0];
@@ -802,7 +868,7 @@ list?.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-extension-action='toggle']");
   if (!button) return;
   const extension = records.get(button.dataset.extensionId);
-  if (!extension || extension.manifest.broken) return;
+  if (!extension || extension.manifest.broken || localStorage.getItem(PANIC_KEY) === "1") return;
   extension.enabled = !extension.enabled;
   if (extension.enabled && !extension.frame) createRuntime(extension);
   if (extension.style) extension.style.disabled = !extension.enabled;

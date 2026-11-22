@@ -2,10 +2,23 @@
 <html lang="en-US" translate="no">
 
 <head>
-  <script>document.documentElement.classList.add("ds-boot");</script>
+  <script>
+    const root = document.documentElement;
+    const navigation = performance.getEntriesByType?.("navigation")?.[0];
+    const isReload = navigation?.type === "reload";
+    if (!isReload && navigation?.type !== "back_forward") root.classList.add("ds-boot");
+    if (window.darkStudioDesktop?.isDesktop) root.classList.add("desktop-app");
+    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = isMobile ? "Extras/Code/mobile.css" : "Extras/Code/dark.css";
+    document.head.appendChild(stylesheet);
+  </script>
   <style>
     html.ds-boot, html.ds-boot body { background: #000 !important; }
     html.ds-boot #Website-Container { opacity: 0 !important; visibility: hidden !important; }
+    html #Website-Container { transition: opacity 1.2s cubic-bezier(.22, 1, .36, 1) !important; }
+    @media (prefers-reduced-motion: reduce) { html #Website-Container { transition: none !important; } }
   </style>
   <script src="Extras/Code/language-init.js"></script>
   <!-- ====== BASIC META / METADADOS BÁSICOS ====== -->
@@ -49,10 +62,17 @@
 
     <!-- ====== CODE EDITOR / EDITOR DE CÓDIGO ====== -->
     <div id="main-content">
+      <div id="editor-tabs" role="tablist" aria-label="Arquivos abertos"></div>
       <div id="Editor-Input" translate="no"></div>
       <div id="workspace-empty-state" aria-live="polite" hidden>
         <img src="Extras/Assets/White Favicon.png" alt="DarkStudio" />
         <p data-i18n="workspaceEmptyState">Workspace vazio</p>
+      </div>
+      <div id="binary-file-state" role="status" aria-live="polite" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" version="1.1" aria-hidden="true" focusable="false">
+          <path d="M13.299,3.1477 L21.933,18.1022 C22.5103,19.1022 21.7887,20.3522 20.634,20.3522 L3.36601,20.3522 C2.21131,20.3522 1.48962,19.1022 2.06697,18.1022 L10.7009,3.14771 C11.2783,2.14771 12.7217,2.1477 13.299,3.1477 Z M12,15 C11.4477,15 11,15.4477 11,16 C11,16.5523 11.4477,17 12,17 C12.5523,17 13,16.5523 13,16 C13,15.4477 12.5523,15 12,15 Z M12,8 C11.48715,8 11.0644908,8.38604429 11.0067275,8.88337975 L11,9 L11,13 C11,13.5523 11.4477,14 12,14 C12.51285,14 12.9355092,13.613973 12.9932725,13.1166239 L13,13 L13,9 C13,8.44772 12.5523,8 12,8 Z" fill="#09244B" fill-rule="nonzero"/>
+        </svg>
+        <p>O arquivo selecionado tem conteúdo binario</p>
       </div>
       <div id="debugger-unsupported-overlay" role="status" aria-live="polite" hidden>
         <p data-i18n="debuggerUnsupportedLanguage">We don’t have a debugger for this language yet</p>
@@ -123,10 +143,18 @@
           <input type="checkbox" id="mini-player-enabled-checkbox" checked />
           <span data-i18n="enableMiniPlayers">Ativar mini-players de mídia</span>
         </label>
+        <label id="system-now-playing-option" for="system-now-playing-checkbox">
+          <input type="checkbox" id="system-now-playing-checkbox" />
+          <span data-i18n="systemNowPlaying">Monitorar mídia em reprodução no sistema</span>
+        </label>
         <h3 data-i18n="workspaceCleanupSettings">Workspace</h3>
         <label for="empty-file-auto-delete-checkbox">
           <input type="checkbox" id="empty-file-auto-delete-checkbox" />
           <span data-i18n="emptyFileAutoDelete">Excluir automaticamente arquivos vazios</span>
+        </label>
+        <label id="show-ghost-files-option" for="show-ghost-files-checkbox">
+          <input type="checkbox" id="show-ghost-files-checkbox" />
+          <span>Mostrar arquivos ocultos e ignorados no workspace</span>
         </label>
         <label for="empty-file-auto-delete-minutes" data-i18n="emptyFileAutoDeleteTime">Tempo até a exclusão (minutos):</label>
         <input type="number" id="empty-file-auto-delete-minutes" min="3.1" step="0.1" value="15" disabled />
@@ -194,6 +222,7 @@
         interface, without access to editor contents.</p>
       <button id="extensions-import-button" type="button" data-i18n="installExtension">Install extension file</button>
       <button id="extensions-import-folder-button" type="button" data-i18n="installExtensionFolder">Install extension folder</button>
+      <button id="extensions-panic-button" type="button" aria-pressed="false">Desativar todas as extensões</button>
       <input id="extensions-file-input" type="file" accept=".dsx.json,application/json,.json" hidden />
       <input id="extensions-folder-input" type="file" webkitdirectory directory multiple hidden aria-label="Select extension folder" />
       <p id="extensions-empty" data-i18n="noExtensions">No extensions installed.</p>
@@ -278,10 +307,11 @@
         </button>
 
         <section id="explorer" aria-label="Workspace explorer" data-i18n-aria-label="explorerAriaLabel">
-          <button id="explorer-toggle" type="button" aria-expanded="false" title="Toggle explorer" data-i18n-title="explorerToggleTitle">
+          <button id="explorer-toggle" type="button" aria-expanded="false" title="Explorador · Ctrl+K, depois O abre uma pasta">
             <span class="explorer-label" data-i18n="explorer">Explorer</span><span class="explorer-chevron" aria-hidden="true"></span>
           </button>
           <div id="explorer-files" role="list" aria-label="Workspace files" data-i18n-aria-label="explorerFilesAriaLabel"></div>
+          <div id="desktop-folder-tree" role="tree" aria-label="Arquivos locais" hidden></div>
           <button id="explorer-graph-button" type="button" title="Toggle graphical workspace" data-i18n="graphView" data-i18n-title="graphViewTitle">Graph view</button>
         </section>
       </section>

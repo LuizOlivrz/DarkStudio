@@ -209,6 +209,7 @@
   "linkReaderNoReadableText": "Nenhum texto legível foi encontrado nesta URL.",
   "linkReaderCouldNotRead": "Não foi possível ler este link.",
   "enableMiniPlayers": "Ativar mini-players de mídia",
+  "systemNowPlaying": "Monitorar mídia em reprodução no sistema",
   "explorerEmpty": "Nenhum arquivo no projeto",
   "editorDropTextOnly": "Arraste um arquivo de texto ou código para o editor.",
   "workspaceEmptyState": "Workspace vazio",

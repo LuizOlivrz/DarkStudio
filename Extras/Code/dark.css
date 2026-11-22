@@ -793,35 +793,58 @@ input[type="text"] {
   font-size: 32px;
 }
 
-/* ===== SCROLLBAR MINIMALISTA ===== */
+/* ===== SCROLLBARS DISCRETAS E RESPONSIVAS ===== */
 
-/* Chrome, Edge, Opera */
+/* A barra nativa acompanha automaticamente a altura/largura do próprio
+   elemento rolável, inclusive quando o painel é redimensionado. */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar-track,
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary-color);
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .18);
+  border: 1px solid transparent;
   border-radius: 999px;
+  background-clip: padding-box;
+  transition: background-color .18s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .38);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: rgba(var(--secondary-rgb, 93, 0, 255), .52);
+  background-clip: padding-box;
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--secondary-color) transparent;
+  scrollbar-color: rgba(var(--secondary-rgb, 93, 0, 255), .2) transparent;
+}
+
+/* Cada painel mantém sua própria área de rolagem: Options ocupa a altura
+   integral do painel; mensagens ocupam somente a área acima do compositor. */
+#options,
+#messages,
+#inline-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--secondary-rgb, 93, 0, 255), .2) transparent;
+}
+
+#options::-webkit-scrollbar,
+#messages::-webkit-scrollbar,
+#inline-messages::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
 }
 
 #social-medias {
@@ -1420,7 +1443,7 @@ body {
 #workspace-footer {
   position: absolute;
   /* Preserve o espaço da coluna #options e dos SVGs da navegação. */
-  left: calc(var(--options-width, 120px) + 8px);
+  left: calc(44px + var(--options-width, 120px) + 8px);
   right: 8px;
   bottom: calc(var(--workspace-height) - 100dvh + 8px);
   z-index: 60;
@@ -1545,7 +1568,7 @@ body {
   }
 
   #workspace-footer {
-    left: calc(var(--options-width, 120px) + 6px);
+    left: calc(40px + var(--options-width, 120px) + 6px);
     right: 6px;
     gap: 6px;
   }
@@ -3190,6 +3213,56 @@ body {
   width: 100%;
   height: 100%;
 }
+#editor-tabs {
+  display: flex;
+  flex: 0 0 36px;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
+  scrollbar-width: none;
+}
+#editor-tabs:empty { display: none; }
+#editor-tabs::-webkit-scrollbar { display: none; }
+.editor-file-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  min-width: 90px;
+  max-width: 220px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-color, #ddd);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.editor-file-tab[aria-selected="true"] {
+  border-bottom-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+}
+.editor-file-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-file-tab-close {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  background: transparent;
+  opacity: .55;
+  cursor: pointer;
+}
+.editor-file-tab:hover .editor-file-tab-close,
+.editor-file-tab-close:hover { opacity: 1; background: #ffffff18; }
+#Website-Container.settings-active #editor-tabs,
+#Website-Container.extensions-active #editor-tabs { display: none; }
 #main-content #config,
 #main-content #extensions-panel {
   position: absolute;
@@ -3719,6 +3792,25 @@ body {
   line-height: 1.3;
   border-bottom: 1px solid rgba(var(--secondary-rgb, 93, 0, 255), .35);
 }
+#desktop-folder-tree [role="treeitem"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  border-radius: 6px;
+  color: var(--text-color, #ddd);
+  background: #111;
+  font: inherit;
+  text-align: left;
+}
+#desktop-folder-tree [role="treeitem"]:hover { border-color: var(--primary-color); background: #ffffff0b; }
+#desktop-folder-tree { display:flex; flex-direction:column; min-height:0; overflow:auto; }
+#desktop-folder-tree[hidden] { display:none !important; }
+#desktop-folder-tree [role="treeitem"] { padding:4px 6px; border-color:transparent; background:transparent; cursor:pointer; font-size:12px; }
+#desktop-folder-tree [role="treeitem"][data-kind="folder"] { cursor:pointer; opacity:.85; }
+#desktop-folder-tree [role="treeitem"][aria-expanded="true"] { color: var(--secondary-color, #ddd); }
+#desktop-folder-tree .desktop-folder-root { font-weight: 700; color: var(--primary-color); }
+#desktop-folder-tree [role="treeitem"] .desktop-file-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #debugger-section {
   display: flex;
   flex-direction: column;
@@ -3817,8 +3909,9 @@ body {
 }
 
 
-/* Empty workspace presentation. */
-#main-content #workspace-empty-state {
+/* Empty workspace and binary-file states share the same visual composition. */
+#main-content #workspace-empty-state,
+#main-content #binary-file-state {
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -3831,15 +3924,19 @@ body {
   text-align: center;
   pointer-events: none;
 }
-#main-content #workspace-empty-state[hidden] {
+#main-content #workspace-empty-state[hidden],
+#main-content #binary-file-state[hidden] {
   display: none !important;
 }
-/* O estado vazio pertence ao editor e não deve cobrir Configurações ou Extensões. */
+/* Esses estados pertencem ao editor e não devem cobrir Configurações ou Extensões. */
 #Website-Container.settings-active #main-content #workspace-empty-state,
-#Website-Container.extensions-active #main-content #workspace-empty-state {
+#Website-Container.extensions-active #main-content #workspace-empty-state,
+#Website-Container.settings-active #main-content #binary-file-state,
+#Website-Container.extensions-active #main-content #binary-file-state {
   display: none !important;
 }
-#workspace-empty-state img {
+#workspace-empty-state img,
+#binary-file-state svg {
   display: block;
   width: clamp(76px, 11vw, 132px);
   height: auto;
@@ -3847,7 +3944,8 @@ body {
   object-fit: contain;
   opacity: .92;
 }
-#workspace-empty-state p {
+#workspace-empty-state p,
+#binary-file-state p {
   margin: 0;
   color: var(--secondary-color, #fff);
   font-size: clamp(16px, 2vw, 22px);
@@ -4429,6 +4527,21 @@ body {
   min-width: 0;
 }
 
+/* The desktop terminal shares the main workbench column when options are hidden. */
+#Website-Container.desktop-terminal-open.extensions-active,
+#Website-Container.with-chat.desktop-terminal-open.extensions-active {
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) minmax(160px, 32vh) !important;
+}
+#Website-Container.desktop-terminal-open.extensions-active #main-content,
+#Website-Container.desktop-terminal-open.extensions-active #desktop-terminal {
+  grid-column: 2 !important;
+}
+#Website-Container.desktop-terminal-open.extensions-active #main-content { grid-row: 1 !important; }
+#Website-Container.desktop-terminal-open.extensions-active #desktop-terminal { grid-row: 2 !important; }
+#Website-Container.desktop-terminal-open.extensions-active #workspace-footer { left: 52px !important; }
+#Website-Container.with-chat.desktop-terminal-open.extensions-active #chat { display: none !important; }
+
 
 /* Cartão Now Playing: criado exclusivamente pelo bridge do Electron. */
 #ds-now-playing {
@@ -4496,9 +4609,9 @@ body {
 .panel-resize-bar {
   position: absolute;
   z-index: 1000;
-  top: 20%;
+  top: 0;
   width: 4px;
-  height: 60%;
+  height: 100%;
   padding: 0;
   border: 0;
   background: transparent;
@@ -4521,7 +4634,7 @@ body {
   transform: translateX(-50%);
   border-radius: 999px;
   background: var(--primary-color);
-  opacity: .55;
+  opacity: 0;
   transition: opacity .15s ease, box-shadow .15s ease;
 }
 
@@ -4702,67 +4815,80 @@ html.ds-boot-complete body #chat.is-open {
 
 /* Construção coreografada: o relógio começa depois do carregamento dos módulos. */
 html.ds-boot-building body #main-content {
-  animation: ds-build-editor 900ms cubic-bezier(.16, 1, .3, 1) 80ms both;
+  animation: ds-build-editor 760ms cubic-bezier(.2, .85, .3, 1) 60ms both;
 }
 html.ds-boot-building body #workspace-launcher-rail {
-  animation: ds-build-from-left 720ms cubic-bezier(.16, 1, .3, 1) 480ms both;
+  animation: ds-build-from-left 700ms cubic-bezier(.2, .85, .3, 1) 250ms both;
 }
 html.ds-boot-building body #workspace-launcher-rail > * {
   animation: ds-build-icon 520ms cubic-bezier(.2, .8, .2, 1) both;
 }
-html.ds-boot-building body #workspace-launcher-rail > :nth-child(1) { animation-delay: 620ms; }
-html.ds-boot-building body #workspace-launcher-rail > :nth-child(2) { animation-delay: 740ms; }
-html.ds-boot-building body #workspace-launcher-rail > :nth-child(3) { animation-delay: 860ms; }
-html.ds-boot-building body #workspace-launcher-rail > :nth-child(4) { animation-delay: 980ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(1) { animation-delay: 350ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(2) { animation-delay: 440ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(3) { animation-delay: 530ms; }
+html.ds-boot-building body #workspace-launcher-rail > :nth-child(4) { animation-delay: 620ms; }
 html.ds-boot-building body #options {
-  animation: ds-build-from-left 820ms cubic-bezier(.16, 1, .3, 1) 760ms both;
+  animation: ds-build-from-left 760ms cubic-bezier(.2, .85, .3, 1) 480ms both;
 }
 html.ds-boot-building body #options > * {
   animation: ds-build-panel 620ms cubic-bezier(.16, 1, .3, 1) both;
 }
-html.ds-boot-building body #options > :nth-child(1) { animation-delay: 900ms; }
-html.ds-boot-building body #options > :nth-child(2) { animation-delay: 1040ms; }
-html.ds-boot-building body #options > :nth-child(3) { animation-delay: 1180ms; }
+html.ds-boot-building body #options > :nth-child(1) { animation-delay: 570ms; }
+html.ds-boot-building body #options > :nth-child(2) { animation-delay: 700ms; }
+html.ds-boot-building body #options > :nth-child(3) { animation-delay: 830ms; }
 html.ds-boot-building body #executor-panel,
 html.ds-boot-building body #mindmap-container {
-  animation: ds-build-rise 680ms cubic-bezier(.16, 1, .3, 1) 980ms both;
+  animation: ds-build-rise 680ms cubic-bezier(.2, .85, .3, 1) 720ms both;
 }
 html.ds-boot-building body #workspace-footer {
-  animation: ds-build-from-bottom 680ms cubic-bezier(.16, 1, .3, 1) 1420ms both;
+  animation: ds-build-from-bottom 640ms cubic-bezier(.2, .85, .3, 1) 1020ms both;
 }
 html.ds-boot-building body #signature {
-  animation: ds-build-signature 560ms cubic-bezier(.16, 1, .3, 1) 1780ms both;
+  animation: ds-build-signature 520ms cubic-bezier(.2, .85, .3, 1) 1280ms both;
 }
 @keyframes ds-build-editor {
-  from { opacity: 0; transform: translate3d(0, 30px, 0) scale(.985); filter: blur(5px); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+  0% { opacity: 0; transform: translate3d(0, 12px, 0) scale(.97, .965); }
+  62% { opacity: 1; transform: translate3d(0, -1px, 0) scale(1.008, 1.01); }
+  82% { transform: translate3d(0, 1px, 0) scale(.997, .996); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes ds-build-from-left {
-  from { opacity: 0; transform: translate3d(-34px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  0% { opacity: 0; transform: translate3d(-18px, 0, 0) scale(.97, .98); }
+  62% { opacity: 1; transform: translate3d(2px, 0, 0) scale(1.012, 1.01); }
+  82% { transform: translate3d(-1px, 0, 0) scale(.997, .997); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes ds-build-icon {
-  from { opacity: 0; transform: translate3d(-18px, 12px, 0) scale(.88); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  0% { opacity: 0; transform: translate3d(-8px, 5px, 0) scale(.92, .95); }
+  68% { opacity: 1; transform: translate3d(1px, -1px, 0) scale(1.025, 1.03); }
+  86% { transform: translate3d(0, 1px, 0) scale(.995, .995); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes ds-build-panel {
-  from { opacity: 0; transform: translate3d(18px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  0% { opacity: 0; transform: translate3d(10px, 0, 0) scale(.98, .97); }
+  65% { opacity: 1; transform: translate3d(-1px, 0, 0) scale(1.012, 1.018); }
+  84% { transform: translate3d(0, 0, 0) scale(.998, .998); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes ds-build-rise {
-  from { opacity: 0; transform: translate3d(0, 24px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(.98, .97); }
+  65% { opacity: 1; transform: translate3d(0, -1px, 0) scale(1.012, 1.015); }
+  84% { transform: translate3d(0, 1px, 0) scale(.998, .998); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes ds-build-from-bottom {
-  from { opacity: 0; transform: translate3d(0, 24px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  0% { opacity: 0; transform: translate3d(0, 8px, 0) scale(.98, .97); }
+  65% { opacity: 1; transform: translate3d(0, -1px, 0) scale(1.01, 1.015); }
+  84% { transform: translate3d(0, 1px, 0) scale(.998, .998); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes ds-build-signature {
-  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(.94); filter: blur(4px); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+  0% { opacity: 0; translate: 0 6px; scale: .96 .97; }
+  68% { opacity: 1; translate: 0 -1px; scale: 1.006 1.008; }
+  86% { translate: 0 1px; scale: .999 .999; }
+  100% { opacity: 1; translate: 0 0; scale: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  html.ds-boot-building body #Website-Container *,
   html.ds-boot-complete body #network-status.is-visible,
   html.ds-boot-complete body #mini-player.visible,
   html.ds-boot-complete body #chat.is-open {
@@ -4828,3 +4954,33 @@ html.ds-boot-building body #signature {
 #options:hover {
   transform: none !important;
 }
+
+
+/* Oculta visualmente as barras nativas sem desativar a rolagem.
+   Como a barra pertence ao próprio scroll container, sua área acompanha
+   automaticamente toda alteração de altura/largura do elemento. */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+
+html.desktop-app #config-icon {
+  animation: up .5s ease-in-out forwards;
+}
+
+html:not(.desktop-app) #system-now-playing-option {
+  display: none !important;
+}
+

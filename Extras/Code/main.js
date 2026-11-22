@@ -48,6 +48,9 @@ if (!blockWeb) {
   const executorPanel = document.getElementById("executor-panel");
   const executorOutput = document.getElementById("executor-output");
   const configMenu = document.getElementById("config");
+  const SETTINGS_SCROLL_KEY = "darkstudio-settings-scroll-top";
+  const ACTIVE_WORKBENCH_VIEW_KEY = "darkstudio-active-workbench-view";
+  let settingsScrollSaveTimer = 0;
   const chat = document.getElementById("chat");
   const signatureInput = document.getElementById("signature-input");
   const resetSignatureButton = document.getElementById("reset-signature");
@@ -220,22 +223,14 @@ if (!blockWeb) {
   // ─────────────────────────────────────────────
 
   function initEditorEvents() {
-    if (!window.editor) {
-      setTimeout(initEditorEvents, 500);
-      return;
-    }
+    if (!window.editor) return;
 
-    // 1️⃣ Carrega código salvo do localStorage
-    const savedCode = localStorage.getItem("codigoSalvo");
-
-    if (savedCode) {
-      window.editor.setValue(savedCode);
-    }
-
-    // 2️⃣ Detecta linguagem inicial e configura interface
+    // Monaco já restaura o rascunho global; o Workspace restaura o arquivo ativo
+    // no evento editor-ready, evitando aplicar o mesmo conteúdo duas vezes.
+    // Detecta a linguagem inicial e configura a interface.
     updateUI();
 
-    // 3️⃣ Atualiza a interface quando o usuário digitar
+    // Atualiza a interface quando o usuário digitar
     window.editor.onDidChangeModelContent(() => {
       scheduleCodeAnalysis();
     });
@@ -301,7 +296,11 @@ if (!blockWeb) {
   // é aberto, sem depender apenas do debounce da análise de conteúdo.
   window.darkStudioRefreshEditorUI = () => updateUI();
 
-  initEditorEvents();
+  if (window.editor) {
+    initEditorEvents();
+  } else {
+    window.addEventListener("darkstudio:editor-ready", initEditorEvents, { once: true });
+  }
 
   function getLinkSiteName(rawUrl) {
     let host = "";
@@ -394,6 +393,7 @@ if (!blockWeb) {
           const isShort = /^\/shorts\//.test(url.pathname);
           embed = {
             type: "youtube",
+            profile: isShort ? "youtube:shorts" : "youtube:video",
             src: "https://www.youtube.com/embed/" + videoId + "?enablejsapi=1&origin=" + encodeURIComponent(location.origin) + "",
             ratio: isShort ? "9 / 16" : "16 / 9",
             width: isShort ? 300 : 480,
@@ -407,6 +407,7 @@ if (!blockWeb) {
           const spotify = getSpotifyInfo(cleanedUrl);
           if (spotify) embed = {
             type: "spotify",
+            profile: "spotify:" + spotify.type,
             src: "https://open.spotify.com/embed/" + spotify.type + "/" + spotify.id + "?utm_source=generator",
             height: 352,
             title: "Spotify Embed: " + spotify.type,
@@ -419,6 +420,7 @@ if (!blockWeb) {
           const match = url.pathname.match(/\/video\/(\d+)/);
           if (match) embed = {
             type: "tiktok",
+            profile: "tiktok:video",
             src: "https://www.tiktok.com/player/v1/" + match[1] + "?autoplay=0&volume_control=1&music_info=1&description=1",
             ratio: "9 / 16",
             width: 338,
@@ -430,21 +432,21 @@ if (!blockWeb) {
         // Other platforms with documented iframe players.
         if (!embed && ["vimeo.com", "player.vimeo.com"].includes(host)) {
           const match = url.pathname.match(/(?:video\/)?(\d+)/);
-          if (match) embed = { type: "vimeo", src: "https://player.vimeo.com/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Vimeo video player" };
+          if (match) embed = { type: "vimeo", profile: "vimeo:video", src: "https://player.vimeo.com/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Vimeo video player" };
         }
         if (!embed && host === "dailymotion.com") {
           const match = url.pathname.match(/\/(?:video|embed\/video)\/([a-zA-Z0-9]+)/);
-          if (match) embed = { type: "dailymotion", src: "https://www.dailymotion.com/embed/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Dailymotion video player" };
+          if (match) embed = { type: "dailymotion", profile: "dailymotion:video", src: "https://www.dailymotion.com/embed/video/" + match[1], ratio: "16 / 9", width: 480, height: 270, title: "Dailymotion video player" };
         }
         if (!embed && host === "twitch.tv") {
           const clip = url.pathname.match(/^\/(?:[^/]+\/clip|clip)\/([A-Za-z0-9_-]+)/);
           const video = url.pathname.match(/^\/videos\/(\d+)/);
           if (clip) {
             const parent = encodeURIComponent(location.hostname || "localhost");
-            embed = { type: "twitch", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch clip player" };
+            embed = { type: "twitch", profile: "twitch:clip", src: "https://clips.twitch.tv/embed?clip=" + clip[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch clip player" };
           } else if (video) {
             const parent = encodeURIComponent(location.hostname || "localhost");
-            embed = { type: "twitch", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch video player" };
+            embed = { type: "twitch", profile: "twitch:video", src: "https://player.twitch.tv/?video=" + video[1] + "&parent=" + parent, ratio: "16 / 9", width: 480, height: 270, title: "Twitch video player" };
           }
         }
         if (embed) {
@@ -464,6 +466,7 @@ if (!blockWeb) {
     list.replaceChildren(...embeds.map((embed, index) => {
       const item = document.createElement("div");
       item.className = "mini-player-item " + embed.type;
+      item.dataset.mediaProfile = embed.profile || (embed.type + ":default");
       if (embed.ratio) item.style.aspectRatio = embed.ratio;
       // The player controls the item size. Do not freeze each media card to its
       // provider's default dimensions, otherwise resizing only changes the shell.
@@ -614,9 +617,31 @@ if (!blockWeb) {
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     const getMedia = () => list.querySelector(".mini-player-item");
+    // Each provider/content subtype owns an independent size preference.
+    // A mixed feed gets its own profile, so it cannot overwrite a single-media size.
+    const getMediaProfile = (item = getMedia()) => {
+      const profiles = [...list.querySelectorAll(".mini-player-item")]
+        .map(media => media.dataset.mediaProfile || "generic:default");
+      if (profiles.length > 1) return "stack:" + profiles.join("+");
+      return item?.dataset.mediaProfile || "generic:default";
+    };
+    const readSavedSizes = () => {
+      try {
+        const value = JSON.parse(localStorage.getItem(sizeKey) || "{}");
+        return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+      } catch { return {}; }
+    };
+    const getSavedSize = (item = getMedia()) => {
+      const saved = readSavedSizes()[getMediaProfile(item)];
+      if (!saved || !Number.isFinite(saved.width) || !Number.isFinite(saved.height) || saved.width <= 0 || saved.height <= 0) return null;
+      return { width: saved.width, height: saved.height };
+    };
     const getDefaultSize = () => {
       const item = getMedia();
-      if (item?.classList.contains("spotify")) return { width: 340, height: 80 };
+      if (item?.classList.contains("spotify")) {
+        const spotifyType = getMediaProfile(item).slice("spotify:".length);
+        return { width: 340, height: spotifyType === "track" ? 80 : 352 };
+      }
       if (item?.classList.contains("tiktok") || getRatio(item) < 1) {
         return { width: 119.25, height: 212 };
       }
@@ -722,9 +747,10 @@ if (!blockWeb) {
           return;
         }
 
-        // Every newly detected media type starts at its minimum practical size.
+        // Restore the last dimensions used for this exact provider/content profile.
+        // A new profile receives its own platform default instead of inheriting another player's size.
         const bounds = getEditorBounds();
-        const size = getDefaultSize();
+        const size = getSavedSize() || getDefaultSize();
         const minWidth = isSpotify() ? Math.min(340, bounds.width) : 1;
         const minHeight = isSpotify() ? Math.min(80, bounds.height) : 1;
         const width = clamp(size.width, minWidth, Math.max(minWidth, bounds.width));
@@ -741,8 +767,18 @@ if (!blockWeb) {
       const r = player.getBoundingClientRect();
       try {
         localStorage.setItem(positionKey, JSON.stringify({ left: r.left, top: r.top }));
-        localStorage.setItem(sizeKey, JSON.stringify({ width: r.width, height: r.height }));
+        const sizes = readSavedSizes();
+        sizes[getMediaProfile()] = { width: r.width, height: r.height };
+        localStorage.setItem(sizeKey, JSON.stringify(sizes));
       } catch {}
+    };
+    let captionRotationTimer = null;
+    let captionChangeTimer = null;
+    const stopCaptionRotation = () => {
+      if (captionRotationTimer !== null) window.clearInterval(captionRotationTimer);
+      if (captionChangeTimer !== null) window.clearTimeout(captionChangeTimer);
+      captionRotationTimer = null;
+      captionChangeTimer = null;
     };
     const addCaption = (portrait) => {
       let caption = player.querySelector(".mini-player-orientation-caption");
@@ -758,16 +794,20 @@ if (!blockWeb) {
       const messages = portrait
         ? ["DARKSTUDIO • MINI-PLAYER", "FOQUE NO CÓDIGO • VÍDEO ATIVO", "ARRASTE PARA MOVER • CANTO PARA REDIMENSIONAR"]
         : ["DARKSTUDIO • MINI-PLAYER", "VÍDEO ATIVO • EDITOR INDEPENDENTE", "ARRASTE PARA MOVER • CANTO PARA REDIMENSIONAR"];
-      if (!caption.dataset.rotating) {
-        caption.dataset.rotating = "true";
+      if (captionRotationTimer === null) {
         let index = 0;
         caption.textContent = messages[index];
-        window.setInterval(() => {
-          if (!caption.isConnected || !isExpanded()) return;
+        // O timer existe somente enquanto o mini-player expandido exibe a legenda.
+        captionRotationTimer = window.setInterval(() => {
+          if (!caption.isConnected || !isExpanded()) {
+            stopCaptionRotation();
+            return;
+          }
           index = (index + 1) % messages.length;
           caption.classList.add("is-changing");
-          window.setTimeout(() => {
-            if (!caption.isConnected) return;
+          captionChangeTimer = window.setTimeout(() => {
+            captionChangeTimer = null;
+            if (!caption.isConnected || !isExpanded()) return;
             caption.textContent = messages[index];
             caption.classList.remove("is-changing");
           }, 140);
@@ -775,6 +815,7 @@ if (!blockWeb) {
       }
     };
     const clearExpandedState = () => {
+      stopCaptionRotation();
       editorSurface.classList.remove("mini-player-fit-portrait", "mini-player-fit-landscape");
       editorSurface.style.removeProperty("--mini-player-fit-width");
       editorSurface.style.removeProperty("--mini-player-fit-height");
@@ -796,11 +837,11 @@ if (!blockWeb) {
       const roomAbove = rect.top - bounds.top >= requiredSpace;
       const roomBelow = bounds.bottom - rect.bottom >= requiredSpace;
 
-      // Keep the toolbar fully outside the video, with a small visual gap.
-      // Prefer above; use below when above does not fit. Never cover the video.
-      const placeAbove = roomAbove;
-      const placeBelow = !roomAbove && roomBelow;
-      const canPlace = placeAbove || placeBelow;
+      // Keep the toolbar outside the video with a small visual gap.
+      // Prefer below; move it above only when the lower space is insufficient.
+      const placeBelow = roomBelow;
+      const placeAbove = !roomBelow && roomAbove;
+      const canPlace = placeBelow || placeAbove;
       player.classList.toggle("mini-player-toolbar-above", placeAbove);
       player.classList.toggle("mini-player-toolbar-below", placeBelow);
       player.classList.toggle("mini-player-toolbar-hidden", !canPlace);
@@ -1596,10 +1637,12 @@ ${code}
     WebsiteContainer.classList.remove("extensions-active");
     if (extensionsPanel) extensionsPanel.hidden = true;
 
+    // Evita que a troca automática para a Estação de Arquivos solicite o Monaco
+    // durante a transição para Configurações.
+    window.darkStudioSettingsTransition = opening;
+
     // Ao abrir Configurações, selecione a Estação de Arquivos e mostre seu painel.
     if (opening) {
-      // As Configurações incluem preferências do NightCoder; carregue-o sob demanda.
-      window.darkStudioLoadNightCoder?.();
       const fileLauncher = document.getElementById("file-gutter-icon");
       const fileView = document.getElementById("file-manager-view");
       const fileAlreadySelected = fileLauncher?.getAttribute("aria-pressed") === "true";
@@ -1615,14 +1658,49 @@ ${code}
     configValue = opening;
     WebsiteContainer.classList.toggle("settings-active", opening);
     configMenu.hidden = !opening;
+    try {
+      localStorage.setItem(ACTIVE_WORKBENCH_VIEW_KEY, opening ? "settings" : "files");
+    } catch {}
+    window.darkStudioSettingsTransition = false;
     // Ao fechar Configurações, respeita o estado vazio do Explorer em vez de exibir Monaco sem arquivos.
     if (editorInput) editorInput.hidden = opening || Boolean(emptyState && !emptyState.hidden);
 
-    configMenu.scrollTop = 0;
-    requestAnimationFrame(() => window.editor?.layout());
+    if (opening) {
+      requestAnimationFrame(() => {
+        if (!WebsiteContainer.classList.contains("settings-active")) return;
+        try {
+          const savedScrollTop = Number(localStorage.getItem(SETTINGS_SCROLL_KEY));
+          configMenu.scrollTop = Number.isFinite(savedScrollTop) ? savedScrollTop : 0;
+        } catch {
+          configMenu.scrollTop = 0;
+        }
+      });
+    }
+    // Não solicita layout nem inicialização do Monaco enquanto Configurações está aberta.
+    if (!opening) {
+      window.dispatchEvent(new Event("darkstudio:editor-requested"));
+      requestAnimationFrame(() => window.editor?.layout());
+    }
   }
 
   window.config = config;
+
+  configMenu?.addEventListener("scroll", () => {
+    if (!WebsiteContainer.classList.contains("settings-active")) return;
+    clearTimeout(settingsScrollSaveTimer);
+    settingsScrollSaveTimer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(SETTINGS_SCROLL_KEY, String(configMenu.scrollTop));
+      } catch {}
+    }, 160);
+  }, { passive: true });
+
+  // O editor de prompt só precisa do módulo NightCoder quando sua seção é expandida.
+  const aiSettingsDetails = [...document.querySelectorAll("#config details.settings-tree")]
+    .find((details) => details.querySelector('summary[data-i18n="aiHeading"]'));
+  aiSettingsDetails?.addEventListener("toggle", () => {
+    if (aiSettingsDetails.open) void window.darkStudioLoadNightCoder?.();
+  });
 
   setupPanelResizers(WebsiteContainer, () => { chatOpen = true; });
 
@@ -1636,6 +1714,57 @@ ${code}
       config(); // chama sua função
     }
   });
+
+  // Shortcuts used by the user's VS Code profile plus file-tab controls.
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    const key = e.key.toLowerCase();
+    if (e.ctrlKey && !e.altKey && !e.shiftKey && key === "l" &&
+        (e.target instanceof Element && e.target.closest("#Editor-Input, .monaco-editor"))) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.editor?.trigger("keyboard", "editor.action.gotoLine", null);
+      return;
+    }
+    if (e.ctrlKey && !e.metaKey && key === "tab") {
+      e.preventDefault();
+      e.stopPropagation();
+      window.darkStudioCycleEditorTab?.(e.shiftKey ? -1 : 1);
+      return;
+    }
+    if (e.ctrlKey && !e.metaKey && e.shiftKey && key === "w") {
+      e.preventDefault();
+      e.stopPropagation();
+      window.darkStudioCloseEditorTabs?.(true);
+      return;
+    }
+    if (e.ctrlKey && !e.metaKey && !e.shiftKey && key === "w") {
+      e.preventDefault();
+      e.stopPropagation();
+      window.darkStudioCloseEditorTabs?.(false);
+      return;
+    }
+    if (e.ctrlKey && e.altKey && !e.shiftKey && key === "e") {
+      e.preventDefault();
+      window.darkStudioSetActiveView?.("map");
+      return;
+    }
+    if (e.ctrlKey && e.altKey && !e.shiftKey && key === "c") {
+      e.preventDefault();
+      if (window.darkStudioDesktop?.isDesktop) void window.darkStudioOpenDesktopExtension?.("darkstudio.gitlens");
+      else window.darkStudioSetActiveView?.("map");
+      return;
+    }
+    if (e.ctrlKey && e.shiftKey && !e.altKey && key === "x") {
+      e.preventDefault();
+      window.darkStudioSetActiveView?.("map");
+      return;
+    }
+    if (e.ctrlKey && e.altKey && !e.shiftKey && key === "d") {
+      e.preventDefault();
+      window.darkStudioSetActiveView?.("debugger");
+    }
+  }, true);
 
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "s") {
@@ -1903,7 +2032,7 @@ ${code}
       .join("")}`;
   }
 
-  function applyWallpaperColors() {
+  async function applyWallpaperColors() {
     const wallpaperColorsInput = document.getElementById("wallpaper-colors-checkbox");
     if (!wallpaperColorsInput?.checked) return;
 
@@ -1926,13 +2055,9 @@ ${code}
       return;
     }
 
-    if (typeof window.ColorThief !== "function") {
-      console.error("Dynamic wallpaper colors require Color Thief, but it is unavailable.");
-      setWallpaperColorStatus("wallpaperColorsUnavailable");
-      return;
-    }
-
     try {
+      await window.darkStudioLoadColorThief?.();
+      if (!wallpaperColorsInput.checked || typeof window.ColorThief !== "function") return;
       const palette = new window.ColorThief().getPalette(image, 2);
       if (!Array.isArray(palette) || !Array.isArray(palette[0]) || palette[0].length < 3) {
         throw new Error("Color Thief returned an invalid wallpaper palette.");
@@ -1978,7 +2103,8 @@ ${code}
       }
     });
     checkbox.checked = savedEnabled;
-    if (savedImg && pageBgImg) pageBgImg.src = savedImg;
+    const needsWallpaperPalette = localStorage.getItem("wallpaperColorsEnabled") === "true";
+    if ((savedEnabled || needsWallpaperPalette) && savedImg && pageBgImg) pageBgImg.src = savedImg;
     if (range) {
       range.value = savedBlur;
       if (valueSpan) valueSpan.textContent = String(savedBlur);
@@ -1991,6 +2117,9 @@ ${code}
     checkbox.addEventListener("change", (e) => {
       const v = e.target.checked;
       localStorage.setItem("bgEnabled", String(v));
+      if (v && savedImg && pageBgImg && !pageBgImg.getAttribute("src")) {
+        pageBgImg.src = savedImg;
+      }
       toggleBg(v);
     });
 
@@ -2246,8 +2375,12 @@ ${code}
       seasonalThemeInput.dispatchEvent(new Event("change", { bubbles: true }));
     }
     updateAppearanceOptions();
-    if (wallpaperColorsInput.checked) applyWallpaperColors();
-    else {
+    if (wallpaperColorsInput.checked) {
+      const image = document.getElementById("page-bg-img");
+      const savedBackground = localStorage.getItem("bgImageData") || "";
+      if (savedBackground && image && !image.getAttribute("src")) image.src = savedBackground;
+      if (image?.complete && image.naturalWidth) void applyWallpaperColors();
+    } else {
       setWallpaperColorStatus("");
       applySavedCustomColors();
     }
@@ -2339,6 +2472,11 @@ ${code}
   }
 
   async function applyThemeFromImage(url) {
+    try {
+      await window.darkStudioLoadColorThief?.();
+    } catch {
+      return false;
+    }
     return new Promise((resolve) => {
       const img = new Image();
 
