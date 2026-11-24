@@ -20,7 +20,7 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const faviconLight = "Extras/Assets/White Favicon.png";
 const faviconDark = "Extras/Assets/Black Favicon.png";
 export let language = "en-US";
-export const version = "27.11.26"; // Current version / versão atual
+export const version = "24.11.26"; // Current version / versão atual
 
 const versionLabel = document.getElementById("app-version");
 if (versionLabel) versionLabel.textContent = `v${version}`;
@@ -351,7 +351,10 @@ export function loadNightCoder() {
       .then(() => true)
       .catch((error) => {
         nightCoderLoadPromise = null;
-        console.error("DarkStudio: não foi possível carregar o NightCoder.", error);
+        console.error(
+          "DarkStudio: não foi possível carregar o NightCoder.",
+          error,
+        );
         return false;
       });
   }
@@ -442,9 +445,10 @@ export function loadExternalScript(url) {
 
 // Recursos opcionais são carregados somente quando a funcionalidade que os usa é acionada.
 window.darkStudioLoadExtensions = () => loadJS("extensions");
-window.darkStudioLoadColorThief = () => loadExternalScript(
-  "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
-);
+window.darkStudioLoadColorThief = () =>
+  loadExternalScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js",
+  );
 
 /**
  * Load CSS dynamically
@@ -552,14 +556,18 @@ if (!block) {
         window.clearTimeout(timeoutId);
         resolve();
       };
-      window.addEventListener("darkstudio:workspace-ready", finish, { once: true });
+      window.addEventListener("darkstudio:workspace-ready", finish, {
+        once: true,
+      });
       timeoutId = window.setTimeout(finish, 5000);
     });
 
     // Restaura a última área de trabalho aberta depois que os módulos de
     // interface e o Workspace estão prontos, sem disparar carregamentos duplicados.
     try {
-      const savedView = localStorage.getItem("darkstudio-active-workbench-view");
+      const savedView = localStorage.getItem(
+        "darkstudio-active-workbench-view",
+      );
       if (savedView === "settings") window.config?.();
     } catch {}
 
