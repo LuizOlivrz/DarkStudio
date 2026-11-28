@@ -5006,3 +5006,45 @@ html:not(.desktop-app) #system-now-playing-option {
 }
 #workspace-footer #config-toggle { order: 2; }
 #workspace-footer #code-language { order: 0; }
+
+
+/* NightCoder: revelação progressiva com uma onda curta nas letras atuais. */
+#messages .nightcoder-reveal-chunk {
+  opacity: 0;
+  transition: opacity 90ms linear;
+}
+#messages .nightcoder-reveal-chunk.is-visible {
+  opacity: 1;
+}
+#messages .nightcoder-reveal-chunk.is-active {
+  text-shadow:
+    0 0 4px rgba(var(--secondary-rgb, 93, 0, 255), .38),
+    0 0 9px rgba(var(--secondary-rgb, 93, 0, 255), .18);
+  animation: nightcoder-glow-wave 680ms ease-in-out infinite alternate;
+}
+@keyframes nightcoder-glow-wave {
+  from {
+    filter: drop-shadow(0 0 1px rgba(var(--secondary-rgb, 93, 0, 255), .12));
+  }
+  to {
+    filter: drop-shadow(0 0 4px rgba(var(--secondary-rgb, 93, 0, 255), .32));
+  }
+}
+#messages .nightcoder-reveal-finished .nightcoder-reveal-chunk {
+  transition: opacity 120ms ease-out;
+}
+#messages .nightcoder-reveal-finished .nightcoder-reveal-chunk.is-active {
+  animation: none;
+  filter: none;
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #messages .nightcoder-reveal-chunk {
+    transition: none;
+  }
+  #messages .nightcoder-reveal-chunk.is-active {
+    animation: none;
+    filter: none;
+    text-shadow: none;
+  }
+}
