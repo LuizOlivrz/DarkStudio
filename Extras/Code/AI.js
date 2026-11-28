@@ -114,6 +114,70 @@ if (!blockWeb) {
 
   document.getElementById("send").onclick = sendMessage;
 
+  // Revela o HTML já renderizado em pequenos trechos, sem reprocessar Markdown
+  // ou reconstruir a mensagem a cada caractere.
+  function animateAssistantMessage(messageElement) {
+    const walker = document.createTreeWalker(messageElement, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    let totalCharacters = 0;
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (!node.nodeValue) continue;
+      textNodes.push(node);
+      totalCharacters += Array.from(node.nodeValue).length;
+    }
+    if (!totalCharacters) return;
+
+    const chunkSize = Math.max(1, Math.min(10, Math.ceil(totalCharacters / 220)));
+    const chunks = [];
+    for (const node of textNodes) {
+      const characters = Array.from(node.nodeValue);
+      const fragment = document.createDocumentFragment();
+      for (let offset = 0; offset < characters.length; offset += chunkSize) {
+        const chunk = document.createElement("span");
+        chunk.className = "nightcoder-reveal-chunk";
+        chunk.textContent = characters.slice(offset, offset + chunkSize).join("");
+        fragment.appendChild(chunk);
+        chunks.push(chunk);
+      }
+      node.parentNode.replaceChild(fragment, node);
+    }
+
+    const duration = Math.min(9000, Math.max(1400, 1100 + totalCharacters * 3.2));
+    const startedAt = performance.now();
+    let revealed = 0;
+    let activeIndex = -1;
+
+    const frame = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const nextVisible = progress === 1
+        ? chunks.length
+        : Math.max(1, Math.ceil(progress * chunks.length));
+
+      while (revealed < nextVisible) {
+        chunks[revealed].classList.add("is-visible");
+        revealed += 1;
+      }
+
+      const nextActive = progress === 1
+        ? -1
+        : Math.min(chunks.length - 1, Math.floor(progress * chunks.length));
+      if (activeIndex !== nextActive) {
+        if (activeIndex >= 0) chunks[activeIndex].classList.remove("is-active");
+        if (nextActive >= 0) chunks[nextActive].classList.add("is-active");
+        activeIndex = nextActive;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        messageElement.classList.add("nightcoder-reveal-finished");
+      }
+    };
+
+    requestAnimationFrame(frame);
+  }
+
   // --- ENTER envia / SHIFT+ENTER quebra linha ---
   document.getElementById("input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -148,10 +212,11 @@ if (!blockWeb) {
     try {
       const reply = await requestNightCoder(chatHistory);
 
-      messages.insertAdjacentHTML(
-        "beforeend",
-        `<div class="ai">${renderMessage(reply)}</div>`,
-      );
+      const assistantMessage = document.createElement("div");
+      assistantMessage.className = "ai";
+      assistantMessage.innerHTML = renderMessage(reply);
+      messages.appendChild(assistantMessage);
+      animateAssistantMessage(assistantMessage);
       chatHistory.push({ role: "assistant", content: reply });
       saveChatToStorage();
     } catch (error) {
